@@ -299,9 +299,10 @@ main { padding: 20px; }
 .account-page-head h1 { margin: 0; color: #314e75; font-size: 18px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
 .account-head-actions { display: flex; align-items: center; gap: 12px; }
-.low-score-quick { min-width: 220px; height: 34px; padding: 0 16px; border: 1px solid rgba(201, 78, 74, .38); color: #b6403d; background: rgba(217, 83, 79, .12); text-align: center; }
-.low-score-quick strong { font-size: 14px; }
-.low-score-quick:hover { border-color: rgba(201, 78, 74, .52); background: rgba(217, 83, 79, .18); }
+.risk-quick-group { display: flex; align-items: center; gap: 8px; }
+.risk-count-quick { min-width: 150px; height: 34px; padding: 0 14px; border: 1px solid rgba(201, 78, 74, .38); color: #b6403d; background: rgba(217, 83, 79, .12); text-align: center; }
+.risk-count-quick strong { font-size: 14px; }
+.risk-count-quick:hover, .risk-count-quick.active { border-color: rgba(201, 78, 74, .58); background: rgba(217, 83, 79, .22); }
 .basic-config-toolbar { margin-top: 8px; background: #f5f6ef; border: 1px solid #5d9185; }
 .basic-config-actions { min-height: 42px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 4px 10px; border-bottom: 1px solid #8fa9a2; }
 .basic-config-filters { min-height: 54px; display: flex; align-items: center; gap: 14px; padding: 8px 12px; }

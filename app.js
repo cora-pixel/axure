@@ -46,23 +46,23 @@ const bands = [
 
 const pendingRows = [
   {
-    memberId: '2795074', user: 'hxm001@as', score: 0, action: '阻断人工', scoreCondition: 'IP不在常用IP中（IP：103.88.14.26）；设备无法证明为常用（设备号：Win10-Chrome-RISK51Hxm8K2p）；长期风险设备关联51-100人（设备号：Win10-Chrome-RISK51Hxm8K2p）', reason: '陌生IP＋有效陌生设备；命中长期风险设备51至100人', ip: '103.88.14.26', currentDeviceId: 'Win10-Chrome-RISK51Hxm8K2p', device: '有效陌生设备', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
+    memberId: '2795074', user: 'hxm001@as', score: 0, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；长期风险设备关联51-100人（设备号：Win10-Chrome-RISK51Hxm8K2p）', reason: '陌生IP＋有效陌生设备；命中长期风险设备51至100人', ip: '103.88.14.26', currentDeviceId: 'Win10-Chrome-RISK51Hxm8K2p', device: '有效陌生设备', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统', riskIps: [{ value: '45.76.188.92', accounts: 9 }], riskDevices: [{ value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 68 }],
     breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：103.88.14.26；有效陌生设备：Win10-Chrome-RISK51Hxm8K2p', '-45', '55'], ['R06 长期风险设备', '设备号Win10-Chrome-RISK51Hxm8K2p在48小时关联68个有效用户', '-65', '0']],
   },
   {
-    memberId: '2826222', user: 'yongson005', score: 25, action: '双项验证', scoreCondition: 'IP不在常用IP中（IP：202.55.225.254）；有效设备号不在常用设备中（设备号：Android-Chrome-R8tLp7Qm2Xc9）；24小时内切换5个以上陌生环境', reason: '陌生IP＋有效陌生设备；短时间频繁切换登录环境', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
+    memberId: '2826222', user: 'yongson005', score: 25, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时内切换5个以上陌生环境', reason: '陌生IP＋有效陌生设备；短时间频繁切换登录环境', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统', riskIps: [], riskDevices: [{ value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 68 }],
     breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：202.55.225.254；有效陌生设备：Android-Chrome-R8tLp7Qm2Xc9', '-45', '55'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30', '25']],
   },
   {
-    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中（IP：47.76.91.34）；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
+    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统', riskIps: [{ value: '139.162.60.207', accounts: 27 }], riskDevices: [{ value: 'Android-Chrome-RISK21Demo7', accounts: 22 }],
     breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：47.76.91.34；未获取有效设备号', '-45', '55']],
   },
   {
-    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', currentDeviceId: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 10, resetTime: '2026-11-17 10:26', resetOperator: 'cora',
+    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', currentDeviceId: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 10, resetTime: '2026-11-17 10:26', resetOperator: 'cora', riskIps: [{ value: '139.162.60.207', accounts: 27 }], riskDevices: [],
     breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：139.162.60.207；有效陌生设备：Win10-Chrome-95T0XYr9BIOdkdF4a29J', '-45', '55'], ['R05 长期风险IP', 'IP 139.162.60.207在48小时关联27个有效用户', '-45', '10'], ['验证成功', '更新常用IP及有效设备号', '重置', '100']],
   },
   {
-    memberId: '2827301', user: 'mika007@as', score: 70, action: '预警观察', scoreCondition: '长期风险IP关联9-20人（IP：45.76.188.92）', reason: '长期风险IP在48小时内关联9个有效用户', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统',
+    memberId: '2827301', user: 'mika007@as', score: 70, action: '预警观察', scoreCondition: '长期风险IP关联9-20人（IP：45.76.188.92）', reason: '长期风险IP在48小时内关联9个有效用户', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统', riskIps: [{ value: '45.76.188.92', accounts: 9 }], riskDevices: [{ value: 'Android-Chrome-RISK21Demo7', accounts: 22 }],
     breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R05 长期风险IP', 'IP 45.76.188.92在48小时关联9个有效用户', '-30', '70']],
   },
 ];
@@ -364,8 +364,36 @@ function renderBands() {
   $('#bandGrid').innerHTML = bands.map(band => `<article class="band-card ${band.className}"><strong>${band.range}分</strong><h3>${band.action}</h3><p>${band.detail}</p></article>`).join('');
 }
 
+let activeRiskQuickFilter = null;
+
+function riskEntries(row, type) {
+  return type === 'ip' ? (row.riskIps || []) : (row.riskDevices || []);
+}
+
+function topRiskEntry(row, type) {
+  return [...riskEntries(row, type)].sort((a, b) => b.accounts - a.accounts || a.value.localeCompare(b.value))[0] || null;
+}
+
+function riskQuickCount(type) {
+  return new Set(pendingRows.flatMap(row => riskEntries(row, type).map(item => item.value))).size;
+}
+
+function updateRiskQuickCounts() {
+  if ($('#riskIpQuickCount')) $('#riskIpQuickCount').textContent = `风险IP共${riskQuickCount('ip')}条`;
+  if ($('#riskDeviceQuickCount')) $('#riskDeviceQuickCount').textContent = `风险设备共${riskQuickCount('device')}条`;
+}
+
 function renderPending(rows = pendingRows) {
-  const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
+  const sortedRows = [...rows].sort((a, b) => {
+    if (!activeRiskQuickFilter) return b.time.localeCompare(a.time);
+    const aRisk = topRiskEntry(a, activeRiskQuickFilter);
+    const bRisk = topRiskEntry(b, activeRiskQuickFilter);
+    const countDifference = (bRisk?.accounts || 0) - (aRisk?.accounts || 0);
+    if (countDifference) return countDifference;
+    const profileDifference = (aRisk?.value || '').localeCompare(bRisk?.value || '');
+    if (profileDifference) return profileDifference;
+    return a.score - b.score || b.time.localeCompare(a.time);
+  });
   $('#pendingTableBody').innerHTML = sortedRows.map((row, index) => `
     <tr>
       <td><input type="checkbox" class="account-select" data-select-user="${row.user}" aria-label="选择${row.user}"></td><td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td><span class="verify-status ${row.status === '验证通过' ? 'normal' : 'failed'}">${row.status}</span></td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
@@ -415,6 +443,11 @@ function setLowScoreTiers() {
   updateScoreTierSummary();
 }
 
+function clearScoreTiers() {
+  $$('.score-tier-option').forEach(input => { input.checked = false; });
+  updateScoreTierSummary();
+}
+
 function updateScoreTierSummary() {
   const selected = selectedScoreTiers();
   const toggle = $('#pendingScoreTierToggle');
@@ -433,7 +466,8 @@ function renderFilteredPending() {
     matchesAccountSearch(row, searchType, keyword) &&
     (!condition || row.scoreCondition.toLowerCase().includes(condition)) &&
     (scoreTiers.length === 0 || scoreTiers.some(tier => matchesScoreTier(row.score, tier))) &&
-    (verificationStatus === 'all' || row.status === verificationStatus)
+    (verificationStatus === 'all' || row.status === verificationStatus) &&
+    (!activeRiskQuickFilter || riskEntries(row, activeRiskQuickFilter).length > 0)
   ));
 }
 
@@ -905,13 +939,18 @@ if ($('#pendingScoreTierToggle')) $('#pendingScoreTierToggle').addEventListener(
 });
 if ($('#pendingScoreTierMenu')) $('#pendingScoreTierMenu').addEventListener('click', event => event.stopPropagation());
 $$('.score-tier-option').forEach(input => input.addEventListener('change', updateScoreTierSummary));
-if ($('#lowScoreQuickFilter')) $('#lowScoreQuickFilter').addEventListener('click', () => {
-  setLowScoreTiers();
+$$('[data-risk-quick]').forEach(button => button.addEventListener('click', () => {
+  activeRiskQuickFilter = button.dataset.riskQuick;
+  $$('[data-risk-quick]').forEach(item => item.classList.toggle('active', item === button));
+  clearScoreTiers();
+  $('#pendingUserFilter').value = '';
+  $('#pendingConditionFilter').value = '';
+  $('#pendingVerificationStatus').value = 'all';
   $('#pendingScoreTierMenu').classList.add('hidden');
   $('#pendingScoreTierToggle').setAttribute('aria-expanded', 'false');
   renderFilteredPending();
   $('.table-wrap').scrollIntoView({ block: 'nearest' });
-});
+}));
 document.addEventListener('click', () => {
   if (!$('#pendingScoreTierMenu')) return;
   $('#pendingScoreTierMenu').classList.add('hidden');
@@ -923,6 +962,8 @@ if ($('#pendingUserType')) $('#pendingUserType').addEventListener('change', () =
   $('#pendingUserFilter').placeholder = placeholders[$('#pendingUserType').value];
 });
 if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () => {
+  activeRiskQuickFilter = null;
+  $$('[data-risk-quick]').forEach(button => button.classList.remove('active'));
   $('#pendingUserType').value = 'memberId';
   $('#pendingUserFilter').value = '';
   $('#pendingUserFilter').placeholder = '输入会员ID';
@@ -935,6 +976,6 @@ if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (
 
 if ($('#ruleTableBody')) { syncRulesFromConfig(); renderRules(); }
 if ($('#bandGrid')) renderBands();
-if ($('#pendingTableBody')) { updateScoreTierSummary(); renderFilteredPending(); }
+if ($('#pendingTableBody')) { updateRiskQuickCounts(); updateScoreTierSummary(); renderFilteredPending(); }
 if ($('#riskTgidBaseValue')) renderRiskTgidConfigRow();
 if ($('#scoreOrb')) updateScoreUI();

@@ -35,7 +35,7 @@
           <div class="admin-tab-panel active" id="accountPanel">
             <div class="account-page-head">
               <div><h1>用户账号评分</h1><p>查询全部会员的当前评分、分数扣减判断条件、验证状态与冻结状态，评分及操作变更均保留记录</p></div>
-              <div class="account-head-actions"><button class="low-score-quick" id="lowScoreQuickFilter"><strong>60分以下用户共24名</strong></button><button class="admin-btn" id="batchVerifyBtn">批量验证</button></div>
+              <div class="account-head-actions"><div class="risk-quick-group"><button class="risk-count-quick" data-risk-quick="ip"><strong id="riskIpQuickCount">风险IP共0条</strong></button><button class="risk-count-quick" data-risk-quick="device"><strong id="riskDeviceQuickCount">风险设备共0条</strong></button></div><button class="admin-btn" id="batchVerifyBtn">批量验证</button></div>
             </div>
             <div class="filter-bar pending-filter">
               <label class="user-search-filter"><select id="pendingUserType" aria-label="查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option><option value="ip">IP</option><option value="device">设备号</option></select><input id="pendingUserFilter" placeholder="输入会员ID"></label>
