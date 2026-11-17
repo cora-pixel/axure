@@ -3,25 +3,29 @@ const rules = [
   { id: 'R02', category: '环境变化', condition: '有效设备号不在常用设备中', score: '-15', mode: '单项扣分', desc: '设备变化权重大于单纯IP变化', enabled: true },
   { id: 'R03', category: '环境变化', condition: 'IP不在常用IP，且设备无法证明为常用', score: '-45', mode: '覆盖R01/R02', desc: '包含有效陌生设备及非有效设备号，不重复扣分', enabled: true },
   { id: 'R04', category: '环境变化', condition: '本次未获取到有效设备号', score: '-5', mode: '单项扣分', desc: '单独不验证，与陌生IP组合时使用R03', enabled: true },
-  { id: 'R05', category: '风险关联', condition: '风险IP关联9-10／11-20／21-50／51-100／100人以上', score: '-8/-12/-20/-30/-40', mode: '分档取值', desc: '按滚动48小时关联的不同有效用户数统计', enabled: true },
-  { id: 'R06', category: '风险关联', condition: '风险设备号关联9-10／11-20／21-50／51-100／100人以上', score: '-10/-18/-30/-45/-60', mode: '分档取值', desc: '仅统计device_valid=1的有效设备号', enabled: true },
-  { id: 'R07', category: '行为风险', condition: '24小时内切换3-4个陌生IP或有效设备号／5个及以上', score: '-10／-20', mode: '按最高档扣分', desc: '按不同IP、不同有效设备号去重；同一环境重复登录不计，IP与设备合计只取最高档', enabled: true },
-  { id: 'R08', category: '行为风险', condition: '2小时内同一有效IP或有效设备号登录3-5个／6-8个不同有效账号', score: '-15／-30', mode: '按最高档扣分', desc: '账号去重；达到9个账号时改用R05或R06，本规则不再重复扣分', enabled: true },
-  { id: 'R09', category: '行为风险', condition: '沉睡超过90天且IP、设备均变化', score: '-10', mode: '条件扣分', desc: '仅在设备无法证明可信且IP陌生时扣分', enabled: true },
-  { id: 'R10', category: '行为风险', condition: '新环境登录后立即进行敏感操作', score: '-15', mode: '条件扣分', desc: '登录与敏感操作使用同一本次分数', enabled: true },
-  { id: 'R11', category: '行为风险', condition: '10分钟内同账号密码错误5-9次／10次及以上，或同IP登录接口请求60-119次／120次及以上', score: '-20／-40', mode: '按最高档扣分', desc: '密码错误与接口高频同时命中只取最高档；需要失败登录及接口请求日志支持', enabled: true },
+  { id: 'R05', category: '风险关联', condition: '长期风险IP关联9-20／21-50／51-100／101人以上', score: '-30／-45／-65／-85', mode: '分档取值', desc: '滚动48小时按不同有效用户数统计；与短时同IP多账号只取较高扣分', enabled: true },
+  { id: 'R06', category: '风险关联', condition: '长期风险设备关联9-20／21-50／51-100／101人以上', score: '-30／-45／-65／-85', mode: '分档取值', desc: '仅统计device_valid=1的有效设备；与短时同设备多账号只取较高扣分', enabled: true },
+  { id: 'R07', category: '行为风险', condition: '24小时内切换3-4个陌生IP或有效设备号／5个及以上', score: '-15／-30', mode: '按最高档扣分', desc: 'IP与设备分别去重，本项只取较高扣分', enabled: true },
+  { id: 'R08', category: '高危行为', condition: '2小时内同一有效IP登录3-5／6-8／9个以上不同有效账号', score: '-45／-65／-85', mode: '按最高档扣分', desc: '账号去重；设备号是否有效不影响判断；排除登录IP等于注册IP', enabled: true },
+  { id: 'R09', category: '高危行为', condition: '2小时内同一有效设备登录3-5／6-8／9个以上不同有效账号', score: '-30／-45／-65', mode: '按最高档扣分', desc: '仅统计有效设备；与同IP及长期风险设备同时命中时只取较高扣分', enabled: true },
+  { id: 'R10', category: '高危行为', condition: '10分钟内同一账号调用登录认证或密码错误5-9／10-19／20次以上', score: '-45／-65／-85', mode: '按最高档扣分', desc: '页面刷新及Token续期不计；成功与失败合计后只命中一个档位', enabled: true },
+  { id: 'R11', category: '行为风险', condition: '沉睡超过90天且IP、设备均变化', score: '-10', mode: '条件扣分', desc: '三个条件必须同时成立，与双陌生环境分别扣分', enabled: true },
+  { id: 'R12', category: '行为风险', condition: '新环境登录后立即进行敏感操作', score: '-15', mode: '条件扣分', desc: '登录与敏感操作使用同一本次分数', enabled: true },
+  { id: 'R13', category: '高危行为', condition: '10分钟内同一IP调用登录接口60-119／120-239／240次以上', score: '-30／-50／-70', mode: '按最高档扣分', desc: '只统计登录接口；与其他盗号攻击项同时命中时取较高扣分', enabled: true },
 ];
 
 const scoringConfig = {
   r01Score: 10, r02Score: 15, r03Score: 45, r04Score: 5,
-  r05T1: 9, r05T2: 11, r05T3: 21, r05T4: 51, r05T5: 101,
-  r05S1: 8, r05S2: 12, r05S3: 20, r05S4: 30, r05S5: 40,
-  r06T1: 9, r06T2: 11, r06T3: 21, r06T4: 51, r06T5: 101,
-  r06S1: 10, r06S2: 18, r06S3: 30, r06S4: 45, r06S5: 60,
-  r07Hours: 24, r07T1: 3, r07T2: 5, r07S1: 10, r07S2: 20,
-  r08Hours: 2, r08T1: 3, r08T2: 6, r08Cutoff: 9, r08S1: 15, r08S2: 30,
-  r09Days: 90, r09Score: 10, r10Score: 15,
-  r11Minutes: 10, r11Pwd1: 5, r11Pwd2: 10, r11Api1: 60, r11Api2: 120, r11S1: 20, r11S2: 40,
+  r05T1: 9, r05T2: 21, r05T3: 51, r05T4: 101,
+  r05S1: 30, r05S2: 45, r05S3: 65, r05S4: 85,
+  r06T1: 9, r06T2: 21, r06T3: 51, r06T4: 101,
+  r06S1: 30, r06S2: 45, r06S3: 65, r06S4: 85,
+  r07Hours: 24, r07T1: 3, r07T2: 5, r07S1: 15, r07S2: 30,
+  r08Hours: 2, r08T1: 3, r08T2: 6, r08T3: 9, r08S1: 45, r08S2: 65, r08S3: 85,
+  r09Hours: 2, r09T1: 3, r09T2: 6, r09T3: 9, r09S1: 30, r09S2: 45, r09S3: 65,
+  r10Minutes: 10, r10T1: 5, r10T2: 10, r10T3: 20, r10S1: 45, r10S2: 65, r10S3: 85,
+  r11Days: 90, r11Score: 10, r12Score: 15,
+  r13Minutes: 10, r13T1: 60, r13T2: 120, r13T3: 240, r13S1: 30, r13S2: 50, r13S3: 70,
 };
 
 const bands = [
@@ -34,24 +38,24 @@ const bands = [
 
 const pendingRows = [
   {
-    memberId: '2795074', user: 'hxm001@as', score: 15, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；风险设备号关联51-100人；24小时内频繁切换环境', reason: '陌生IP＋设备无法证明可信；命中风险设备号51至100人', ip: '103.88.14.26', currentDeviceId: 'unknown', device: '非有效设备号', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
-    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋设备无法证明可信', '-45', '55'], ['R06 风险设备号', '48小时关联68个有效用户', '-45', '10'], ['R07 变化速度', '短时高频切换环境', '-10', '0']],
+    memberId: '2795074', user: 'hxm001@as', score: 0, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；长期风险设备关联51-100人', reason: '陌生IP＋设备无法证明可信；命中长期风险设备51至100人', ip: '103.88.14.26', currentDeviceId: 'unknown', device: '非有效设备号', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
+    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋设备无法证明可信', '-45', '55'], ['R06 长期风险设备', '48小时关联68个有效用户', '-65', '0']],
   },
   {
-    memberId: '2826222', user: 'yongson005', score: 35, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；风险IP关联21-50人', reason: '陌生IP＋有效陌生设备；风险IP关联21至50人', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
-    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和有效设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35']],
+    memberId: '2826222', user: 'yongson005', score: 25, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时内切换5个以上陌生环境', reason: '陌生IP＋有效陌生设备；短时间频繁切换登录环境', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
+    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和有效设备均未命中常用环境', '-45', '55'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30', '25']],
   },
   {
     memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋未获取有效设备号', '-45', '55']],
   },
   {
-    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', currentDeviceId: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 35, resetTime: '2026-11-17 10:26', resetOperator: '系统',
-    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35'], ['验证成功', '更新常用IP及有效设备号', '+65', '100']],
+    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', currentDeviceId: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 10, resetTime: '2026-11-17 10:26', resetOperator: '系统',
+    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和设备均未命中常用环境', '-45', '55'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45', '10'], ['验证成功', '更新常用IP及有效设备号', '+90', '100']],
   },
   {
-    memberId: '2827301', user: 'mika007@as', score: 72, action: '预警观察', scoreCondition: '风险IP关联9-10人；24小时内切换5个以上陌生环境', reason: '风险IP关联9至10人；短时间频繁切换登录环境', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统',
-    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R05 风险IP', '48小时关联9个有效用户', '-8', '92'], ['R07 变化速度', '24小时内切换5个以上陌生环境', '-20', '72']],
+    memberId: '2827301', user: 'mika007@as', score: 70, action: '预警观察', scoreCondition: '长期风险IP关联9-20人', reason: '长期风险IP在48小时内关联9个有效用户', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统',
+    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R05 长期风险IP', '48小时关联9个有效用户', '-30', '70']],
   },
 ];
 
@@ -416,27 +420,34 @@ function syncRulesFromConfig() {
   update('R03', { score: `-${scoringConfig.r03Score}` });
   update('R04', { score: `-${scoringConfig.r04Score}` });
   update('R05', {
-    condition: `风险IP关联${scoringConfig.r05T1}-${scoringConfig.r05T2 - 1}／${scoringConfig.r05T2}-${scoringConfig.r05T3 - 1}／${scoringConfig.r05T3}-${scoringConfig.r05T4 - 1}／${scoringConfig.r05T4}-${scoringConfig.r05T5 - 1}／${scoringConfig.r05T5}人以上`,
-    score: `-${scoringConfig.r05S1}／-${scoringConfig.r05S2}／-${scoringConfig.r05S3}／-${scoringConfig.r05S4}／-${scoringConfig.r05S5}`,
+    condition: `长期风险IP关联${scoringConfig.r05T1}-${scoringConfig.r05T2 - 1}／${scoringConfig.r05T2}-${scoringConfig.r05T3 - 1}／${scoringConfig.r05T3}-${scoringConfig.r05T4 - 1}／${scoringConfig.r05T4}人以上`,
+    score: `-${scoringConfig.r05S1}／-${scoringConfig.r05S2}／-${scoringConfig.r05S3}／-${scoringConfig.r05S4}`,
   });
   update('R06', {
-    condition: `风险设备号关联${scoringConfig.r06T1}-${scoringConfig.r06T2 - 1}／${scoringConfig.r06T2}-${scoringConfig.r06T3 - 1}／${scoringConfig.r06T3}-${scoringConfig.r06T4 - 1}／${scoringConfig.r06T4}-${scoringConfig.r06T5 - 1}／${scoringConfig.r06T5}人以上`,
-    score: `-${scoringConfig.r06S1}／-${scoringConfig.r06S2}／-${scoringConfig.r06S3}／-${scoringConfig.r06S4}／-${scoringConfig.r06S5}`,
+    condition: `长期风险设备关联${scoringConfig.r06T1}-${scoringConfig.r06T2 - 1}／${scoringConfig.r06T2}-${scoringConfig.r06T3 - 1}／${scoringConfig.r06T3}-${scoringConfig.r06T4 - 1}／${scoringConfig.r06T4}人以上`,
+    score: `-${scoringConfig.r06S1}／-${scoringConfig.r06S2}／-${scoringConfig.r06S3}／-${scoringConfig.r06S4}`,
   });
   update('R07', {
     condition: `${scoringConfig.r07Hours}小时内切换${scoringConfig.r07T1}-${scoringConfig.r07T2 - 1}个陌生IP或有效设备号／${scoringConfig.r07T2}个及以上`,
     score: `-${scoringConfig.r07S1}／-${scoringConfig.r07S2}`,
   });
   update('R08', {
-    condition: `${scoringConfig.r08Hours}小时内同一有效IP或有效设备号登录${scoringConfig.r08T1}-${scoringConfig.r08T2 - 1}个／${scoringConfig.r08T2}-${scoringConfig.r08Cutoff - 1}个不同有效账号`,
-    score: `-${scoringConfig.r08S1}／-${scoringConfig.r08S2}`,
-    desc: `账号去重；达到${scoringConfig.r08Cutoff}个账号时改用R05或R06，本规则不再重复扣分`,
+    condition: `${scoringConfig.r08Hours}小时内同一有效IP登录${scoringConfig.r08T1}-${scoringConfig.r08T2 - 1}／${scoringConfig.r08T2}-${scoringConfig.r08T3 - 1}／${scoringConfig.r08T3}个以上不同有效账号`,
+    score: `-${scoringConfig.r08S1}／-${scoringConfig.r08S2}／-${scoringConfig.r08S3}`,
   });
-  update('R09', { condition: `沉睡超过${scoringConfig.r09Days}天且IP、设备均变化`, score: `-${scoringConfig.r09Score}` });
-  update('R10', { score: `-${scoringConfig.r10Score}` });
-  update('R11', {
-    condition: `${scoringConfig.r11Minutes}分钟内同账号密码错误${scoringConfig.r11Pwd1}-${scoringConfig.r11Pwd2 - 1}次／${scoringConfig.r11Pwd2}次及以上，或同IP登录接口请求${scoringConfig.r11Api1}-${scoringConfig.r11Api2 - 1}次／${scoringConfig.r11Api2}次及以上`,
-    score: `-${scoringConfig.r11S1}／-${scoringConfig.r11S2}`,
+  update('R09', {
+    condition: `${scoringConfig.r09Hours}小时内同一有效设备登录${scoringConfig.r09T1}-${scoringConfig.r09T2 - 1}／${scoringConfig.r09T2}-${scoringConfig.r09T3 - 1}／${scoringConfig.r09T3}个以上不同有效账号`,
+    score: `-${scoringConfig.r09S1}／-${scoringConfig.r09S2}／-${scoringConfig.r09S3}`,
+  });
+  update('R10', {
+    condition: `${scoringConfig.r10Minutes}分钟内同一账号调用登录认证或密码错误${scoringConfig.r10T1}-${scoringConfig.r10T2 - 1}／${scoringConfig.r10T2}-${scoringConfig.r10T3 - 1}／${scoringConfig.r10T3}次以上`,
+    score: `-${scoringConfig.r10S1}／-${scoringConfig.r10S2}／-${scoringConfig.r10S3}`,
+  });
+  update('R11', { condition: `沉睡超过${scoringConfig.r11Days}天且IP、设备均变化`, score: `-${scoringConfig.r11Score}` });
+  update('R12', { score: `-${scoringConfig.r12Score}` });
+  update('R13', {
+    condition: `${scoringConfig.r13Minutes}分钟内同一IP调用登录接口${scoringConfig.r13T1}-${scoringConfig.r13T2 - 1}／${scoringConfig.r13T2}-${scoringConfig.r13T3 - 1}／${scoringConfig.r13T3}次以上`,
+    score: `-${scoringConfig.r13S1}／-${scoringConfig.r13S2}／-${scoringConfig.r13S3}`,
   });
 }
 
@@ -453,13 +464,15 @@ function openScoringSettingsDialog() {
       ${row('R02', '陌生设备', '有效设备号不在常用设备中', configNumber('r02Score'))}
       ${row('R03', '双陌生组合', 'IP陌生且设备无法证明为常用', configNumber('r03Score'))}
       ${row('R04', '设备号缺失', '本次未获取到有效设备号', configNumber('r04Score'))}
-      ${row('R05', '风险IP关联', `${configNumber('r05T1', '第1档≥', '人')}${configNumber('r05T2', '第2档≥', '人')}${configNumber('r05T3', '第3档≥', '人')}${configNumber('r05T4', '第4档≥', '人')}${configNumber('r05T5', '第5档≥', '人')}`, `${configNumber('r05S1', '第1档')}${configNumber('r05S2', '第2档')}${configNumber('r05S3', '第3档')}${configNumber('r05S4', '第4档')}${configNumber('r05S5', '第5档')}`)}
-      ${row('R06', '风险设备号关联', `${configNumber('r06T1', '第1档≥', '人')}${configNumber('r06T2', '第2档≥', '人')}${configNumber('r06T3', '第3档≥', '人')}${configNumber('r06T4', '第4档≥', '人')}${configNumber('r06T5', '第5档≥', '人')}`, `${configNumber('r06S1', '第1档')}${configNumber('r06S2', '第2档')}${configNumber('r06S3', '第3档')}${configNumber('r06S4', '第4档')}${configNumber('r06S5', '第5档')}`)}
+      ${row('R05', '长期风险IP', `${configNumber('r05T1', '第1档≥', '人')}${configNumber('r05T2', '第2档≥', '人')}${configNumber('r05T3', '第3档≥', '人')}${configNumber('r05T4', '第4档≥', '人')}`, `${configNumber('r05S1', '第1档')}${configNumber('r05S2', '第2档')}${configNumber('r05S3', '第3档')}${configNumber('r05S4', '第4档')}`)}
+      ${row('R06', '长期风险设备', `${configNumber('r06T1', '第1档≥', '人')}${configNumber('r06T2', '第2档≥', '人')}${configNumber('r06T3', '第3档≥', '人')}${configNumber('r06T4', '第4档≥', '人')}`, `${configNumber('r06S1', '第1档')}${configNumber('r06S2', '第2档')}${configNumber('r06S3', '第3档')}${configNumber('r06S4', '第4档')}`)}
       ${row('R07', '环境切换', `${configNumber('r07Hours', '统计', '小时')}${configNumber('r07T1', '第1档≥', '个')}${configNumber('r07T2', '第2档≥', '个')}`, `${configNumber('r07S1', '第1档')}${configNumber('r07S2', '第2档')}`)}
-      ${row('R08', '多账号登录', `${configNumber('r08Hours', '统计', '小时')}${configNumber('r08T1', '第1档≥', '人')}${configNumber('r08T2', '第2档≥', '人')}${configNumber('r08Cutoff', '转风险关联≥', '人')}`, `${configNumber('r08S1', '第1档')}${configNumber('r08S2', '第2档')}`)}
-      ${row('R09', '沉睡账号', configNumber('r09Days', '沉睡超过', '天'), configNumber('r09Score'))}
-      ${row('R10', '敏感操作', '新环境登录后立即进行敏感操作', configNumber('r10Score'))}
-      ${row('R11', '攻击行为', `${configNumber('r11Minutes', '统计', '分钟')}${configNumber('r11Pwd1', '密码错误第1档≥', '次')}${configNumber('r11Pwd2', '第2档≥', '次')}${configNumber('r11Api1', '接口第1档≥', '次')}${configNumber('r11Api2', '第2档≥', '次')}`, `${configNumber('r11S1', '第1档')}${configNumber('r11S2', '第2档')}`)}
+      ${row('R08', '同IP多账号', `${configNumber('r08Hours', '统计', '小时')}${configNumber('r08T1', '第1档≥', '人')}${configNumber('r08T2', '第2档≥', '人')}${configNumber('r08T3', '第3档≥', '人')}`, `${configNumber('r08S1', '第1档')}${configNumber('r08S2', '第2档')}${configNumber('r08S3', '第3档')}`)}
+      ${row('R09', '同设备多账号', `${configNumber('r09Hours', '统计', '小时')}${configNumber('r09T1', '第1档≥', '人')}${configNumber('r09T2', '第2档≥', '人')}${configNumber('r09T3', '第3档≥', '人')}`, `${configNumber('r09S1', '第1档')}${configNumber('r09S2', '第2档')}${configNumber('r09S3', '第3档')}`)}
+      ${row('R10', '账号高频登录', `${configNumber('r10Minutes', '统计', '分钟')}${configNumber('r10T1', '第1档≥', '次')}${configNumber('r10T2', '第2档≥', '次')}${configNumber('r10T3', '第3档≥', '次')}`, `${configNumber('r10S1', '第1档')}${configNumber('r10S2', '第2档')}${configNumber('r10S3', '第3档')}`)}
+      ${row('R11', '沉睡账号', configNumber('r11Days', '沉睡超过', '天'), configNumber('r11Score'))}
+      ${row('R12', '敏感操作', '新环境登录后立即进行敏感操作', configNumber('r12Score'))}
+      ${row('R13', '登录接口高频', `${configNumber('r13Minutes', '统计', '分钟')}${configNumber('r13T1', '第1档≥', '次')}${configNumber('r13T2', '第2档≥', '次')}${configNumber('r13T3', '第3档≥', '次')}`, `${configNumber('r13S1', '第1档')}${configNumber('r13S2', '第2档')}${configNumber('r13S3', '第3档')}`)}
     </tbody></table></div>
     <p class="config-error" id="configError" aria-live="polite"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-scoring>保存设置</button></div>
@@ -471,10 +484,13 @@ function openScoringSettingsDialog() {
     $$('[data-config-key]').forEach(input => { values[input.dataset.configKey] = Number(input.value); });
     const invalidNumber = Object.values(values).some(value => !Number.isInteger(value) || value < 1);
     const ascending = [
-      ['r05T1', 'r05T2', 'r05T3', 'r05T4', 'r05T5'],
-      ['r06T1', 'r06T2', 'r06T3', 'r06T4', 'r06T5'],
-      ['r07T1', 'r07T2'], ['r08T1', 'r08T2', 'r08Cutoff'],
-      ['r11Pwd1', 'r11Pwd2'], ['r11Api1', 'r11Api2'],
+      ['r05T1', 'r05T2', 'r05T3', 'r05T4'], ['r05S1', 'r05S2', 'r05S3', 'r05S4'],
+      ['r06T1', 'r06T2', 'r06T3', 'r06T4'], ['r06S1', 'r06S2', 'r06S3', 'r06S4'],
+      ['r07T1', 'r07T2'], ['r07S1', 'r07S2'],
+      ['r08T1', 'r08T2', 'r08T3'], ['r08S1', 'r08S2', 'r08S3'],
+      ['r09T1', 'r09T2', 'r09T3'], ['r09S1', 'r09S2', 'r09S3'],
+      ['r10T1', 'r10T2', 'r10T3'], ['r10S1', 'r10S2', 'r10S3'],
+      ['r13T1', 'r13T2', 'r13T3'], ['r13S1', 'r13S2', 'r13S3'],
     ].every(keys => keys.every((key, index) => index === 0 || values[key] > values[keys[index - 1]]));
     if (invalidNumber || !ascending) {
       $('#configError').textContent = invalidNumber ? '请填写大于0的整数。' : '同一规则的分档门槛必须从低到高填写。';
