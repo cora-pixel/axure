@@ -214,6 +214,7 @@ main { padding: 20px; }
 .checkbox-options input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #526ba3; }
 .pending-filter .user-search-filter select { width: 96px; }
 .pending-filter .user-search-filter input { width: 220px; }
+.pending-filter .condition-search-filter input { width: 240px; }
 .pending-filter { align-items: center; gap: 18px; padding: 10px 14px; }
 .pending-filter > label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .pending-filter > label input { margin: 0; }
@@ -287,14 +288,15 @@ main { padding: 20px; }
 .account-score-table th:nth-child(1) { width: 78px; }
 .account-score-table th:nth-child(2) { width: 120px; }
 .account-score-table th:nth-child(3) { width: 52px; }
-.account-score-table th:nth-child(4) { width: 88px; }
+.account-score-table th:nth-child(4) { width: 280px; }
 .account-score-table th:nth-child(5) { width: 72px; }
-.account-score-table th:nth-child(6) { width: 210px; }
+.account-score-table th:nth-child(6) { width: 170px; }
 .account-score-table th:nth-child(7) { width: 125px; }
 .account-score-table th:nth-child(8) { width: 68px; }
 .account-score-table th:nth-child(9) { width: 140px; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
+.score-condition { line-height: 1.55; overflow-wrap: anywhere; }
 .verify-status { font-weight: 700; }
 .verify-status.normal { color: #3e8e68; }
 .verify-status.one { color: #d88618; }
@@ -334,10 +336,11 @@ main { padding: 20px; }
 .config-number input { width: 58px; height: 28px; padding: 3px 5px; border: 1px solid #8ba1aa; background: #fff; text-align: center; }
 .config-number em { color: #74828c; font-style: normal; }
 .config-error { min-height: 18px; margin: 10px 0 -8px; color: #d9534f; font-size: 12px; text-align: center; }
-.detail-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.detail-summary { display: grid; grid-template-columns: 1.1fr .65fr 2fr .65fr; gap: 10px; margin-bottom: 16px; }
 .detail-summary > div { padding: 12px; background: #eef3f5; border-left: 3px solid #526ba3; }
 .detail-summary span { display: block; color: #74828c; font-size: 12px; }
 .detail-summary strong { display: block; margin-top: 6px; }
+.detail-summary .condition-summary strong { line-height: 1.45; }
 .detail-section { margin-top: 18px; }
 .detail-section h3 { margin: 0 0 8px; font-size: 15px; }
 .detail-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
