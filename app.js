@@ -430,9 +430,6 @@ function openPendingDetail(memberId) {
   const latestRecord = row.resetFrom === undefined
     ? `<tr><td>${row.time}</td><td>${row.source}</td><td>分数更新为${row.score}，验证状态：${row.status}</td><td>${row.operator}</td></tr>`
     : '';
-  const successButton = row.score === 100
-    ? '<button class="admin-btn" disabled>当前已重置为100分</button>'
-    : '<button class="admin-btn" data-mark-common>验证成功并重置为100分</button>';
   openDialog('账号评分详情', `
     <div class="detail-summary">
       <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div><span>添加方式</span><strong>${row.source}</strong></div><div><span>验证状态</span><strong>${row.status}</strong></div>
@@ -440,25 +437,9 @@ function openPendingDetail(memberId) {
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>累计分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     <div class="detail-section"><h3>风险与环境信息</h3><table class="mini-table"><tbody><tr><td>触发原因</td><td colspan="3">${row.reason}</td></tr><tr><td>当前IP</td><td>${row.ip}</td><td>设备状态</td><td>${row.device}</td></tr><tr><td>备注</td><td colspan="3">${row.note || '—'}</td></tr></tbody></table></div>
     <div class="detail-section"><h3>验证及变更记录</h3><table class="mini-table"><thead><tr><th>时间</th><th>类型</th><th>内容</th><th>操作人</th></tr></thead><tbody>${resetRecord}${latestRecord}<tr><td>2026-11-17 08:20</td><td>评分记录</td><td>${row.reason}</td><td>系统</td></tr></tbody></table></div>
-    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>关闭</button>${successButton}</div>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>关闭</button></div>
   `);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
-  if ($('[data-mark-common]')) {
-    $('[data-mark-common]').addEventListener('click', () => {
-      const previousScore = row.score;
-      row.resetFrom = previousScore;
-      row.resetTime = '2026-11-17 11:26';
-      row.resetOperator = 'Cora';
-      if (previousScore < 100) row.breakdown.push(['验证成功', '更新常用IP及有效设备号', `+${100 - previousScore}`, '100']);
-      row.score = 100;
-      row.action = '正常放行';
-      row.status = '正常';
-      row.reason = '验证成功，常用环境已更新';
-      row.time = row.resetTime;
-      row.operator = 'Cora';
-      closeDialog(); renderPending();
-    });
-  }
 }
 
 function openManualVerifyDialog(memberId) {
