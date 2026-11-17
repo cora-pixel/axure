@@ -325,7 +325,6 @@ function renderRules(filter = 'all') {
     <tr>
       <td>${rule.id}</td><td>${rule.category}</td><td>${rule.condition}</td>
       <td class="score-text score-block">${rule.score}</td><td>${rule.mode}</td><td>${rule.desc}</td>
-      <td class="status-enabled">${rule.enabled ? '启用' : '停用'}</td>
     </tr>`).join('');
 }
 
