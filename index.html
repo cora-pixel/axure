@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=frontend.html">
+  <title>登录环境风险评分交互原型</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark">杏</div>
+      <div>
+        <strong>登录环境风险评分</strong>
+        <span>前后台交互原型</span>
+      </div>
+    </div>
+    <nav class="view-tabs" aria-label="原型页面">
+      <button class="view-tab active" data-view="frontend">前台验证</button>
+      <button class="view-tab" data-view="pending">用户账号评分</button>
+      <button class="view-tab" data-view="rules">评分规则</button>
+    </nav>
+    <div class="operator">Cora</div>
+  </header>
+
+  <main>
+    <section id="frontendView" class="view active">
+      <div class="frontend-layout">
+        <section class="prototype-stage">
+          <div class="site-nav">
+            <strong>杏彩体育</strong>
+            <span>首页　体育　真人　优惠</span>
+          </div>
+          <div class="site-content" id="siteContent">
+            <div class="login-card" id="loginCard">
+              <h2>欢迎登录</h2>
+              <label>用户名<input id="username" value="yongson005@as"></label>
+              <label>密码<input id="password" type="password" value="123456"></label>
+              <button class="primary wide" id="loginBtn">登录</button>
+            </div>
+            <div class="home-content hidden" id="homeContent">
+              <div class="home-heading">欢迎回来</div>
+              <div class="home-metrics">
+                <div><span>账户余额</span><strong>¥ 28,560.00</strong></div>
+                <div><span>可用优惠</span><strong>6 项</strong></div>
+                <div><span>站内消息</span><strong>3 条</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="toast hidden" id="toast"></div>
+          <div class="modal-mask hidden" id="modalMask">
+            <div class="security-modal" id="securityModal" role="dialog" aria-modal="true"></div>
+          </div>
+        </section>
+
+        <aside class="simulator-panel">
+          <div class="panel-title">
+            <div>
+              <h2>场景模拟</h2>
+              <p>选择分数后点击登录</p>
+            </div>
+            <div class="score-orb" id="scoreOrb">55</div>
+          </div>
+
+          <div class="segmented" id="scenarioButtons">
+            <button data-score="90">90 放行</button>
+            <button data-score="70">70 观察</button>
+            <button class="active" data-score="55">55 单验</button>
+            <button data-score="35">35 双验</button>
+            <button data-score="15">15 人工</button>
+          </div>
+
+          <div class="control-summary">
+            <span>当前控制</span>
+            <strong id="controlAction">单项验证</strong>
+          </div>
+
+          <h3>可用验证资料</h3>
+          <label class="toggle-row"><span>手机号码</span><input type="checkbox" data-method-toggle="phone" checked></label>
+          <label class="toggle-row"><span>邮箱</span><input type="checkbox" data-method-toggle="email" checked></label>
+          <label class="toggle-row"><span>上次成功提款账号</span><input type="checkbox" data-method-toggle="withdraw" checked></label>
+          <label class="toggle-row"><span>资金密码</span><input type="checkbox" data-method-toggle="fund"></label>
+
+          <div class="demo-values">
+            <h3>演示校验值</h3>
+            <p>验证码：<code>863921</code></p>
+            <p>提款账号：<code>6222533452567006509</code></p>
+            <p>资金密码：<code>123456</code></p>
+          </div>
+
+          <div class="state-log">
+            <span>本次状态</span>
+            <strong id="frontState">等待登录</strong>
+            <small id="frontStateDetail">风险分数将在登录时生效</small>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="rulesView" class="view backend-view">
+      <div class="page-header">
+        <div>
+          <h1>登录环境风险评分规则</h1>
+          <p>总分从100分开始扣减，累计扣分达到100分后停止，最低为0分</p>
+        </div>
+        <button class="admin-btn" id="addRuleBtn">＋ 新增规则</button>
+      </div>
+
+      <div class="filter-bar">
+        <label>规则分类<select id="ruleCategoryFilter"><option value="all">全部</option><option>环境变化</option><option>风险关联</option><option>行为风险</option></select></label>
+        <label>状态<select><option>启用</option><option>停用</option></select></label>
+        <button class="admin-btn secondary" id="ruleSearchBtn">查询</button>
+        <button class="link-btn" id="ruleResetBtn">重置</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>分类</th><th>判断条件</th><th>扣分</th><th>累计方式</th><th>说明</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="ruleTableBody"></tbody>
+        </table>
+      </div>
+
+      <section class="control-section">
+        <div class="section-heading">
+          <div><h2>风险分数控制区间</h2><p>最终分数只决定验证强度</p></div>
+          <button class="admin-btn secondary" id="editBandsBtn">修改区间</button>
+        </div>
+        <div class="band-grid" id="bandGrid"></div>
+      </section>
+    </section>
+
+    <section id="pendingView" class="view account-score-view">
+      <div class="admin-system-shell">
+        <aside class="admin-menu" aria-label="管理后台菜单">
+          <div class="admin-menu-title">管理后台</div>
+          <ul class="admin-menu-groups">
+            <li>＋ 黑名单管理</li>
+            <li>＋ 风控管理</li>
+            <li>＋ 开发管理</li>
+            <li>＋ 网站管理</li>
+            <li>＋ 游戏管理</li>
+            <li class="expanded">－ 用户管理
+              <ul>
+                <li>用户信息黑名单</li>
+                <li>用户列表</li>
+                <li>用户白名单</li>
+                <li class="active">用户账号评分</li>
+                <li>登录临时冻结</li>
+                <li>账号反查</li>
+              </ul>
+            </li>
+            <li>＋ 资金管理</li>
+            <li>＋ 配额组管理</li>
+          </ul>
+        </aside>
+
+        <div class="admin-workspace">
+          <div class="admin-breadcrumb">
+            <strong>后台管理</strong> - 用户管理 - <span>用户账号评分</span>
+            <small>当前操作人：Cora</small>
+          </div>
+
+          <div class="account-page-head">
+            <div>
+              <h1>用户账号评分</h1>
+              <p>按会员账号展示最新评分与验证状态，自动或手动更新均保留操作记录</p>
+            </div>
+            <button class="admin-btn" id="addPendingBtn">＋ 手动添加</button>
+          </div>
+
+          <div class="filter-bar pending-filter">
+            <label>会员ID／账号<input id="pendingUserFilter" placeholder="输入会员ID或会员账号"></label>
+            <label>验证状态<select id="pendingStatusFilter"><option value="all">全部</option><option>正常</option><option>一步验证</option><option>两步验证</option><option>未通过验证</option></select></label>
+            <label>添加方式<select id="pendingSourceFilter"><option value="all">全部</option><option>自动添加</option><option>手动添加</option></select></label>
+            <label>操作人<input id="pendingOperatorFilter" placeholder="输入操作人"></label>
+            <button class="admin-btn secondary" id="pendingSearchBtn">查询</button>
+            <button class="link-btn" id="pendingResetBtn">重置</button>
+          </div>
+
+          <div class="table-wrap">
+            <table class="admin-table account-score-table">
+              <thead><tr><th>会员ID</th><th>会员账号</th><th>分数</th><th>添加方式</th><th>验证状态</th><th>备注</th><th>更新时间</th><th>操作人</th><th>操作</th></tr></thead>
+              <tbody id="pendingTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="table-footer"><span>共 <strong id="accountTotal">0</strong> 条记录</span><span>1　2　3　下一页</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="dialog-mask hidden" id="dialogMask">
+    <div class="admin-dialog" id="adminDialog"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
