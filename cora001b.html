@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>后台用户账号评分原型</title>
-  <link rel="stylesheet" href="styles.css?v=20261117-b10">
+  <link rel="stylesheet" href="styles.css?v=20261117-b11">
 </head>
 <body>
   <header class="topbar backend-topbar">
@@ -41,7 +41,7 @@
               <div><h1>用户账号评分</h1><p>查询全部会员的当前评分、验证状态与冻结状态，评分及操作变更均保留记录</p></div>
             </div>
             <div class="filter-bar pending-filter">
-              <label>会员ID／账号<input id="pendingUserFilter" placeholder="输入会员ID或会员账号"></label>
+              <label class="user-search-filter"><select id="pendingUserType" aria-label="会员查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option></select><input id="pendingUserFilter" placeholder="输入会员ID"></label>
               <div class="checkbox-filter"><span>验证状态</span><div class="checkbox-options"><label><input type="checkbox" name="pendingStatus" value="正常">正常</label><label><input type="checkbox" name="pendingStatus" value="验证通过">验证通过</label><label><input type="checkbox" name="pendingStatus" value="一步验证">一步验证</label><label><input type="checkbox" name="pendingStatus" value="两步验证">两步验证</label><label><input type="checkbox" name="pendingStatus" value="未通过验证" checked>未通过验证</label></div></div>
               <button class="admin-btn secondary" id="pendingSearchBtn">查询</button><button class="link-btn" id="pendingResetBtn">重置</button>
             </div>
@@ -76,6 +76,6 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b10"></script>
+  <script src="app.js?v=20261117-b11"></script>
 </body>
 </html>

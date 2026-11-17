@@ -212,7 +212,8 @@ main { padding: 20px; }
 .checkbox-options { height: 32px; display: flex; align-items: center; gap: 12px; padding: 0 10px; border: 1px solid #8ba1aa; background: #fff; white-space: nowrap; }
 .checkbox-options label { display: inline-flex; align-items: center; gap: 4px; }
 .checkbox-options input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #526ba3; }
-.pending-filter > label:first-child input { width: 250px; }
+.pending-filter .user-search-filter select { width: 96px; }
+.pending-filter .user-search-filter input { width: 220px; }
 .pending-filter { align-items: center; gap: 18px; padding: 10px 14px; }
 .pending-filter > label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .pending-filter > label input { margin: 0; }

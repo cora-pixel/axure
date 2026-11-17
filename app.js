@@ -359,9 +359,10 @@ function renderPending(rows = pendingRows) {
 
 function renderFilteredPending() {
   const user = $('#pendingUserFilter').value.trim().toLowerCase();
+  const userType = $('#pendingUserType').value;
   const statuses = $$('input[name="pendingStatus"]:checked').map(input => input.value);
   renderPending(pendingRows.filter(row =>
-    (!user || row.user.toLowerCase().includes(user) || row.memberId.includes(user)) &&
+    (!user || (userType === 'memberId' ? row.memberId.includes(user) : row.user.toLowerCase().includes(user))) &&
     (!statuses.length || statuses.includes(row.status))
   ));
 }
@@ -551,8 +552,14 @@ if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDi
 if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () => {
   renderFilteredPending();
 });
-if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () => {
+if ($('#pendingUserType')) $('#pendingUserType').addEventListener('change', () => {
   $('#pendingUserFilter').value = '';
+  $('#pendingUserFilter').placeholder = $('#pendingUserType').value === 'memberId' ? '输入会员ID' : '输入会员账号';
+});
+if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () => {
+  $('#pendingUserType').value = 'memberId';
+  $('#pendingUserFilter').value = '';
+  $('#pendingUserFilter').placeholder = '输入会员ID';
   $$('input[name="pendingStatus"]').forEach(input => { input.checked = input.value === '未通过验证'; });
   renderFilteredPending();
 });
