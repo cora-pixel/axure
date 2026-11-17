@@ -500,6 +500,14 @@ $$('.view-tab').forEach(tab => tab.addEventListener('click', () => {
   $(`#${tab.dataset.view}View`).classList.add('active');
 }));
 
+$$('.admin-page-tab').forEach(tab => tab.addEventListener('click', () => {
+  $$('.admin-page-tab').forEach(item => item.classList.toggle('active', item === tab));
+  $$('.admin-tab-panel').forEach(panel => panel.classList.remove('active'));
+  $(`#${tab.dataset.adminTab}Panel`).classList.add('active');
+  const breadcrumb = $('.admin-breadcrumb span');
+  if (breadcrumb) breadcrumb.textContent = tab.dataset.adminTab === 'rules' ? '评分规则设置' : '用户账号评分';
+}));
+
 if ($('#scenarioButtons')) $('#scenarioButtons').addEventListener('click', event => {
   const button = event.target.closest('button[data-score]');
   if (!button) return;

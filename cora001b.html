@@ -3,24 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>后台用户账号评分原型</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261117-b2">
 </head>
 <body>
-  <header class="topbar">
+  <header class="topbar backend-topbar">
     <div class="brand-block">
       <div class="brand-mark">杏</div>
       <div><strong>登录环境风险评分</strong><span>后台交互原型</span></div>
     </div>
-    <nav class="view-tabs" aria-label="后台原型页面">
-      <button class="view-tab active" data-view="pending">用户账号评分</button>
-      <button class="view-tab" data-view="rules">评分规则</button>
-    </nav>
     <a class="prototype-jump" href="cora001.html">查看前台原型</a>
   </header>
 
   <main>
-    <section id="pendingView" class="view account-score-view active">
+    <section class="view account-score-view active">
       <div class="admin-system-shell">
         <aside class="admin-menu" aria-label="管理后台菜单">
           <div class="admin-menu-title">管理后台</div>
@@ -34,47 +31,54 @@
         </aside>
         <div class="admin-workspace">
           <div class="admin-breadcrumb"><strong>后台管理</strong> - 用户管理 - <span>用户账号评分</span><small>当前操作人：Cora</small></div>
-          <div class="account-page-head">
-            <div><h1>用户账号评分</h1><p>按会员账号展示最新评分与验证状态，自动或手动更新均保留操作记录</p></div>
-            <button class="admin-btn" id="addPendingBtn">＋ 手动添加</button>
+          <nav class="admin-page-tabs" aria-label="用户账号评分功能">
+            <button class="admin-page-tab active" data-admin-tab="account">用户账号评分</button>
+            <button class="admin-page-tab" data-admin-tab="rules">评分规则设置</button>
+          </nav>
+
+          <div class="admin-tab-panel active" id="accountPanel">
+            <div class="account-page-head">
+              <div><h1>用户账号评分</h1><p>按会员账号展示最新评分与验证状态，自动或手动更新均保留操作记录</p></div>
+              <button class="admin-btn" id="addPendingBtn">＋ 手动添加</button>
+            </div>
+            <div class="filter-bar pending-filter">
+              <label>会员ID／账号<input id="pendingUserFilter" placeholder="输入会员ID或会员账号"></label>
+              <label>验证状态<select id="pendingStatusFilter"><option value="all">全部</option><option>正常</option><option>一步验证</option><option>两步验证</option><option>未通过验证</option></select></label>
+              <label>添加方式<select id="pendingSourceFilter"><option value="all">全部</option><option>自动添加</option><option>手动添加</option></select></label>
+              <label>操作人<input id="pendingOperatorFilter" placeholder="输入操作人"></label>
+              <button class="admin-btn secondary" id="pendingSearchBtn">查询</button><button class="link-btn" id="pendingResetBtn">重置</button>
+            </div>
+            <div class="table-wrap">
+              <table class="admin-table account-score-table">
+                <thead><tr><th>会员ID</th><th>会员账号</th><th>分数</th><th>添加方式</th><th>验证状态</th><th>备注</th><th>更新时间</th><th>操作人</th><th>操作</th></tr></thead>
+                <tbody id="pendingTableBody"></tbody>
+              </table>
+            </div>
+            <div class="table-footer"><span>共 <strong id="accountTotal">0</strong> 条记录</span><span>1　2　3　下一页</span></div>
           </div>
-          <div class="filter-bar pending-filter">
-            <label>会员ID／账号<input id="pendingUserFilter" placeholder="输入会员ID或会员账号"></label>
-            <label>验证状态<select id="pendingStatusFilter"><option value="all">全部</option><option>正常</option><option>一步验证</option><option>两步验证</option><option>未通过验证</option></select></label>
-            <label>添加方式<select id="pendingSourceFilter"><option value="all">全部</option><option>自动添加</option><option>手动添加</option></select></label>
-            <label>操作人<input id="pendingOperatorFilter" placeholder="输入操作人"></label>
-            <button class="admin-btn secondary" id="pendingSearchBtn">查询</button><button class="link-btn" id="pendingResetBtn">重置</button>
+
+          <div class="admin-tab-panel" id="rulesPanel">
+            <div class="account-page-head">
+              <div><h1>评分规则设置</h1><p>总分从100分开始扣减，累计扣分达到100分后停止，最低为0分</p></div>
+              <button class="admin-btn" id="addRuleBtn">＋ 新增规则</button>
+            </div>
+            <div class="filter-bar">
+              <label>规则分类<select id="ruleCategoryFilter"><option value="all">全部</option><option>环境变化</option><option>风险关联</option><option>行为风险</option></select></label>
+              <label>状态<select><option>启用</option><option>停用</option></select></label>
+              <button class="admin-btn secondary" id="ruleSearchBtn">查询</button><button class="link-btn" id="ruleResetBtn">重置</button>
+            </div>
+            <div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>分类</th><th>判断条件</th><th>扣分</th><th>累计方式</th><th>说明</th><th>状态</th><th>操作</th></tr></thead><tbody id="ruleTableBody"></tbody></table></div>
+            <section class="control-section">
+              <div class="section-heading"><div><h2>风险分数控制区间</h2><p>最终分数只决定验证强度</p></div><button class="admin-btn secondary" id="editBandsBtn">修改区间</button></div>
+              <div class="band-grid" id="bandGrid"></div>
+            </section>
           </div>
-          <div class="table-wrap">
-            <table class="admin-table account-score-table">
-              <thead><tr><th>会员ID</th><th>会员账号</th><th>分数</th><th>添加方式</th><th>验证状态</th><th>备注</th><th>更新时间</th><th>操作人</th><th>操作</th></tr></thead>
-              <tbody id="pendingTableBody"></tbody>
-            </table>
-          </div>
-          <div class="table-footer"><span>共 <strong id="accountTotal">0</strong> 条记录</span><span>1　2　3　下一页</span></div>
         </div>
       </div>
-    </section>
-
-    <section id="rulesView" class="view backend-view">
-      <div class="page-header">
-        <div><h1>登录环境风险评分规则</h1><p>总分从100分开始扣减，累计扣分达到100分后停止，最低为0分</p></div>
-        <button class="admin-btn" id="addRuleBtn">＋ 新增规则</button>
-      </div>
-      <div class="filter-bar">
-        <label>规则分类<select id="ruleCategoryFilter"><option value="all">全部</option><option>环境变化</option><option>风险关联</option><option>行为风险</option></select></label>
-        <label>状态<select><option>启用</option><option>停用</option></select></label>
-        <button class="admin-btn secondary" id="ruleSearchBtn">查询</button><button class="link-btn" id="ruleResetBtn">重置</button>
-      </div>
-      <div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>分类</th><th>判断条件</th><th>扣分</th><th>累计方式</th><th>说明</th><th>状态</th><th>操作</th></tr></thead><tbody id="ruleTableBody"></tbody></table></div>
-      <section class="control-section">
-        <div class="section-heading"><div><h2>风险分数控制区间</h2><p>最终分数只决定验证强度</p></div><button class="admin-btn secondary" id="editBandsBtn">修改区间</button></div>
-        <div class="band-grid" id="bandGrid"></div>
-      </section>
     </section>
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js"></script>
+  <script src="app.js?v=20261117-b2"></script>
 </body>
 </html>

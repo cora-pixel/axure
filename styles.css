@@ -48,6 +48,8 @@ button { cursor: pointer; }
 .operator { justify-self: end; font-size: 13px; }
 .standalone-title { justify-self: center; color: rgba(255,255,255,.92); font-weight: 700; }
 .prototype-jump { justify-self: end; color: #fff; font-size: 13px; text-decoration: underline; }
+.backend-topbar { grid-template-columns: 1fr auto; }
+.backend-topbar .prototype-jump { grid-column: 2; }
 
 main { padding: 20px; }
 .view { display: none; }
@@ -250,6 +252,23 @@ main { padding: 20px; }
 .admin-breadcrumb { min-height: 38px; display: flex; align-items: center; gap: 4px; padding: 0 12px; color: #203646; background: #f5f6ef; border: 1px solid #5d9185; }
 .admin-breadcrumb span { color: #d7423c; font-weight: 700; }
 .admin-breadcrumb small { margin-left: auto; color: #5f6e76; }
+.admin-page-tabs {
+  height: 48px; display: flex; align-items: stretch; margin-top: 8px; padding: 0 12px;
+  background: #fff; border: 1px solid #5d9185;
+}
+.admin-page-tab {
+  min-width: 170px; height: 47px; position: relative; padding: 0 22px; border: 0;
+  color: #17202a; background: #fff; font-size: 14px;
+}
+.admin-page-tab::after {
+  content: ""; position: absolute; right: 20px; bottom: 0; left: 20px; height: 4px;
+  background: transparent;
+}
+.admin-page-tab:hover { color: #6d237e; }
+.admin-page-tab.active { color: #6d237e; font-weight: 700; }
+.admin-page-tab.active::after { background: #8d279a; }
+.admin-tab-panel { display: none; }
+.admin-tab-panel.active { display: block; }
 .account-page-head { min-height: 60px; display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding: 8px 12px; background: #f5f6ef; border: 1px solid #5d9185; }
 .account-page-head h1 { margin: 0; color: #314e75; font-size: 18px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
