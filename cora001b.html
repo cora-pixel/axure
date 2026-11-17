@@ -59,7 +59,7 @@
 
           <div class="admin-tab-panel" id="rulesPanel">
             <div class="account-page-head">
-              <div><h1>评分规则设置</h1><p>总分从100分开始扣减，累计扣分达到100分后停止，最低为0分</p></div>
+              <div><h1>评分规则设置</h1><p>账号首次评分初始化为100分，后续沿用当前分数持续扣减，最低为0分</p></div>
               <button class="admin-btn" id="ruleSettingsBtn">规则设置</button>
             </div>
             <div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>分类</th><th>判断条件</th><th>扣分</th><th>累计方式</th><th>说明</th></tr></thead><tbody id="ruleTableBody"></tbody></table></div>
@@ -74,6 +74,6 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b28"></script>
+  <script src="app.js?v=20261117-b29"></script>
 </body>
 </html>
