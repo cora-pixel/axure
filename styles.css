@@ -298,8 +298,10 @@ main { padding: 20px; }
 .screen-hotspot:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .login-submit-hotspot { left: 49%; top: 60.8%; width: 17%; height: 7.2%; }
 .login-close-hotspot { left: 64.7%; top: 36.5%; width: 2.5%; height: 5.5%; }
-.frontend-stack .modal-mask { inset: 0; }
+.frontend-stack .modal-mask { inset: 0; z-index: 50; }
 .frontend-stack .security-modal { width: 520px; max-height: 88%; }
+.frontend-stack .success-fund-copy { margin-top: 4px; text-align: center; }
+.frontend-stack .success-fund-copy span { color: #34303b; font-size: 14px; }
 .frontend-stack .toast { top: 18px; }
 .horizontal-simulator { width: calc(100% - 32px); margin: 0 16px 16px; display: grid; grid-template-columns: 170px minmax(330px, 1.4fr) minmax(300px, 1.25fr) 220px 190px; gap: 14px; align-items: stretch; padding: 16px; }
 .horizontal-simulator .simulator-block { min-width: 0; }
