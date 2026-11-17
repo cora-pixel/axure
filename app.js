@@ -394,21 +394,37 @@ function matchesAccountSearch(row, type, keyword) {
 }
 
 function matchesScoreTier(score, tier) {
-  if (tier === 'all') return true;
   const [min, max] = tier.split('-').map(Number);
   return score >= min && score <= max;
+}
+
+function selectedScoreTiers() {
+  return $$('.score-tier-option:checked').map(input => input.value);
+}
+
+function setLowScoreTiers() {
+  $$('.score-tier-option').forEach(input => { input.checked = ['40-59', '20-39', '0-19'].includes(input.value); });
+  updateScoreTierSummary();
+}
+
+function updateScoreTierSummary() {
+  const selected = selectedScoreTiers();
+  const toggle = $('#pendingScoreTierToggle');
+  if (!toggle) return;
+  const isBelow60 = selected.length === 3 && ['40-59', '20-39', '0-19'].every(value => selected.includes(value));
+  toggle.textContent = selected.length === 0 || selected.length === 5 ? '全部档位' : isBelow60 ? '60分以下（3档）' : `已选${selected.length}个档位`;
 }
 
 function renderFilteredPending() {
   const keyword = $('#pendingUserFilter').value.trim().toLowerCase();
   const searchType = $('#pendingUserType').value;
   const condition = $('#pendingConditionFilter').value.trim().toLowerCase();
-  const scoreTier = $('#pendingScoreTier').value;
+  const scoreTiers = selectedScoreTiers();
   const verificationStatus = $('#pendingVerificationStatus').value;
   renderPending(pendingRows.filter(row =>
     matchesAccountSearch(row, searchType, keyword) &&
     (!condition || row.scoreCondition.toLowerCase().includes(condition)) &&
-    matchesScoreTier(row.score, scoreTier) &&
+    (scoreTiers.length === 0 || scoreTiers.some(tier => matchesScoreTier(row.score, tier))) &&
     (verificationStatus === 'all' || row.status === verificationStatus)
   ));
 }
@@ -759,6 +775,27 @@ if ($('#selectAllAccounts')) $('#selectAllAccounts').addEventListener('change', 
 if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () => {
   renderFilteredPending();
 });
+if ($('#pendingScoreTierToggle')) $('#pendingScoreTierToggle').addEventListener('click', event => {
+  event.stopPropagation();
+  const menu = $('#pendingScoreTierMenu');
+  const willOpen = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden', !willOpen);
+  $('#pendingScoreTierToggle').setAttribute('aria-expanded', String(willOpen));
+});
+if ($('#pendingScoreTierMenu')) $('#pendingScoreTierMenu').addEventListener('click', event => event.stopPropagation());
+$$('.score-tier-option').forEach(input => input.addEventListener('change', updateScoreTierSummary));
+if ($('#lowScoreQuickFilter')) $('#lowScoreQuickFilter').addEventListener('click', () => {
+  setLowScoreTiers();
+  $('#pendingScoreTierMenu').classList.add('hidden');
+  $('#pendingScoreTierToggle').setAttribute('aria-expanded', 'false');
+  renderFilteredPending();
+  $('.table-wrap').scrollIntoView({ block: 'nearest' });
+});
+document.addEventListener('click', () => {
+  if (!$('#pendingScoreTierMenu')) return;
+  $('#pendingScoreTierMenu').classList.add('hidden');
+  $('#pendingScoreTierToggle').setAttribute('aria-expanded', 'false');
+});
 if ($('#pendingUserType')) $('#pendingUserType').addEventListener('change', () => {
   const placeholders = { memberId: '输入会员ID', user: '输入会员账号', ip: '请输入关联IP', device: '请输入关联设备号' };
   $('#pendingUserFilter').value = '';
@@ -769,7 +806,7 @@ if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () =>
   $('#pendingUserFilter').value = '';
   $('#pendingUserFilter').placeholder = '输入会员ID';
   $('#pendingConditionFilter').value = '';
-  $('#pendingScoreTier').value = 'all';
+  setLowScoreTiers();
   $('#pendingVerificationStatus').value = 'all';
   renderFilteredPending();
 });
@@ -777,5 +814,5 @@ if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (
 
 if ($('#ruleTableBody')) { syncRulesFromConfig(); renderRules(); }
 if ($('#bandGrid')) renderBands();
-if ($('#pendingTableBody')) renderFilteredPending();
+if ($('#pendingTableBody')) { updateScoreTierSummary(); renderFilteredPending(); }
 if ($('#scoreOrb')) updateScoreUI();
