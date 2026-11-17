@@ -1,7 +1,7 @@
 const rules = [
   { id: 'R01', category: '环境变化', condition: 'IP不在常用IP中', score: '-10', mode: '单项扣分', desc: '常用设备命中时仍可保持高分', enabled: true },
   { id: 'R02', category: '环境变化', condition: '有效设备号不在常用设备中', score: '-15', mode: '单项扣分', desc: '设备变化权重大于单纯IP变化', enabled: true },
-  { id: 'R03', category: '环境变化', condition: 'IP不在常用IP，且设备无法证明为常用', score: '直接-45', mode: '覆盖R01/R02', desc: '包含有效陌生设备及非有效设备号，不重复扣分', enabled: true },
+  { id: 'R03', category: '环境变化', condition: 'IP不在常用IP，且设备无法证明为常用', score: '-45', mode: '覆盖R01/R02', desc: '包含有效陌生设备及非有效设备号，不重复扣分', enabled: true },
   { id: 'R04', category: '环境变化', condition: '本次未获取到有效设备号', score: '-5', mode: '单项扣分', desc: '单独不验证，与陌生IP组合时使用R03', enabled: true },
   { id: 'R05', category: '风险关联', condition: '风险IP关联9-10／11-20／21-50／51-100／100人以上', score: '-8/-12/-20/-30/-40', mode: '分档取值', desc: '按滚动48小时关联的不同有效用户数统计', enabled: true },
   { id: 'R06', category: '风险关联', condition: '风险设备号关联9-10／11-20／21-50／51-100／100人以上', score: '-10/-18/-30/-45/-60', mode: '分档取值', desc: '仅统计device_valid=1的有效设备号', enabled: true },
@@ -42,7 +42,7 @@ const pendingRows = [
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和有效设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35']],
   },
   {
-    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则直接扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
+    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋未获取有效设备号', '-45', '55']],
   },
   {
@@ -403,7 +403,7 @@ function syncRulesFromConfig() {
   const update = (id, values) => Object.assign(rules.find(rule => rule.id === id), values);
   update('R01', { score: `-${scoringConfig.r01Score}` });
   update('R02', { score: `-${scoringConfig.r02Score}` });
-  update('R03', { score: `直接-${scoringConfig.r03Score}` });
+  update('R03', { score: `-${scoringConfig.r03Score}` });
   update('R04', { score: `-${scoringConfig.r04Score}` });
   update('R05', {
     condition: `风险IP关联${scoringConfig.r05T1}-${scoringConfig.r05T2 - 1}／${scoringConfig.r05T2}-${scoringConfig.r05T3 - 1}／${scoringConfig.r05T3}-${scoringConfig.r05T4 - 1}／${scoringConfig.r05T4}-${scoringConfig.r05T5 - 1}／${scoringConfig.r05T5}人以上`,
@@ -441,7 +441,7 @@ function openScoringSettingsDialog() {
     <div class="config-table-wrap"><table class="config-table"><thead><tr><th>规则</th><th>触发条件</th><th>扣分值</th></tr></thead><tbody>
       ${row('R01', '陌生IP', 'IP不在常用IP中', configNumber('r01Score', '扣'))}
       ${row('R02', '陌生设备', '有效设备号不在常用设备中', configNumber('r02Score', '扣'))}
-      ${row('R03', '双陌生组合', 'IP陌生且设备无法证明为常用', configNumber('r03Score', '直接扣'))}
+      ${row('R03', '双陌生组合', 'IP陌生且设备无法证明为常用', configNumber('r03Score', '扣'))}
       ${row('R04', '设备号缺失', '本次未获取到有效设备号', configNumber('r04Score', '扣'))}
       ${row('R05', '风险IP关联', `${configNumber('r05T1', '第1档≥', '人')}${configNumber('r05T2', '第2档≥', '人')}${configNumber('r05T3', '第3档≥', '人')}${configNumber('r05T4', '第4档≥', '人')}${configNumber('r05T5', '第5档≥', '人')}`, `${configNumber('r05S1', '第1档')}${configNumber('r05S2', '第2档')}${configNumber('r05S3', '第3档')}${configNumber('r05S4', '第4档')}${configNumber('r05S5', '第5档')}`)}
       ${row('R06', '风险设备号关联', `${configNumber('r06T1', '第1档≥', '人')}${configNumber('r06T2', '第2档≥', '人')}${configNumber('r06T3', '第3档≥', '人')}${configNumber('r06T4', '第4档≥', '人')}${configNumber('r06T5', '第5档≥', '人')}`, `${configNumber('r06S1', '第1档')}${configNumber('r06S2', '第2档')}${configNumber('r06S3', '第3档')}${configNumber('r06S4', '第4档')}${configNumber('r06S5', '第5档')}`)}
