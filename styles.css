@@ -264,14 +264,15 @@ main { padding: 20px; }
 .admin-breadcrumb small { margin-left: auto; color: #5f6e76; }
 .admin-page-tabs {
   height: 48px; display: flex; align-items: stretch; margin-top: 8px; padding: 0 12px;
-  background: #fff; border: 1px solid #5d9185;
+  overflow: hidden; background: #fff; border: 1px solid #5d9185;
 }
 .admin-page-tab {
-  min-width: 170px; height: 47px; position: relative; padding: 0 22px; border: 0;
+  min-width: 170px; height: 100%; position: relative; padding: 0 22px; border: 0;
+  display: flex; align-items: center; justify-content: center;
   color: #17202a; background: #fff; font-size: 14px;
 }
 .admin-page-tab::after {
-  content: ""; position: absolute; right: 20px; bottom: 0; left: 20px; height: 4px;
+  content: ""; position: absolute; right: 20px; bottom: 0; left: 20px; height: 3px;
   background: transparent;
 }
 .admin-page-tab:hover { color: #6d237e; }
