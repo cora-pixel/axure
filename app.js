@@ -146,7 +146,6 @@ function startLoginFlow() {
   }
   if (score >= 60) {
     showHome();
-    showToast('登录成功，本次环境已进入后台观察');
     return;
   }
   if (score < 20) {
