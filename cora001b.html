@@ -74,6 +74,10 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b30"></script>
+  <script>
+    const runtimeScript = document.createElement('script');
+    runtimeScript.src = `app.js?t=${Date.now()}`;
+    document.body.appendChild(runtimeScript);
+  </script>
 </body>
 </html>
