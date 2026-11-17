@@ -292,7 +292,7 @@ main { padding: 20px; }
 .account-score-table th:nth-child(6) { width: 210px; }
 .account-score-table th:nth-child(7) { width: 125px; }
 .account-score-table th:nth-child(8) { width: 68px; }
-.account-score-table th:nth-child(9) { width: 180px; }
+.account-score-table th:nth-child(9) { width: 140px; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
 .verify-status { font-weight: 700; }

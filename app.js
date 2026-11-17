@@ -42,7 +42,7 @@ const pendingRows = [
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和有效设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35']],
   },
   {
-    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', reason: '陌生IP＋设备无法证明可信；组合规则直接扣45分', ip: '47.76.91.34', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '手动验证', time: '2026-11-17 08:52', note: '运营复核', operator: 'Cora',
+    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', reason: '陌生IP＋设备无法证明可信；组合规则直接扣45分', ip: '47.76.91.34', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋未获取有效设备号', '-45', '55']],
   },
   {
@@ -353,11 +353,10 @@ function renderPending(rows = pendingRows) {
   $('#pendingTableBody').innerHTML = sortedRows.map((row, index) => `
     <tr>
       <td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td><span class="verify-status ${verificationStatusClass(row.status)}">${row.status}</span></td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
-      <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-manual-id="${row.memberId}">手动验证</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
+      <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
     </tr>`).join('');
   $('#accountTotal').textContent = sortedRows.length;
   $$('[data-detail-id]').forEach(button => button.addEventListener('click', () => openPendingDetail(button.dataset.detailId)));
-  $$('[data-manual-id]').forEach(button => button.addEventListener('click', () => openManualVerifyDialog(button.dataset.manualId)));
   $$('[data-note-id]').forEach(button => button.addEventListener('click', () => openNoteDialog(button.dataset.noteId)));
 }
 
@@ -537,49 +536,6 @@ function openCommonEnvironmentDialog(memberId) {
   `);
   $('[data-back-detail]').addEventListener('click', () => openPendingDetail(memberId));
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
-}
-
-function openManualVerifyDialog(memberId) {
-  const row = pendingRows.find(item => item.memberId === memberId);
-  openDialog('手动验证', `
-    <div class="admin-form">
-      <label>会员ID</label><input value="${row.memberId}" disabled>
-      <label>会员账号</label><input value="${row.user}" disabled>
-      <label>验证要求</label><select id="manualVerifyStatus"><option ${row.status === '一步验证' ? 'selected' : ''}>一步验证</option><option ${row.status === '两步验证' ? 'selected' : ''}>两步验证</option><option ${row.status === '验证通过' ? 'selected' : ''}>验证通过</option><option ${row.status === '未通过验证' ? 'selected' : ''}>未通过验证</option></select>
-      <label>备注</label><textarea id="manualVerifyNote" placeholder="请输入手动验证原因">${row.note || ''}</textarea>
-    </div>
-    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-manual>确认</button></div>
-  `);
-  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
-  $('[data-save-manual]').addEventListener('click', () => {
-    const status = $('#manualVerifyStatus').value;
-    const previousScore = row.score;
-    row.status = status;
-    if (status === '验证通过') {
-      row.score = 100;
-      row.action = '正常放行';
-      row.freezeStatus = '正常';
-      row.resetFrom = previousScore;
-      row.resetTime = '2026-11-17 11:28';
-      row.resetOperator = 'Cora';
-      if (previousScore < 100) row.breakdown.push(['验证成功', '更新常用IP及有效设备号', `+${100 - previousScore}`, '100']);
-    } else if (status === '未通过验证') {
-      row.action = '阻断人工';
-      row.freezeStatus = '冻结';
-      row.breakdown.push(['验证未通过', '后台确认未通过验证', '—', row.score]);
-    } else {
-      row.score = status === '一步验证' ? 55 : 35;
-      row.action = status === '一步验证' ? '单项验证' : '双项验证';
-      row.freezeStatus = '正常';
-      row.breakdown = [['手动验证', `后台指定${status}`, '—', row.score]];
-    }
-    row.source = '手动验证';
-    row.note = $('#manualVerifyNote').value.trim() || '后台手动发起验证';
-    row.operator = 'Cora';
-    row.time = '2026-11-17 11:28';
-    row.reason = status === '验证通过' ? '后台确认验证通过并更新常用环境' : status === '未通过验证' ? '后台确认未通过验证并冻结账号' : `后台手动发起${status}`;
-    closeDialog(); renderFilteredPending();
-  });
 }
 
 function openNoteDialog(memberId) {
