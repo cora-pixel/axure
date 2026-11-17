@@ -324,31 +324,34 @@ main { padding: 20px; }
 .config-list-table td:nth-child(4), .config-list-table td:nth-child(8) { overflow-wrap: anywhere; }
 .inherit-text { color: #4c8a35; font-weight: 700; }
 .status-disabled { color: #d9534f; }
-.account-score-table { min-width: 1280px; }
+.account-score-table { min-width: 1880px; }
 .account-score-table th:nth-child(1) { width: 34px; }
 .account-score-table th:nth-child(2) { width: 78px; }
 .account-score-table th:nth-child(3) { width: 120px; }
 .account-score-table th:nth-child(4) { width: 52px; }
-.account-score-table th:nth-child(5) { width: 250px; }
-.account-score-table th:nth-child(6) { width: 88px; }
-.account-score-table th:nth-child(7) { width: 72px; }
-.account-score-table th:nth-child(8) { width: 160px; }
-.account-score-table th:nth-child(9) { width: 125px; }
-.account-score-table th:nth-child(10) { width: 68px; }
-.account-score-table th:nth-child(11) { width: 260px; }
+.account-score-table th:nth-child(5) { width: 300px; }
+.account-score-table th:nth-child(6) { width: 145px; }
+.account-score-table th:nth-child(7) { width: 230px; }
+.account-score-table th:nth-child(8) { width: 88px; }
+.account-score-table th:nth-child(9) { width: 72px; }
+.account-score-table th:nth-child(10) { width: 160px; }
+.account-score-table th:nth-child(11) { width: 125px; }
+.account-score-table th:nth-child(12) { width: 68px; }
+.account-score-table th:nth-child(13) { width: 260px; }
 .account-score-table th:first-child, .account-score-table td:first-child { text-align: center; }
 .account-score-table th:nth-child(2), .account-score-table td:nth-child(2),
 .account-score-table th:nth-child(3), .account-score-table td:nth-child(3),
 .account-score-table th:nth-child(4), .account-score-table td:nth-child(4),
-.account-score-table th:nth-child(6), .account-score-table td:nth-child(6),
-.account-score-table th:nth-child(7), .account-score-table td:nth-child(7),
+.account-score-table th:nth-child(8), .account-score-table td:nth-child(8),
 .account-score-table th:nth-child(9), .account-score-table td:nth-child(9),
-.account-score-table th:nth-child(10), .account-score-table td:nth-child(10),
-.account-score-table th:nth-child(11), .account-score-table td:nth-child(11) { text-align: center; }
+.account-score-table th:nth-child(11), .account-score-table td:nth-child(11),
+.account-score-table th:nth-child(12), .account-score-table td:nth-child(12),
+.account-score-table th:nth-child(13), .account-score-table td:nth-child(13) { text-align: center; }
 .account-score-table input[type="checkbox"] { margin: 0; vertical-align: middle; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
 .score-condition { line-height: 1.55; overflow-wrap: anywhere; }
+.risk-profile-cell { line-height: 1.45; white-space: nowrap; }
 .verify-status { font-weight: 700; }
 .verify-status.normal { color: #3e8e68; }
 .verify-status.one { color: #d88618; }

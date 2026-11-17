@@ -383,6 +383,11 @@ function updateRiskQuickCounts() {
   if ($('#riskDeviceQuickCount')) $('#riskDeviceQuickCount').textContent = `风险设备共${riskQuickCount('device')}条`;
 }
 
+function riskProfileDisplay(row, type) {
+  const values = [...new Set(riskEntries(row, type).map(item => item.value))];
+  return values.length ? values.join('<br>') : '--';
+}
+
 function renderPending(rows = pendingRows) {
   const sortedRows = [...rows].sort((a, b) => {
     if (!activeRiskQuickFilter) return b.time.localeCompare(a.time);
@@ -396,7 +401,7 @@ function renderPending(rows = pendingRows) {
   });
   $('#pendingTableBody').innerHTML = sortedRows.map((row, index) => `
     <tr>
-      <td><input type="checkbox" class="account-select" data-select-user="${row.user}" aria-label="选择${row.user}"></td><td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td><span class="verify-status ${row.status === '验证通过' ? 'normal' : 'failed'}">${row.status}</span></td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
+      <td><input type="checkbox" class="account-select" data-select-user="${row.user}" aria-label="选择${row.user}"></td><td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td class="risk-profile-cell">${riskProfileDisplay(row, 'ip')}</td><td class="risk-profile-cell">${riskProfileDisplay(row, 'device')}</td><td><span class="verify-status ${row.status === '验证通过' ? 'normal' : 'failed'}">${row.status}</span></td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
       <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-common-id="${row.memberId}">常用IP／设备</button><button class="table-link" data-manual-id="${row.memberId}">手动验证</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
     </tr>`).join('');
   $('#accountTotal').textContent = sortedRows.length;
