@@ -270,7 +270,7 @@ function renderVerificationSuccess() {
       <div class="status-icon success">✓</div>
       <div class="modal-copy success-fund-copy"><span>检测到您未设置资金密码请立即设定。</span></div>
       <div class="modal-actions"><button class="primary wide" data-set-fund disabled>立即设定</button></div>
-    `, false), { maskClose: false, closeScreen: 'authenticated' });
+    `), { maskClose: false, closeScreen: 'authenticated' });
     const setFundButton = $('[data-set-fund]');
     window.clearTimeout(renderVerificationSuccess.readyTimer);
     renderVerificationSuccess.readyTimer = window.setTimeout(() => {
