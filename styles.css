@@ -299,6 +299,7 @@ main { padding: 20px; }
 .account-score-table th:first-child, .account-score-table td:first-child { text-align: center; }
 .account-score-table th:nth-child(2), .account-score-table td:nth-child(2),
 .account-score-table th:nth-child(3), .account-score-table td:nth-child(3),
+.account-score-table th:nth-child(4), .account-score-table td:nth-child(4),
 .account-score-table th:nth-child(6), .account-score-table td:nth-child(6),
 .account-score-table th:nth-child(8), .account-score-table td:nth-child(8),
 .account-score-table th:nth-child(9), .account-score-table td:nth-child(9),
