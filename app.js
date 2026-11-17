@@ -154,7 +154,6 @@ function startLoginFlow() {
 
   if (score >= 80) {
     showHome();
-    showToast('登录成功，正常放行');
     return;
   }
   if (score >= 60) {
