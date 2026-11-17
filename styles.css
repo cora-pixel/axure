@@ -292,6 +292,7 @@ main { padding: 20px; }
 .frontend-main { padding: 0; }
 .frontend-stack { width: 100%; max-width: 2560px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 .frontend-stack .prototype-stage { width: 100%; min-height: 0; aspect-ratio: 2560 / 1122; overflow: hidden; border: 0; box-shadow: none; background: #e5e8f5; }
+.frontend-stack .prototype-stage.authenticated-stage { aspect-ratio: 2560 / 1097; }
 .prototype-canvas { position: absolute; inset: 0; }
 .prototype-canvas img { display: block; width: 100%; height: 100%; object-fit: fill; user-select: none; pointer-events: none; }
 .screen-hotspot { position: absolute; z-index: 3; border: 0; padding: 0; background: transparent; cursor: pointer; pointer-events: auto; }

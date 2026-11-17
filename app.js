@@ -92,14 +92,24 @@ function setPrototypeScreen(screen) {
   const background = $('#prototypeBackground');
   if (!background) return;
   const isLogin = screen === 'login';
-  background.src = isLogin ? 'assets/cora001-login.png' : 'assets/cora001-home.png';
-  background.alt = isLogin ? '杏彩体育登录页面' : '杏彩体育首页';
+  const isAuthenticated = screen === 'authenticated';
+  background.src = isLogin
+    ? 'assets/cora001-login.png'
+    : isAuthenticated
+      ? 'assets/cora001-home-authenticated.png?v=20261117-9'
+      : 'assets/cora001-home.png';
+  background.alt = isLogin ? '杏彩体育登录页面' : isAuthenticated ? '杏彩体育已登录首页' : '杏彩体育首页';
+  background.closest('.prototype-stage').classList.toggle('authenticated-stage', isAuthenticated);
   if ($('#loginBtn')) $('#loginBtn').classList.toggle('hidden', !isLogin);
   if ($('#loginCloseBtn')) $('#loginCloseBtn').classList.toggle('hidden', !isLogin);
 }
 
 function showHome() {
   setPrototypeScreen('home');
+}
+
+function showAuthenticatedHome() {
+  setPrototypeScreen('authenticated');
 }
 
 function resetFront() {
@@ -115,6 +125,7 @@ function resetFront() {
 function openSecurityModal(html, options = {}) {
   $('#securityModal').innerHTML = html;
   $('#modalMask').dataset.maskClose = options.maskClose ? 'true' : 'false';
+  $('#modalMask').dataset.closeScreen = options.closeScreen || '';
   $('#modalMask').classList.remove('hidden');
   $('#securityModal').scrollTop = 0;
   bindModalCommon();
@@ -252,13 +263,14 @@ function renderVerificationSuccess() {
   state.score = 100;
   updateScoreUI();
   setFrontState('验证成功', '本次分数恢复100分；下次登录重新评分');
+  showAuthenticatedHome();
   closeSecurityModal();
   window.setTimeout(() => {
     openSecurityModal(modalFrame('恭喜您，通过安全验证。', `
       <div class="status-icon success">✓</div>
       <div class="modal-copy success-fund-copy"><span>检测到您未设置资金密码请立即设定。</span></div>
       <div class="modal-actions"><button class="primary wide" data-set-fund disabled>立即设定</button></div>
-    `, false), { maskClose: false });
+    `, false), { maskClose: false, closeScreen: 'authenticated' });
     const setFundButton = $('[data-set-fund]');
     window.clearTimeout(renderVerificationSuccess.readyTimer);
     renderVerificationSuccess.readyTimer = window.setTimeout(() => {
@@ -267,7 +279,7 @@ function renderVerificationSuccess() {
     }, 800);
     setFundButton.addEventListener('click', () => {
       closeSecurityModal();
-      showHome();
+      showAuthenticatedHome();
       setFrontState('验证成功', '等待设置资金密码');
     });
   }, 160);
@@ -506,8 +518,10 @@ if ($('#loginCloseBtn')) $('#loginCloseBtn').addEventListener('click', () => {
 });
 if ($('#modalMask')) $('#modalMask').addEventListener('click', event => {
   if (event.target === $('#modalMask') && $('#modalMask').dataset.maskClose === 'true') {
+    const closeScreen = $('#modalMask').dataset.closeScreen;
     closeSecurityModal();
-    showHome();
+    if (closeScreen === 'authenticated') showAuthenticatedHome();
+    else if (closeScreen === 'home') showHome();
   }
 });
 if ($('#password')) $('#password').addEventListener('keydown', event => { if (event.key === 'Enter') startLoginFlow(); });
