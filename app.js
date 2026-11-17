@@ -112,8 +112,9 @@ function resetFront() {
   setFrontState('等待登录', '风险分数将在登录时生效');
 }
 
-function openSecurityModal(html) {
+function openSecurityModal(html, options = {}) {
   $('#securityModal').innerHTML = html;
+  $('#modalMask').dataset.maskClose = options.maskClose ? 'true' : 'false';
   $('#modalMask').classList.remove('hidden');
   bindModalCommon();
 }
@@ -122,8 +123,8 @@ function closeSecurityModal() {
   $('#modalMask').classList.add('hidden');
 }
 
-function modalFrame(title, body) {
-  return `<div class="modal-head"><h2>${title}</h2><button class="icon-close" data-close>×</button></div><div class="modal-body">${body}</div>`;
+function modalFrame(title, body, showClose = true) {
+  return `<div class="modal-head"><h2>${title}</h2>${showClose ? '<button class="icon-close" data-close>×</button>' : ''}</div><div class="modal-body">${body}</div>`;
 }
 
 function bindModalCommon() {
@@ -247,18 +248,18 @@ function confirmVerification() {
 }
 
 function renderVerificationSuccess() {
-  openSecurityModal(modalFrame('验证成功', `
+  state.score = 100;
+  updateScoreUI();
+  setFrontState('验证成功', '本次分数恢复100分；下次登录重新评分');
+  openSecurityModal(modalFrame('安全验证成功', `
     <div class="status-icon success">✓</div>
-    <div class="modal-copy"><strong>身份验证已完成</strong><span>当前有效IP及有效设备号已加入常用环境</span><span>本次风险分数已恢复为100分</span></div>
-    <div class="modal-actions"><button class="primary wide" data-enter-home>进入首页</button></div>
-  `));
-  $('[data-enter-home]').addEventListener('click', () => {
+    <div class="modal-copy"><strong>恭喜您，通过安全验证。</strong><span>检测到您未设置资金密码，请立即设定。</span></div>
+    <div class="modal-actions"><button class="primary wide" data-set-fund>立即设定</button></div>
+  `, false), { maskClose: true });
+  $('[data-set-fund]').addEventListener('click', () => {
     closeSecurityModal();
     showHome();
-    state.score = 100;
-    updateScoreUI();
-    setFrontState('验证成功', '本次分数恢复100分；下次登录重新评分');
-    showToast('验证成功，常用环境已更新');
+    setFrontState('验证成功', '等待设置资金密码');
   });
 }
 
@@ -492,6 +493,12 @@ if ($('#loginBtn')) $('#loginBtn').addEventListener('click', startLoginFlow);
 if ($('#loginCloseBtn')) $('#loginCloseBtn').addEventListener('click', () => {
   showHome();
   setFrontState('已关闭登录弹框', '当前显示首页背景');
+});
+if ($('#modalMask')) $('#modalMask').addEventListener('click', event => {
+  if (event.target === $('#modalMask') && $('#modalMask').dataset.maskClose === 'true') {
+    closeSecurityModal();
+    showHome();
+  }
 });
 if ($('#password')) $('#password').addEventListener('keydown', event => { if (event.key === 'Enter') startLoginFlow(); });
 
