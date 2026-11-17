@@ -212,8 +212,14 @@ main { padding: 20px; }
 .checkbox-options { height: 32px; display: flex; align-items: center; gap: 12px; padding: 0 10px; border: 1px solid #8ba1aa; background: #fff; white-space: nowrap; }
 .checkbox-options label { display: inline-flex; align-items: center; gap: 4px; }
 .checkbox-options input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #526ba3; }
-.pending-filter label:first-child input { width: 250px; }
-.pending-filter label:last-of-type input { width: 150px; }
+.pending-filter > label:first-child input { width: 250px; }
+.pending-filter > label:last-of-type input { width: 150px; }
+.pending-filter { align-items: center; gap: 18px; padding: 10px 14px; }
+.pending-filter > label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.pending-filter > label input { margin: 0; }
+.pending-filter .checkbox-filter { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.pending-filter .checkbox-options { height: auto; padding: 0; border: 0; background: transparent; gap: 10px; }
+.pending-filter .checkbox-options label { display: inline-flex; flex-direction: row; align-items: center; gap: 3px; white-space: nowrap; }
 .table-wrap { overflow: auto; margin-top: 12px; border: 1px solid #78a7a1; background: #fff; }
 .admin-table { width: 100%; min-width: 1180px; border-collapse: collapse; table-layout: fixed; }
 .admin-table th { height: 40px; padding: 8px; background: #93a9cf; color: #26364d; border-right: 1px solid #fff; font-size: 13px; }
