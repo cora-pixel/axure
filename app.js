@@ -482,7 +482,7 @@ function openScoringSettingsDialog() {
     }
     Object.assign(scoringConfig, values);
     syncRulesFromConfig();
-    renderRules($('#ruleCategoryFilter').value);
+    renderRules();
     closeDialog();
   });
 }
@@ -518,7 +518,7 @@ function openRuleDialog(ruleId = null) {
     };
     if (!payload.condition || !payload.score) return;
     if (ruleId) Object.assign(rule, payload); else rules.push(payload);
-    closeDialog(); renderRules($('#ruleCategoryFilter').value);
+    closeDialog(); renderRules();
   });
 }
 
@@ -731,8 +731,6 @@ if ($('#modalMask')) $('#modalMask').addEventListener('click', event => {
 });
 if ($('#password')) $('#password').addEventListener('keydown', event => { if (event.key === 'Enter') startLoginFlow(); });
 
-if ($('#ruleSearchBtn')) $('#ruleSearchBtn').addEventListener('click', () => renderRules($('#ruleCategoryFilter').value));
-if ($('#ruleResetBtn')) $('#ruleResetBtn').addEventListener('click', () => { $('#ruleCategoryFilter').value = 'all'; renderRules(); });
 if ($('#ruleSettingsBtn')) $('#ruleSettingsBtn').addEventListener('click', openScoringSettingsDialog);
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
 if ($('#batchVerifyBtn')) $('#batchVerifyBtn').addEventListener('click', () => {
