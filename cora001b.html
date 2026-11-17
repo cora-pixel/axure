@@ -57,14 +57,13 @@
           <div class="admin-tab-panel" id="rulesPanel">
             <div class="account-page-head">
               <div><h1>评分规则设置</h1><p>总分从100分开始扣减，累计扣分达到100分后停止，最低为0分</p></div>
-              <button class="admin-btn" id="addRuleBtn">＋ 新增规则</button>
             </div>
             <div class="filter-bar">
               <label>规则分类<select id="ruleCategoryFilter"><option value="all">全部</option><option>环境变化</option><option>风险关联</option><option>行为风险</option></select></label>
               <label>状态<select><option>启用</option><option>停用</option></select></label>
               <button class="admin-btn secondary" id="ruleSearchBtn">查询</button><button class="link-btn" id="ruleResetBtn">重置</button>
             </div>
-            <div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>分类</th><th>判断条件</th><th>扣分</th><th>累计方式</th><th>说明</th><th>状态</th><th>操作</th></tr></thead><tbody id="ruleTableBody"></tbody></table></div>
+            <div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>分类</th><th>判断条件</th><th>扣分</th><th>累计方式</th><th>说明</th><th>状态</th></tr></thead><tbody id="ruleTableBody"></tbody></table></div>
             <section class="control-section">
               <div class="section-heading"><div><h2>风险分数控制区间</h2><p>最终分数只决定验证强度</p></div><button class="admin-btn secondary" id="editBandsBtn">修改区间</button></div>
               <div class="band-grid" id="bandGrid"></div>
@@ -76,6 +75,6 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b11"></script>
+  <script src="app.js?v=20261117-b13"></script>
 </body>
 </html>

@@ -5,11 +5,11 @@ const rules = [
   { id: 'R04', category: '环境变化', condition: '本次未获取到有效设备号', score: '-5', mode: '单项扣分', desc: '单独不验证，与陌生IP组合时使用R03', enabled: true },
   { id: 'R05', category: '风险关联', condition: '风险IP关联9-10／11-20／21-50／51-100／100人以上', score: '-8/-12/-20/-30/-40', mode: '分档取值', desc: '按滚动48小时关联的不同有效用户数统计', enabled: true },
   { id: 'R06', category: '风险关联', condition: '风险设备号关联9-10／11-20／21-50／51-100／100人以上', score: '-10/-18/-30/-45/-60', mode: '分档取值', desc: '仅统计device_valid=1的有效设备号', enabled: true },
-  { id: 'R07', category: '行为风险', condition: '短时间频繁切换IP或设备号', score: '-10至-20', mode: '区间扣分', desc: '与用户自己的历史切换频率比较', enabled: true },
-  { id: 'R08', category: '行为风险', condition: '短时间同IP或设备号登录多个账号', score: '-15至-30', mode: '取较高值', desc: '与48小时风险关联规则不重复累计', enabled: true },
+  { id: 'R07', category: '行为风险', condition: '24小时内切换3-4个陌生IP或有效设备号／5个及以上', score: '-10／-20', mode: '按最高档扣分', desc: '按不同IP、不同有效设备号去重；同一环境重复登录不计，IP与设备合计只取最高档', enabled: true },
+  { id: 'R08', category: '行为风险', condition: '2小时内同一有效IP或有效设备号登录3-5个／6-8个不同有效账号', score: '-15／-30', mode: '按最高档扣分', desc: '账号去重；达到9个账号时改用R05或R06，本规则不再重复扣分', enabled: true },
   { id: 'R09', category: '行为风险', condition: '沉睡超过90天且IP、设备均变化', score: '-10', mode: '条件扣分', desc: '仅在设备无法证明可信且IP陌生时扣分', enabled: true },
   { id: 'R10', category: '行为风险', condition: '新环境登录后立即进行敏感操作', score: '-15', mode: '条件扣分', desc: '登录与敏感操作使用同一本次分数', enabled: true },
-  { id: 'R11', category: '行为风险', condition: '密码连续错误、撞库或接口高频', score: '-20至-40', mode: '区间扣分', desc: '需要失败登录及接口请求日志支持', enabled: true },
+  { id: 'R11', category: '行为风险', condition: '10分钟内同账号密码错误5-9次／10次及以上，或同IP登录接口请求60-119次／120次及以上', score: '-20／-40', mode: '按最高档扣分', desc: '密码错误与接口高频同时命中只取最高档；需要失败登录及接口请求日志支持', enabled: true },
 ];
 
 const bands = [
@@ -326,14 +326,7 @@ function renderRules(filter = 'all') {
       <td>${rule.id}</td><td>${rule.category}</td><td>${rule.condition}</td>
       <td class="score-text score-block">${rule.score}</td><td>${rule.mode}</td><td>${rule.desc}</td>
       <td class="status-enabled">${rule.enabled ? '启用' : '停用'}</td>
-      <td><button class="table-link" data-edit-rule="${rule.id}">修改</button><button class="table-link" data-toggle-rule="${rule.id}">${rule.enabled ? '停用' : '启用'}</button><button class="table-link">日志</button></td>
     </tr>`).join('');
-  $$('[data-edit-rule]').forEach(button => button.addEventListener('click', () => openRuleDialog(button.dataset.editRule)));
-  $$('[data-toggle-rule]').forEach(button => button.addEventListener('click', () => {
-    const rule = rules.find(item => item.id === button.dataset.toggleRule);
-    rule.enabled = !rule.enabled;
-    renderRules($('#ruleCategoryFilter').value);
-  }));
 }
 
 function renderBands() {
@@ -547,7 +540,6 @@ if ($('#password')) $('#password').addEventListener('keydown', event => { if (ev
 
 if ($('#ruleSearchBtn')) $('#ruleSearchBtn').addEventListener('click', () => renderRules($('#ruleCategoryFilter').value));
 if ($('#ruleResetBtn')) $('#ruleResetBtn').addEventListener('click', () => { $('#ruleCategoryFilter').value = 'all'; renderRules(); });
-if ($('#addRuleBtn')) $('#addRuleBtn').addEventListener('click', () => openRuleDialog());
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
 if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () => {
   renderFilteredPending();
