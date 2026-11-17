@@ -42,7 +42,7 @@
             </div>
             <div class="filter-bar pending-filter">
               <label>会员ID／账号<input id="pendingUserFilter" placeholder="输入会员ID或会员账号"></label>
-              <label>验证状态<select id="pendingStatusFilter"><option value="all">全部</option><option>正常</option><option>验证通过</option><option>一步验证</option><option>两步验证</option><option>未通过验证</option></select></label>
+              <div class="checkbox-filter"><span>验证状态</span><div class="checkbox-options"><label><input type="checkbox" name="pendingStatus" value="正常">正常</label><label><input type="checkbox" name="pendingStatus" value="验证通过">验证通过</label><label><input type="checkbox" name="pendingStatus" value="一步验证">一步验证</label><label><input type="checkbox" name="pendingStatus" value="两步验证">两步验证</label><label><input type="checkbox" name="pendingStatus" value="未通过验证" checked>未通过验证</label></div></div>
               <label>操作人<input id="pendingOperatorFilter" placeholder="输入操作人"></label>
               <button class="admin-btn secondary" id="pendingSearchBtn">查询</button><button class="link-btn" id="pendingResetBtn">重置</button>
             </div>
@@ -77,6 +77,6 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b5"></script>
+  <script src="app.js?v=20261117-b6"></script>
 </body>
 </html>

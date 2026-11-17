@@ -338,6 +338,17 @@ function renderPending(rows = pendingRows) {
   $$('[data-note-id]').forEach(button => button.addEventListener('click', () => openNoteDialog(button.dataset.noteId)));
 }
 
+function renderFilteredPending() {
+  const user = $('#pendingUserFilter').value.trim().toLowerCase();
+  const statuses = $$('input[name="pendingStatus"]:checked').map(input => input.value);
+  const operator = $('#pendingOperatorFilter').value.trim().toLowerCase();
+  renderPending(pendingRows.filter(row =>
+    (!user || row.user.toLowerCase().includes(user) || row.memberId.includes(user)) &&
+    (!statuses.length || statuses.includes(row.status)) &&
+    (!operator || row.operator.toLowerCase().includes(operator))
+  ));
+}
+
 function openDialog(title, body) {
   $('#adminDialog').innerHTML = `<div class="admin-dialog-head"><h2>${title}</h2><button data-dialog-close>×</button></div><div class="admin-dialog-body">${body}</div>`;
   $('#dialogMask').classList.remove('hidden');
@@ -446,7 +457,7 @@ function openManualVerifyDialog(memberId) {
     row.operator = 'Cora';
     row.time = '2026-11-17 11:28';
     row.reason = status === '验证通过' ? '后台确认验证通过并更新常用环境' : status === '未通过验证' ? '后台确认未通过验证并冻结账号' : `后台手动发起${status}`;
-    closeDialog(); renderPending();
+    closeDialog(); renderFilteredPending();
   });
 }
 
@@ -454,7 +465,7 @@ function openNoteDialog(memberId) {
   const row = pendingRows.find(item => item.memberId === memberId);
   openDialog('修改备注', `<div class="admin-form"><label>会员ID／账号</label><input value="${row.memberId}／${row.user}" disabled><label>备注</label><textarea id="noteValue">${row.note || ''}</textarea></div><div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-note>保存</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
-  $('[data-save-note]').addEventListener('click', () => { row.note = $('#noteValue').value.trim(); row.operator = 'Cora'; row.time = '2026-11-17 11:30'; closeDialog(); renderPending(); });
+  $('[data-save-note]').addEventListener('click', () => { row.note = $('#noteValue').value.trim(); row.operator = 'Cora'; row.time = '2026-11-17 11:30'; closeDialog(); renderFilteredPending(); });
 }
 
 $$('.view-tab').forEach(tab => tab.addEventListener('click', () => {
@@ -501,24 +512,17 @@ if ($('#ruleResetBtn')) $('#ruleResetBtn').addEventListener('click', () => { $('
 if ($('#addRuleBtn')) $('#addRuleBtn').addEventListener('click', () => openRuleDialog());
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
 if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () => {
-  const user = $('#pendingUserFilter').value.trim().toLowerCase();
-  const status = $('#pendingStatusFilter').value;
-  const operator = $('#pendingOperatorFilter').value.trim().toLowerCase();
-  renderPending(pendingRows.filter(row =>
-    (!user || row.user.toLowerCase().includes(user) || row.memberId.includes(user)) &&
-    (status === 'all' || row.status === status) &&
-    (!operator || row.operator.toLowerCase().includes(operator))
-  ));
+  renderFilteredPending();
 });
 if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () => {
   $('#pendingUserFilter').value = '';
-  $('#pendingStatusFilter').value = 'all';
   $('#pendingOperatorFilter').value = '';
-  renderPending();
+  $$('input[name="pendingStatus"]').forEach(input => { input.checked = input.value === '未通过验证'; });
+  renderFilteredPending();
 });
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });
 
 if ($('#ruleTableBody')) renderRules();
 if ($('#bandGrid')) renderBands();
-if ($('#pendingTableBody')) renderPending();
+if ($('#pendingTableBody')) renderFilteredPending();
 if ($('#scoreOrb')) updateScoreUI();

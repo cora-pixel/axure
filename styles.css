@@ -208,6 +208,10 @@ main { padding: 20px; }
 .filter-bar { display: flex; align-items: end; gap: 14px; padding: 12px 14px; background: #f7f7ef; border: 1px solid #78a7a1; }
 .filter-bar label { display: grid; gap: 6px; color: #34495c; font-size: 13px; }
 .filter-bar select, .filter-bar input { width: 180px; height: 32px; border: 1px solid #8ba1aa; background: #fff; padding: 0 10px; }
+.checkbox-filter { display: grid; gap: 6px; color: #34495c; font-size: 13px; }
+.checkbox-options { height: 32px; display: flex; align-items: center; gap: 12px; padding: 0 10px; border: 1px solid #8ba1aa; background: #fff; white-space: nowrap; }
+.checkbox-options label { display: inline-flex; align-items: center; gap: 4px; }
+.checkbox-options input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #526ba3; }
 .pending-filter label:first-child input { width: 250px; }
 .pending-filter label:last-of-type input { width: 150px; }
 .table-wrap { overflow: auto; margin-top: 12px; border: 1px solid #78a7a1; background: #fff; }
