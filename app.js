@@ -49,6 +49,10 @@ const pendingRows = [
     memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', currentDeviceId: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 35, resetTime: '2026-11-17 10:26', resetOperator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35'], ['验证成功', '更新常用IP及有效设备号', '+65', '100']],
   },
+  {
+    memberId: '2827301', user: 'mika007@as', score: 72, action: '预警观察', scoreCondition: '风险IP关联9-10人；24小时内切换5个以上陌生环境', reason: '风险IP关联9至10人；短时间频繁切换登录环境', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '预警观察', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统',
+    breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R05 风险IP', '48小时关联9个有效用户', '-8', '92'], ['R07 变化速度', '24小时内切换5个以上陌生环境', '-20', '72']],
+  },
 ];
 
 const commonEnvironmentByMember = {
@@ -59,6 +63,10 @@ const commonEnvironmentByMember = {
   '2826222': {
     ips: [['202.55.225.254', '26', '2026-11-16 22:10', '系统识别']],
     devices: [['Android-Chrome-VKgIPg9S6c8pXd8C0fB6', '18', '2026-11-16 22:10', '系统识别']],
+  },
+  '2827301': {
+    ips: [['103.27.186.14', '18', '2026-11-16 16:40', '系统识别'], ['45.76.188.92', '4', '2026-11-17 10:05', '观察中']],
+    devices: [['Android-Chrome-P8vK3sM2qL9', '11', '2026-11-16 16:40', '系统识别']],
   },
   '2826202': {
     ips: [['47.76.91.34', '18', '2026-11-14 16:35', '验证通过']],
