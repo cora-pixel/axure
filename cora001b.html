@@ -38,19 +38,17 @@
 
           <div class="admin-tab-panel active" id="accountPanel">
             <div class="account-page-head">
-              <div><h1>用户账号评分</h1><p>按会员账号展示最新评分与验证状态，自动或手动更新均保留操作记录</p></div>
-              <button class="admin-btn" id="addPendingBtn">＋ 手动添加</button>
+              <div><h1>用户账号评分</h1><p>查询全部会员的当前评分、验证状态与冻结状态，评分及操作变更均保留记录</p></div>
             </div>
             <div class="filter-bar pending-filter">
               <label>会员ID／账号<input id="pendingUserFilter" placeholder="输入会员ID或会员账号"></label>
               <label>验证状态<select id="pendingStatusFilter"><option value="all">全部</option><option>正常</option><option>验证通过</option><option>一步验证</option><option>两步验证</option><option>未通过验证</option></select></label>
-              <label>添加方式<select id="pendingSourceFilter"><option value="all">全部</option><option>自动添加</option><option>手动添加</option></select></label>
               <label>操作人<input id="pendingOperatorFilter" placeholder="输入操作人"></label>
               <button class="admin-btn secondary" id="pendingSearchBtn">查询</button><button class="link-btn" id="pendingResetBtn">重置</button>
             </div>
             <div class="table-wrap">
               <table class="admin-table account-score-table">
-                <thead><tr><th>会员ID</th><th>会员账号</th><th>分数</th><th>添加方式</th><th>验证状态</th><th>冻结状态</th><th>备注</th><th>更新时间</th><th>操作人</th><th>操作</th></tr></thead>
+                <thead><tr><th>会员ID</th><th>会员账号</th><th>分数</th><th>验证状态</th><th>冻结状态</th><th>备注</th><th>更新时间</th><th>操作人</th><th>操作</th></tr></thead>
                 <tbody id="pendingTableBody"></tbody>
               </table>
             </div>
@@ -79,6 +77,6 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b4"></script>
+  <script src="app.js?v=20261117-b5"></script>
 </body>
 </html>

@@ -22,19 +22,19 @@ const bands = [
 
 const pendingRows = [
   {
-    memberId: '2795074', user: 'hxm001@as', score: 15, action: '阻断人工', reason: '陌生IP＋设备无法证明可信；命中风险设备号51至100人', ip: '103.88.14.26', device: '非有效设备号', status: '未通过验证', freezeStatus: '冻结', source: '自动添加', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
+    memberId: '2795074', user: 'hxm001@as', score: 15, action: '阻断人工', reason: '陌生IP＋设备无法证明可信；命中风险设备号51至100人', ip: '103.88.14.26', device: '非有效设备号', status: '未通过验证', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋设备无法证明可信', '-45', '55'], ['R06 风险设备号', '48小时关联68个有效用户', '-45', '10'], ['R07 变化速度', '短时高频切换环境', '-10', '0']],
   },
   {
-    memberId: '2826222', user: 'yongson005', score: 35, action: '双项验证', reason: '陌生IP＋有效陌生设备；风险IP关联21至50人', ip: '202.55.225.254', device: '有效陌生设备', status: '两步验证', freezeStatus: '正常', source: '自动添加', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
+    memberId: '2826222', user: 'yongson005', score: 35, action: '双项验证', reason: '陌生IP＋有效陌生设备；风险IP关联21至50人', ip: '202.55.225.254', device: '有效陌生设备', status: '两步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和有效设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35']],
   },
   {
-    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', reason: '陌生IP＋设备无法证明可信；组合规则直接扣45分', ip: '47.76.91.34', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '手动添加', time: '2026-11-17 08:52', note: '运营复核', operator: 'Cora',
+    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', reason: '陌生IP＋设备无法证明可信；组合规则直接扣45分', ip: '47.76.91.34', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '手动验证', time: '2026-11-17 08:52', note: '运营复核', operator: 'Cora',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋未获取有效设备号', '-45', '55']],
   },
   {
-    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '自动添加', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 35, resetTime: '2026-11-17 10:26', resetOperator: '系统',
+    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 35, resetTime: '2026-11-17 10:26', resetOperator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35'], ['验证成功', '更新常用IP及有效设备号', '+65', '100']],
   },
 ];
@@ -329,7 +329,7 @@ function renderPending(rows = pendingRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#pendingTableBody').innerHTML = sortedRows.map((row, index) => `
     <tr>
-      <td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td>${row.source}</td><td><span class="verify-status ${verificationStatusClass(row.status)}">${row.status}</span></td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
+      <td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td><span class="verify-status ${verificationStatusClass(row.status)}">${row.status}</span></td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
       <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-manual-id="${row.memberId}">手动验证</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
     </tr>`).join('');
   $('#accountTotal').textContent = sortedRows.length;
@@ -386,41 +386,6 @@ function openBandsDialog() {
   });
 }
 
-function openAddPendingDialog() {
-  openDialog('手动添加用户账号评分', `
-    <div class="admin-form">
-      <label>会员账号</label><textarea id="addValue" placeholder="输入多个会员账号，每行一个；也支持逗号或空格分隔"></textarea>
-      <label>验证要求</label><select id="addAction"><option>一步验证</option><option>两步验证</option></select>
-      <label>备注</label><textarea id="addNote" placeholder="请输入手动添加原因，批量账号共用该备注"></textarea>
-    </div>
-    <div class="batch-help">账号重复时不新增记录，直接更新为本次选择的验证要求、备注、添加方式及操作人。</div>
-    <div class="batch-preview" id="batchPreview">待添加账号：0 个</div>
-    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-pending>提交</button></div>
-  `);
-  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
-  const parseUsers = () => [...new Set($('#addValue').value.split(/[\s,，;；]+/).map(item => item.trim()).filter(Boolean))];
-  $('#addValue').addEventListener('input', () => { $('#batchPreview').textContent = `待添加账号：${parseUsers().length} 个`; });
-  $('[data-save-pending]').addEventListener('click', () => {
-    const users = parseUsers();
-    if (!users.length) return;
-    const status = $('#addAction').value;
-    const score = status === '一步验证' ? 55 : 35;
-    const note = $('#addNote').value.trim() || '后台手动添加';
-    let nextMemberId = 2900000 + pendingRows.length;
-    users.forEach(user => {
-      const existing = pendingRows.find(row => row.user.toLowerCase() === user.toLowerCase());
-      const record = {
-        user, score, action: status === '一步验证' ? '单项验证' : '双项验证', reason: `后台手动指定${status}`,
-        ip: existing?.ip || '—', device: existing?.device || '—', status, freezeStatus: existing?.freezeStatus || '正常', source: '手动添加', time: '2026-11-17 11:20', note, operator: 'Cora',
-        breakdown: [['手动添加', `后台指定${status}`, '—', score]],
-      };
-      if (existing) Object.assign(existing, record);
-      else pendingRows.push({ memberId: String(nextMemberId++), ...record });
-    });
-    closeDialog(); renderPending();
-  });
-}
-
 function openPendingDetail(memberId) {
   const row = pendingRows.find(item => item.memberId === memberId);
   const breakdownRows = row.breakdown.map((item, order) => `<tr><td>${order + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td><td>${item[3]}</td></tr>`).reverse().join('');
@@ -432,7 +397,7 @@ function openPendingDetail(memberId) {
     : '';
   openDialog('账号评分详情', `
     <div class="detail-summary">
-      <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div><span>添加方式</span><strong>${row.source}</strong></div><div><span>验证状态</span><strong>${row.status}</strong></div>
+      <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div><span>验证状态</span><strong>${row.status}</strong></div><div><span>冻结状态</span><strong class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</strong></div>
     </div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>累计分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     <div class="detail-section"><h3>风险与环境信息</h3><table class="mini-table"><tbody><tr><td>触发原因</td><td colspan="3">${row.reason}</td></tr><tr><td>当前IP</td><td>${row.ip}</td><td>设备状态</td><td>${row.device}</td></tr><tr><td>备注</td><td colspan="3">${row.note || '—'}</td></tr></tbody></table></div>
@@ -476,7 +441,7 @@ function openManualVerifyDialog(memberId) {
       row.freezeStatus = '正常';
       row.breakdown = [['手动验证', `后台指定${status}`, '—', row.score]];
     }
-    row.source = '手动添加';
+    row.source = '手动验证';
     row.note = $('#manualVerifyNote').value.trim() || '后台手动发起验证';
     row.operator = 'Cora';
     row.time = '2026-11-17 11:28';
@@ -535,23 +500,19 @@ if ($('#ruleSearchBtn')) $('#ruleSearchBtn').addEventListener('click', () => ren
 if ($('#ruleResetBtn')) $('#ruleResetBtn').addEventListener('click', () => { $('#ruleCategoryFilter').value = 'all'; renderRules(); });
 if ($('#addRuleBtn')) $('#addRuleBtn').addEventListener('click', () => openRuleDialog());
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
-if ($('#addPendingBtn')) $('#addPendingBtn').addEventListener('click', openAddPendingDialog);
 if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () => {
   const user = $('#pendingUserFilter').value.trim().toLowerCase();
   const status = $('#pendingStatusFilter').value;
-  const source = $('#pendingSourceFilter').value;
   const operator = $('#pendingOperatorFilter').value.trim().toLowerCase();
   renderPending(pendingRows.filter(row =>
     (!user || row.user.toLowerCase().includes(user) || row.memberId.includes(user)) &&
     (status === 'all' || row.status === status) &&
-    (source === 'all' || row.source === source) &&
     (!operator || row.operator.toLowerCase().includes(operator))
   ));
 });
 if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () => {
   $('#pendingUserFilter').value = '';
   $('#pendingStatusFilter').value = 'all';
-  $('#pendingSourceFilter').value = 'all';
   $('#pendingOperatorFilter').value = '';
   renderPending();
 });

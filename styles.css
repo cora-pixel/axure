@@ -272,17 +272,16 @@ main { padding: 20px; }
 .account-page-head { min-height: 60px; display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding: 8px 12px; background: #f5f6ef; border: 1px solid #5d9185; }
 .account-page-head h1 { margin: 0; color: #314e75; font-size: 18px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
-.account-score-table { min-width: 1120px; }
+.account-score-table { min-width: 1040px; }
 .account-score-table th:nth-child(1) { width: 78px; }
 .account-score-table th:nth-child(2) { width: 120px; }
 .account-score-table th:nth-child(3) { width: 52px; }
-.account-score-table th:nth-child(4) { width: 76px; }
-.account-score-table th:nth-child(5) { width: 88px; }
-.account-score-table th:nth-child(6) { width: 72px; }
-.account-score-table th:nth-child(7) { width: 190px; }
-.account-score-table th:nth-child(8) { width: 125px; }
-.account-score-table th:nth-child(9) { width: 68px; }
-.account-score-table th:nth-child(10) { width: 180px; }
+.account-score-table th:nth-child(4) { width: 88px; }
+.account-score-table th:nth-child(5) { width: 72px; }
+.account-score-table th:nth-child(6) { width: 210px; }
+.account-score-table th:nth-child(7) { width: 125px; }
+.account-score-table th:nth-child(8) { width: 68px; }
+.account-score-table th:nth-child(9) { width: 180px; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
 .verify-status { font-weight: 700; }
