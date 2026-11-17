@@ -335,7 +335,7 @@ function renderManualBlock(reason) {
 
 function updateScoreUI() {
   $('#scoreOrb').textContent = state.score;
-  $('#scoreOrb').style.background = state.score >= 80 ? '#3e8e68' : state.score >= 60 ? '#315f9c' : state.score >= 40 ? '#d88618' : state.score >= 20 ? '#7656a8' : '#d9534f';
+  $('#scoreOrb').style.background = state.score >= 80 ? '#3e8e68' : state.score >= 60 ? '#315f9c' : state.score >= 40 ? '#7656a8' : state.score >= 20 ? '#d88618' : '#d9534f';
   $('#controlAction').textContent = actionForScore(state.score);
 }
 
