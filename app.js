@@ -430,8 +430,8 @@ function syncRulesFromConfig() {
   });
 }
 
-function configNumber(key, label, suffix = '') {
-  return `<label class="config-number"><span>${label}</span><input type="number" min="1" step="1" data-config-key="${key}" value="${scoringConfig[key]}">${suffix ? `<em>${suffix}</em>` : ''}</label>`;
+function configNumber(key, label = '', suffix = '') {
+  return `<label class="config-number">${label ? `<span>${label}</span>` : ''}<input type="number" min="1" step="1" data-config-key="${key}" value="${scoringConfig[key]}">${suffix ? `<em>${suffix}</em>` : ''}</label>`;
 }
 
 function openScoringSettingsDialog() {
@@ -439,16 +439,16 @@ function openScoringSettingsDialog() {
   openDialog('规则设置', `
     <p class="config-help">配置触发门槛和扣分值。所有数字均填写正整数，扣分值无需输入负号。</p>
     <div class="config-table-wrap"><table class="config-table"><thead><tr><th>规则</th><th>触发条件</th><th>扣分值</th></tr></thead><tbody>
-      ${row('R01', '陌生IP', 'IP不在常用IP中', configNumber('r01Score', '扣'))}
-      ${row('R02', '陌生设备', '有效设备号不在常用设备中', configNumber('r02Score', '扣'))}
-      ${row('R03', '双陌生组合', 'IP陌生且设备无法证明为常用', configNumber('r03Score', '扣'))}
-      ${row('R04', '设备号缺失', '本次未获取到有效设备号', configNumber('r04Score', '扣'))}
+      ${row('R01', '陌生IP', 'IP不在常用IP中', configNumber('r01Score'))}
+      ${row('R02', '陌生设备', '有效设备号不在常用设备中', configNumber('r02Score'))}
+      ${row('R03', '双陌生组合', 'IP陌生且设备无法证明为常用', configNumber('r03Score'))}
+      ${row('R04', '设备号缺失', '本次未获取到有效设备号', configNumber('r04Score'))}
       ${row('R05', '风险IP关联', `${configNumber('r05T1', '第1档≥', '人')}${configNumber('r05T2', '第2档≥', '人')}${configNumber('r05T3', '第3档≥', '人')}${configNumber('r05T4', '第4档≥', '人')}${configNumber('r05T5', '第5档≥', '人')}`, `${configNumber('r05S1', '第1档')}${configNumber('r05S2', '第2档')}${configNumber('r05S3', '第3档')}${configNumber('r05S4', '第4档')}${configNumber('r05S5', '第5档')}`)}
       ${row('R06', '风险设备号关联', `${configNumber('r06T1', '第1档≥', '人')}${configNumber('r06T2', '第2档≥', '人')}${configNumber('r06T3', '第3档≥', '人')}${configNumber('r06T4', '第4档≥', '人')}${configNumber('r06T5', '第5档≥', '人')}`, `${configNumber('r06S1', '第1档')}${configNumber('r06S2', '第2档')}${configNumber('r06S3', '第3档')}${configNumber('r06S4', '第4档')}${configNumber('r06S5', '第5档')}`)}
       ${row('R07', '环境切换', `${configNumber('r07Hours', '统计', '小时')}${configNumber('r07T1', '第1档≥', '个')}${configNumber('r07T2', '第2档≥', '个')}`, `${configNumber('r07S1', '第1档')}${configNumber('r07S2', '第2档')}`)}
       ${row('R08', '多账号登录', `${configNumber('r08Hours', '统计', '小时')}${configNumber('r08T1', '第1档≥', '人')}${configNumber('r08T2', '第2档≥', '人')}${configNumber('r08Cutoff', '转风险关联≥', '人')}`, `${configNumber('r08S1', '第1档')}${configNumber('r08S2', '第2档')}`)}
-      ${row('R09', '沉睡账号', configNumber('r09Days', '沉睡超过', '天'), configNumber('r09Score', '扣'))}
-      ${row('R10', '敏感操作', '新环境登录后立即进行敏感操作', configNumber('r10Score', '扣'))}
+      ${row('R09', '沉睡账号', configNumber('r09Days', '沉睡超过', '天'), configNumber('r09Score'))}
+      ${row('R10', '敏感操作', '新环境登录后立即进行敏感操作', configNumber('r10Score'))}
       ${row('R11', '攻击行为', `${configNumber('r11Minutes', '统计', '分钟')}${configNumber('r11Pwd1', '密码错误第1档≥', '次')}${configNumber('r11Pwd2', '第2档≥', '次')}${configNumber('r11Api1', '接口第1档≥', '次')}${configNumber('r11Api2', '第2档≥', '次')}`, `${configNumber('r11S1', '第1档')}${configNumber('r11S2', '第2档')}`)}
     </tbody></table></div>
     <p class="config-error" id="configError" aria-live="polite"></p>
