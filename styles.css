@@ -318,6 +318,22 @@ main { padding: 20px; }
 .admin-form textarea { min-height: 76px; resize: vertical; }
 .admin-dialog-actions { display: flex; justify-content: center; gap: 14px; margin-top: 22px; }
 .admin-dialog-actions button { min-width: 110px; }
+.rule-settings-dialog { width: min(1180px, calc(100vw - 60px)); }
+.config-help { margin: 0 0 12px; color: #5f7079; font-size: 12px; }
+.config-table-wrap { max-height: calc(100vh - 250px); overflow: auto; border: 1px solid #a9b6b4; background: #fff; }
+.config-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.config-table th { position: sticky; top: 0; z-index: 1; padding: 9px 10px; color: #20334e; background: #93a9cf; font-size: 12px; text-align: left; }
+.config-table th:first-child { width: 125px; }
+.config-table th:last-child { width: 350px; }
+.config-table td { padding: 8px 10px; border: 1px solid #deddd0; color: #24384c; font-size: 12px; vertical-align: middle; }
+.config-table td:first-child strong { display: block; color: #314e75; }
+.config-table td:first-child span { display: block; margin-top: 3px; color: #72808a; }
+.config-fields { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.config-number { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.config-number span { color: #596a74; }
+.config-number input { width: 58px; height: 28px; padding: 3px 5px; border: 1px solid #8ba1aa; background: #fff; text-align: center; }
+.config-number em { color: #74828c; font-style: normal; }
+.config-error { min-height: 18px; margin: 10px 0 -8px; color: #d9534f; font-size: 12px; text-align: center; }
 .detail-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
 .detail-summary > div { padding: 12px; background: #eef3f5; border-left: 3px solid #526ba3; }
 .detail-summary span { display: block; color: #74828c; font-size: 12px; }

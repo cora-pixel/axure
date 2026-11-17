@@ -12,6 +12,18 @@ const rules = [
   { id: 'R11', category: '行为风险', condition: '10分钟内同账号密码错误5-9次／10次及以上，或同IP登录接口请求60-119次／120次及以上', score: '-20／-40', mode: '按最高档扣分', desc: '密码错误与接口高频同时命中只取最高档；需要失败登录及接口请求日志支持', enabled: true },
 ];
 
+const scoringConfig = {
+  r01Score: 10, r02Score: 15, r03Score: 45, r04Score: 5,
+  r05T1: 9, r05T2: 11, r05T3: 21, r05T4: 51, r05T5: 101,
+  r05S1: 8, r05S2: 12, r05S3: 20, r05S4: 30, r05S5: 40,
+  r06T1: 9, r06T2: 11, r06T3: 21, r06T4: 51, r06T5: 101,
+  r06S1: 10, r06S2: 18, r06S3: 30, r06S4: 45, r06S5: 60,
+  r07Hours: 24, r07T1: 3, r07T2: 5, r07S1: 10, r07S2: 20,
+  r08Hours: 2, r08T1: 3, r08T2: 6, r08Cutoff: 9, r08S1: 15, r08S2: 30,
+  r09Days: 90, r09Score: 10, r10Score: 15,
+  r11Minutes: 10, r11Pwd1: 5, r11Pwd2: 10, r11Api1: 60, r11Api2: 120, r11S1: 20, r11S2: 40,
+};
+
 const bands = [
   { range: '80至100', action: '正常放行', className: 'healthy', detail: '正常登录，不弹出验证；后台记录环境与分数。' },
   { range: '60至79', action: '预警观察', className: 'watch', detail: '不打扰用户；进入观察名单并持续累积风险信号。' },
@@ -359,7 +371,86 @@ function renderFilteredPending() {
   ));
 }
 
+function syncRulesFromConfig() {
+  const update = (id, values) => Object.assign(rules.find(rule => rule.id === id), values);
+  update('R01', { score: `-${scoringConfig.r01Score}` });
+  update('R02', { score: `-${scoringConfig.r02Score}` });
+  update('R03', { score: `直接-${scoringConfig.r03Score}` });
+  update('R04', { score: `-${scoringConfig.r04Score}` });
+  update('R05', {
+    condition: `风险IP关联${scoringConfig.r05T1}-${scoringConfig.r05T2 - 1}／${scoringConfig.r05T2}-${scoringConfig.r05T3 - 1}／${scoringConfig.r05T3}-${scoringConfig.r05T4 - 1}／${scoringConfig.r05T4}-${scoringConfig.r05T5 - 1}／${scoringConfig.r05T5}人以上`,
+    score: `-${scoringConfig.r05S1}／-${scoringConfig.r05S2}／-${scoringConfig.r05S3}／-${scoringConfig.r05S4}／-${scoringConfig.r05S5}`,
+  });
+  update('R06', {
+    condition: `风险设备号关联${scoringConfig.r06T1}-${scoringConfig.r06T2 - 1}／${scoringConfig.r06T2}-${scoringConfig.r06T3 - 1}／${scoringConfig.r06T3}-${scoringConfig.r06T4 - 1}／${scoringConfig.r06T4}-${scoringConfig.r06T5 - 1}／${scoringConfig.r06T5}人以上`,
+    score: `-${scoringConfig.r06S1}／-${scoringConfig.r06S2}／-${scoringConfig.r06S3}／-${scoringConfig.r06S4}／-${scoringConfig.r06S5}`,
+  });
+  update('R07', {
+    condition: `${scoringConfig.r07Hours}小时内切换${scoringConfig.r07T1}-${scoringConfig.r07T2 - 1}个陌生IP或有效设备号／${scoringConfig.r07T2}个及以上`,
+    score: `-${scoringConfig.r07S1}／-${scoringConfig.r07S2}`,
+  });
+  update('R08', {
+    condition: `${scoringConfig.r08Hours}小时内同一有效IP或有效设备号登录${scoringConfig.r08T1}-${scoringConfig.r08T2 - 1}个／${scoringConfig.r08T2}-${scoringConfig.r08Cutoff - 1}个不同有效账号`,
+    score: `-${scoringConfig.r08S1}／-${scoringConfig.r08S2}`,
+    desc: `账号去重；达到${scoringConfig.r08Cutoff}个账号时改用R05或R06，本规则不再重复扣分`,
+  });
+  update('R09', { condition: `沉睡超过${scoringConfig.r09Days}天且IP、设备均变化`, score: `-${scoringConfig.r09Score}` });
+  update('R10', { score: `-${scoringConfig.r10Score}` });
+  update('R11', {
+    condition: `${scoringConfig.r11Minutes}分钟内同账号密码错误${scoringConfig.r11Pwd1}-${scoringConfig.r11Pwd2 - 1}次／${scoringConfig.r11Pwd2}次及以上，或同IP登录接口请求${scoringConfig.r11Api1}-${scoringConfig.r11Api2 - 1}次／${scoringConfig.r11Api2}次及以上`,
+    score: `-${scoringConfig.r11S1}／-${scoringConfig.r11S2}`,
+  });
+}
+
+function configNumber(key, label, suffix = '') {
+  return `<label class="config-number"><span>${label}</span><input type="number" min="1" step="1" data-config-key="${key}" value="${scoringConfig[key]}">${suffix ? `<em>${suffix}</em>` : ''}</label>`;
+}
+
+function openScoringSettingsDialog() {
+  const row = (id, title, condition, score) => `<tr><td><strong>${id}</strong><span>${title}</span></td><td><div class="config-fields">${condition}</div></td><td><div class="config-fields">${score}</div></td></tr>`;
+  openDialog('规则设置', `
+    <p class="config-help">配置触发门槛和扣分值。所有数字均填写正整数，扣分值无需输入负号。</p>
+    <div class="config-table-wrap"><table class="config-table"><thead><tr><th>规则</th><th>触发条件</th><th>扣分值</th></tr></thead><tbody>
+      ${row('R01', '陌生IP', 'IP不在常用IP中', configNumber('r01Score', '扣'))}
+      ${row('R02', '陌生设备', '有效设备号不在常用设备中', configNumber('r02Score', '扣'))}
+      ${row('R03', '双陌生组合', 'IP陌生且设备无法证明为常用', configNumber('r03Score', '直接扣'))}
+      ${row('R04', '设备号缺失', '本次未获取到有效设备号', configNumber('r04Score', '扣'))}
+      ${row('R05', '风险IP关联', `${configNumber('r05T1', '第1档≥', '人')}${configNumber('r05T2', '第2档≥', '人')}${configNumber('r05T3', '第3档≥', '人')}${configNumber('r05T4', '第4档≥', '人')}${configNumber('r05T5', '第5档≥', '人')}`, `${configNumber('r05S1', '第1档')}${configNumber('r05S2', '第2档')}${configNumber('r05S3', '第3档')}${configNumber('r05S4', '第4档')}${configNumber('r05S5', '第5档')}`)}
+      ${row('R06', '风险设备号关联', `${configNumber('r06T1', '第1档≥', '人')}${configNumber('r06T2', '第2档≥', '人')}${configNumber('r06T3', '第3档≥', '人')}${configNumber('r06T4', '第4档≥', '人')}${configNumber('r06T5', '第5档≥', '人')}`, `${configNumber('r06S1', '第1档')}${configNumber('r06S2', '第2档')}${configNumber('r06S3', '第3档')}${configNumber('r06S4', '第4档')}${configNumber('r06S5', '第5档')}`)}
+      ${row('R07', '环境切换', `${configNumber('r07Hours', '统计', '小时')}${configNumber('r07T1', '第1档≥', '个')}${configNumber('r07T2', '第2档≥', '个')}`, `${configNumber('r07S1', '第1档')}${configNumber('r07S2', '第2档')}`)}
+      ${row('R08', '多账号登录', `${configNumber('r08Hours', '统计', '小时')}${configNumber('r08T1', '第1档≥', '人')}${configNumber('r08T2', '第2档≥', '人')}${configNumber('r08Cutoff', '转风险关联≥', '人')}`, `${configNumber('r08S1', '第1档')}${configNumber('r08S2', '第2档')}`)}
+      ${row('R09', '沉睡账号', configNumber('r09Days', '沉睡超过', '天'), configNumber('r09Score', '扣'))}
+      ${row('R10', '敏感操作', '新环境登录后立即进行敏感操作', configNumber('r10Score', '扣'))}
+      ${row('R11', '攻击行为', `${configNumber('r11Minutes', '统计', '分钟')}${configNumber('r11Pwd1', '密码错误第1档≥', '次')}${configNumber('r11Pwd2', '第2档≥', '次')}${configNumber('r11Api1', '接口第1档≥', '次')}${configNumber('r11Api2', '第2档≥', '次')}`, `${configNumber('r11S1', '第1档')}${configNumber('r11S2', '第2档')}`)}
+    </tbody></table></div>
+    <p class="config-error" id="configError" aria-live="polite"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-scoring>保存设置</button></div>
+  `);
+  $('#adminDialog').classList.add('rule-settings-dialog');
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-scoring]').addEventListener('click', () => {
+    const values = {};
+    $$('[data-config-key]').forEach(input => { values[input.dataset.configKey] = Number(input.value); });
+    const invalidNumber = Object.values(values).some(value => !Number.isInteger(value) || value < 1);
+    const ascending = [
+      ['r05T1', 'r05T2', 'r05T3', 'r05T4', 'r05T5'],
+      ['r06T1', 'r06T2', 'r06T3', 'r06T4', 'r06T5'],
+      ['r07T1', 'r07T2'], ['r08T1', 'r08T2', 'r08Cutoff'],
+      ['r11Pwd1', 'r11Pwd2'], ['r11Api1', 'r11Api2'],
+    ].every(keys => keys.every((key, index) => index === 0 || values[key] > values[keys[index - 1]]));
+    if (invalidNumber || !ascending) {
+      $('#configError').textContent = invalidNumber ? '请填写大于0的整数。' : '同一规则的分档门槛必须从低到高填写。';
+      return;
+    }
+    Object.assign(scoringConfig, values);
+    syncRulesFromConfig();
+    renderRules($('#ruleCategoryFilter').value);
+    closeDialog();
+  });
+}
+
 function openDialog(title, body) {
+  $('#adminDialog').className = 'admin-dialog';
   $('#adminDialog').innerHTML = `<div class="admin-dialog-head"><h2>${title}</h2><button data-dialog-close>×</button></div><div class="admin-dialog-body">${body}</div>`;
   $('#dialogMask').classList.remove('hidden');
   $('[data-dialog-close]').addEventListener('click', closeDialog);
@@ -539,6 +630,7 @@ if ($('#password')) $('#password').addEventListener('keydown', event => { if (ev
 
 if ($('#ruleSearchBtn')) $('#ruleSearchBtn').addEventListener('click', () => renderRules($('#ruleCategoryFilter').value));
 if ($('#ruleResetBtn')) $('#ruleResetBtn').addEventListener('click', () => { $('#ruleCategoryFilter').value = 'all'; renderRules(); });
+if ($('#ruleSettingsBtn')) $('#ruleSettingsBtn').addEventListener('click', openScoringSettingsDialog);
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
 if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () => {
   renderFilteredPending();
@@ -556,7 +648,7 @@ if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () =>
 });
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });
 
-if ($('#ruleTableBody')) renderRules();
+if ($('#ruleTableBody')) { syncRulesFromConfig(); renderRules(); }
 if ($('#bandGrid')) renderBands();
 if ($('#pendingTableBody')) renderFilteredPending();
 if ($('#scoreOrb')) updateScoreUI();
