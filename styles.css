@@ -290,20 +290,22 @@ main { padding: 20px; }
 .account-score-table th:nth-child(2) { width: 78px; }
 .account-score-table th:nth-child(3) { width: 120px; }
 .account-score-table th:nth-child(4) { width: 52px; }
-.account-score-table th:nth-child(5) { width: 280px; }
-.account-score-table th:nth-child(6) { width: 72px; }
-.account-score-table th:nth-child(7) { width: 170px; }
-.account-score-table th:nth-child(8) { width: 125px; }
-.account-score-table th:nth-child(9) { width: 68px; }
-.account-score-table th:nth-child(10) { width: 260px; }
+.account-score-table th:nth-child(5) { width: 250px; }
+.account-score-table th:nth-child(6) { width: 88px; }
+.account-score-table th:nth-child(7) { width: 72px; }
+.account-score-table th:nth-child(8) { width: 160px; }
+.account-score-table th:nth-child(9) { width: 125px; }
+.account-score-table th:nth-child(10) { width: 68px; }
+.account-score-table th:nth-child(11) { width: 260px; }
 .account-score-table th:first-child, .account-score-table td:first-child { text-align: center; }
 .account-score-table th:nth-child(2), .account-score-table td:nth-child(2),
 .account-score-table th:nth-child(3), .account-score-table td:nth-child(3),
 .account-score-table th:nth-child(4), .account-score-table td:nth-child(4),
 .account-score-table th:nth-child(6), .account-score-table td:nth-child(6),
-.account-score-table th:nth-child(8), .account-score-table td:nth-child(8),
+.account-score-table th:nth-child(7), .account-score-table td:nth-child(7),
 .account-score-table th:nth-child(9), .account-score-table td:nth-child(9),
-.account-score-table th:nth-child(10), .account-score-table td:nth-child(10) { text-align: center; }
+.account-score-table th:nth-child(10), .account-score-table td:nth-child(10),
+.account-score-table th:nth-child(11), .account-score-table td:nth-child(11) { text-align: center; }
 .account-score-table input[type="checkbox"] { margin: 0; vertical-align: middle; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
@@ -352,7 +354,7 @@ main { padding: 20px; }
 .config-number input { width: 58px; height: 28px; padding: 3px 5px; border: 1px solid #8ba1aa; background: #fff; text-align: center; }
 .config-number em { color: #74828c; font-style: normal; }
 .config-error { min-height: 18px; margin: 10px 0 -8px; color: #d9534f; font-size: 12px; text-align: center; }
-.detail-summary { display: grid; grid-template-columns: 1.1fr .65fr 2fr .65fr; gap: 10px; margin-bottom: 16px; }
+.detail-summary { display: grid; grid-template-columns: 1.1fr .6fr 1.8fr .7fr .7fr; gap: 10px; margin-bottom: 16px; }
 .detail-summary > div { padding: 12px; background: #eef3f5; border-left: 3px solid #526ba3; }
 .detail-summary span { display: block; color: #74828c; font-size: 12px; }
 .detail-summary strong { display: block; margin-top: 6px; }

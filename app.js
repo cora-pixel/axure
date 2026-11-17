@@ -34,15 +34,15 @@ const bands = [
 
 const pendingRows = [
   {
-    memberId: '2795074', user: 'hxm001@as', score: 15, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；风险设备号关联51-100人；24小时内频繁切换环境', reason: '陌生IP＋设备无法证明可信；命中风险设备号51至100人', ip: '103.88.14.26', currentDeviceId: 'unknown', device: '非有效设备号', status: '未通过验证', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
+    memberId: '2795074', user: 'hxm001@as', score: 15, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；风险设备号关联51-100人；24小时内频繁切换环境', reason: '陌生IP＋设备无法证明可信；命中风险设备号51至100人', ip: '103.88.14.26', currentDeviceId: 'unknown', device: '非有效设备号', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋设备无法证明可信', '-45', '55'], ['R06 风险设备号', '48小时关联68个有效用户', '-45', '10'], ['R07 变化速度', '短时高频切换环境', '-10', '0']],
   },
   {
-    memberId: '2826222', user: 'yongson005', score: 35, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；风险IP关联21-50人', reason: '陌生IP＋有效陌生设备；风险IP关联21至50人', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '两步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
+    memberId: '2826222', user: 'yongson005', score: 35, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；风险IP关联21-50人', reason: '陌生IP＋有效陌生设备；风险IP关联21至50人', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和有效设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35']],
   },
   {
-    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
+    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋未获取有效设备号', '-45', '55']],
   },
   {
@@ -50,7 +50,7 @@ const pendingRows = [
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35'], ['验证成功', '更新常用IP及有效设备号', '+65', '100']],
   },
   {
-    memberId: '2827301', user: 'mika007@as', score: 72, action: '预警观察', scoreCondition: '风险IP关联9-10人；24小时内切换5个以上陌生环境', reason: '风险IP关联9至10人；短时间频繁切换登录环境', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '预警观察', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统',
+    memberId: '2827301', user: 'mika007@as', score: 72, action: '预警观察', scoreCondition: '风险IP关联9-10人；24小时内切换5个以上陌生环境', reason: '风险IP关联9至10人；短时间频繁切换登录环境', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R05 风险IP', '48小时关联9个有效用户', '-8', '92'], ['R07 变化速度', '24小时内切换5个以上陌生环境', '-20', '72']],
   },
 ];
@@ -356,7 +356,7 @@ function renderPending(rows = pendingRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#pendingTableBody').innerHTML = sortedRows.map((row, index) => `
     <tr>
-      <td><input type="checkbox" class="account-select" data-select-user="${row.user}" aria-label="选择${row.user}"></td><td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
+      <td><input type="checkbox" class="account-select" data-select-user="${row.user}" aria-label="选择${row.user}"></td><td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td><span class="verify-status ${row.status === '验证通过' ? 'normal' : 'failed'}">${row.status}</span></td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
       <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-common-id="${row.memberId}">常用IP／设备</button><button class="table-link" data-manual-id="${row.memberId}">手动验证</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
     </tr>`).join('');
   $('#accountTotal').textContent = sortedRows.length;
@@ -400,10 +400,12 @@ function renderFilteredPending() {
   const searchType = $('#pendingUserType').value;
   const condition = $('#pendingConditionFilter').value.trim().toLowerCase();
   const scoreTier = $('#pendingScoreTier').value;
+  const statuses = $$('input[name="verificationStatus"]:checked').map(input => input.value);
   renderPending(pendingRows.filter(row =>
     matchesAccountSearch(row, searchType, keyword) &&
     (!condition || row.scoreCondition.toLowerCase().includes(condition)) &&
-    matchesScoreTier(row.score, scoreTier)
+    matchesScoreTier(row.score, scoreTier) &&
+    (!statuses.length || statuses.includes(row.status))
   ));
 }
 
@@ -545,7 +547,7 @@ function openPendingDetail(memberId) {
     : '';
   openDialog('账号评分详情', `
     <div class="detail-summary">
-      <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div class="condition-summary"><span>分数扣减判断条件</span><strong>${row.scoreCondition}</strong></div><div><span>冻结状态</span><strong class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</strong></div>
+      <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div class="condition-summary"><span>分数扣减判断条件</span><strong>${row.scoreCondition}</strong></div><div><span>验证状态</span><strong class="verify-status ${row.status === '验证通过' ? 'normal' : 'failed'}">${row.status}</strong></div><div><span>冻结状态</span><strong class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</strong></div>
     </div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>累计分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     <div class="detail-section"><div class="detail-section-head"><h3>风险与环境信息</h3><button class="table-link" data-view-common="${row.memberId}">查看常用IP／设备</button></div><table class="mini-table"><tbody><tr><td>触发原因</td><td colspan="3">${row.reason}</td></tr><tr><td>当前IP</td><td>${row.ip}</td><td>设备状态</td><td>${row.device}</td></tr><tr><td>备注</td><td colspan="3">${row.note || '—'}</td></tr></tbody></table></div>
@@ -600,11 +602,9 @@ function applyVerificationResult(row, result, note) {
     row.note = note || '后台手动确认验证通过';
     if (previousScore < 100) row.breakdown.push(['验证通过', '分数重置为100并更新常用环境', `+${100 - previousScore}`, '100']);
   } else {
-    row.action = '阻断人工';
-    row.freezeStatus = '冻结';
-    row.reason = '后台确认验证失败并冻结账号';
+    row.reason = '后台确认验证失败，冻结状态保持不变';
     row.note = note || '后台手动确认验证失败';
-    row.breakdown.push(['验证失败', '保留当前分数和扣分条件，账号冻结', '—', row.score]);
+    row.breakdown.push(['验证失败', '保留当前分数、扣分条件和冻结状态', '—', row.score]);
     delete row.resetFrom;
     delete row.resetTime;
     delete row.resetOperator;
@@ -756,6 +756,7 @@ if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () =>
   $('#pendingUserFilter').placeholder = '输入会员ID';
   $('#pendingConditionFilter').value = '';
   $('#pendingScoreTier').value = 'all';
+  $$('input[name="verificationStatus"]').forEach(input => { input.checked = true; });
   renderFilteredPending();
 });
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });
