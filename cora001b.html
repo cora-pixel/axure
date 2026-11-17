@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>后台用户账号评分原型</title>
-  <link rel="stylesheet" href="styles.css?v=20261117-b25">
+  <link rel="stylesheet" href="styles.css?v=20261117-b26">
 </head>
 <body>
   <header class="topbar backend-topbar">
@@ -45,7 +45,7 @@
               <label class="user-search-filter"><select id="pendingUserType" aria-label="查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option><option value="ip">IP</option><option value="device">设备号</option></select><input id="pendingUserFilter" placeholder="输入会员ID"></label>
               <label class="condition-search-filter"><span>扣分判断条件</span><input id="pendingConditionFilter" placeholder="输入判断条件关键词"></label>
               <label class="score-tier-filter"><span>分数档位</span><select id="pendingScoreTier"><option value="all">全部</option><option value="80-100">80至100分</option><option value="60-79">60至79分</option><option value="40-59">40至59分</option><option value="20-39">20至39分</option><option value="0-19">0至19分</option></select></label>
-              <div class="checkbox-filter verification-filter"><span>验证状态</span><div class="checkbox-options"><label><input type="checkbox" name="verificationStatus" value="验证通过" checked>验证通过</label><label><input type="checkbox" name="verificationStatus" value="验证失败" checked>验证失败</label></div></div>
+              <label class="verification-filter"><span>验证状态</span><select id="pendingVerificationStatus"><option value="all">全部</option><option value="验证通过">验证通过</option><option value="验证失败">验证失败</option></select></label>
               <button class="admin-btn secondary" id="pendingSearchBtn">查询</button><button class="link-btn" id="pendingResetBtn">重置</button>
             </div>
             <div class="table-wrap">
@@ -78,6 +78,6 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b25"></script>
+  <script src="app.js?v=20261117-b26"></script>
 </body>
 </html>

@@ -216,6 +216,7 @@ main { padding: 20px; }
 .pending-filter .user-search-filter input { width: 220px; }
 .pending-filter .condition-search-filter input { width: 240px; }
 .pending-filter .score-tier-filter select { width: 140px; }
+.pending-filter .verification-filter select { width: 120px; }
 .pending-filter { align-items: center; gap: 18px; padding: 10px 14px; }
 .pending-filter > label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .pending-filter > label input { margin: 0; }

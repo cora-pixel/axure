@@ -400,12 +400,12 @@ function renderFilteredPending() {
   const searchType = $('#pendingUserType').value;
   const condition = $('#pendingConditionFilter').value.trim().toLowerCase();
   const scoreTier = $('#pendingScoreTier').value;
-  const statuses = $$('input[name="verificationStatus"]:checked').map(input => input.value);
+  const verificationStatus = $('#pendingVerificationStatus').value;
   renderPending(pendingRows.filter(row =>
     matchesAccountSearch(row, searchType, keyword) &&
     (!condition || row.scoreCondition.toLowerCase().includes(condition)) &&
     matchesScoreTier(row.score, scoreTier) &&
-    (!statuses.length || statuses.includes(row.status))
+    (verificationStatus === 'all' || row.status === verificationStatus)
   ));
 }
 
@@ -756,7 +756,7 @@ if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () =>
   $('#pendingUserFilter').placeholder = '输入会员ID';
   $('#pendingConditionFilter').value = '';
   $('#pendingScoreTier').value = 'all';
-  $$('input[name="verificationStatus"]').forEach(input => { input.checked = true; });
+  $('#pendingVerificationStatus').value = 'all';
   renderFilteredPending();
 });
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });
