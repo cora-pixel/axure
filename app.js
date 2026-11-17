@@ -341,11 +341,9 @@ function renderPending(rows = pendingRows) {
 function renderFilteredPending() {
   const user = $('#pendingUserFilter').value.trim().toLowerCase();
   const statuses = $$('input[name="pendingStatus"]:checked').map(input => input.value);
-  const operator = $('#pendingOperatorFilter').value.trim().toLowerCase();
   renderPending(pendingRows.filter(row =>
     (!user || row.user.toLowerCase().includes(user) || row.memberId.includes(user)) &&
-    (!statuses.length || statuses.includes(row.status)) &&
-    (!operator || row.operator.toLowerCase().includes(operator))
+    (!statuses.length || statuses.includes(row.status))
   ));
 }
 
@@ -516,7 +514,6 @@ if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () 
 });
 if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () => {
   $('#pendingUserFilter').value = '';
-  $('#pendingOperatorFilter').value = '';
   $$('input[name="pendingStatus"]').forEach(input => { input.checked = input.value === '未通过验证'; });
   renderFilteredPending();
 });

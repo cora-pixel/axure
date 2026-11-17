@@ -213,7 +213,6 @@ main { padding: 20px; }
 .checkbox-options label { display: inline-flex; align-items: center; gap: 4px; }
 .checkbox-options input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #526ba3; }
 .pending-filter > label:first-child input { width: 250px; }
-.pending-filter > label:last-of-type input { width: 150px; }
 .pending-filter { align-items: center; gap: 18px; padding: 10px 14px; }
 .pending-filter > label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .pending-filter > label input { margin: 0; }
