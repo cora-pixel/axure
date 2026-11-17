@@ -270,6 +270,9 @@ main { padding: 20px; }
 .admin-menu-groups ul li.active { color: #c93e36; background: #dfe7dc; font-weight: 700; border-left: 4px solid #c93e36; padding-left: 27px; }
 .admin-menu-groups ul li.active { display: flex; align-items: center; }
 .menu-count-badge { min-width: 20px; height: 18px; display: inline-flex; align-items: center; justify-content: center; margin-left: 7px; padding: 0 5px; border-radius: 9px; color: #fff; background: #d9534f; font-size: 11px; line-height: 18px; }
+.menu-expandable { cursor: pointer; }
+.website-submenu { cursor: default; }
+.website-submenu li { cursor: pointer; }
 .admin-workspace { min-width: 0; padding: 14px 16px 24px; }
 .admin-breadcrumb { min-height: 38px; display: flex; align-items: center; gap: 4px; padding: 0 12px; color: #203646; background: #f5f6ef; border: 1px solid #5d9185; }
 .admin-breadcrumb span { color: #d7423c; font-weight: 700; }
@@ -296,10 +299,30 @@ main { padding: 20px; }
 .account-page-head h1 { margin: 0; color: #314e75; font-size: 18px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
 .account-head-actions { display: flex; align-items: center; gap: 12px; }
-.low-score-quick { min-width: 270px; height: 44px; display: grid; align-content: center; gap: 3px; padding: 4px 14px; border: 1px solid #d9534f; color: #d43f3a; background: #fff; text-align: center; }
+.low-score-quick { min-width: 220px; height: 34px; padding: 0 16px; border: 1px solid rgba(201, 78, 74, .38); color: #b6403d; background: rgba(217, 83, 79, .12); text-align: center; }
 .low-score-quick strong { font-size: 14px; }
-.low-score-quick span { font-size: 12px; }
-.low-score-quick:hover { background: #fff4f3; }
+.low-score-quick:hover { border-color: rgba(201, 78, 74, .52); background: rgba(217, 83, 79, .18); }
+.basic-config-toolbar { margin-top: 8px; background: #f5f6ef; border: 1px solid #5d9185; }
+.basic-config-actions { min-height: 42px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 4px 10px; border-bottom: 1px solid #8fa9a2; }
+.basic-config-filters { min-height: 54px; display: flex; align-items: center; gap: 14px; padding: 8px 12px; }
+.basic-config-filters label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.basic-config-filters input, .basic-config-filters select { width: 210px; height: 32px; padding: 0 9px; border: 1px solid #8ba1aa; background: #fff; }
+.config-location { min-height: 38px; display: flex; align-items: center; margin-top: 8px; padding: 0 12px; background: #f5f6ef; border: 1px solid #5d9185; color: #5f7079; }
+.config-location strong { color: #314e75; }
+.config-list-wrap { margin-top: 10px; }
+.config-list-table { min-width: 1280px; }
+.config-list-table th:nth-child(1) { width: 70px; }
+.config-list-table th:nth-child(2) { width: 190px; }
+.config-list-table th:nth-child(3) { width: 190px; }
+.config-list-table th:nth-child(4) { width: 180px; }
+.config-list-table th:nth-child(5), .config-list-table th:nth-child(6), .config-list-table th:nth-child(7) { width: 90px; }
+.config-list-table th:nth-child(8) { width: 150px; }
+.config-list-table th:nth-child(9) { width: 80px; }
+.config-list-table th:nth-child(10) { width: 260px; }
+.config-list-table th, .config-list-table td { text-align: center; }
+.config-list-table td:nth-child(4), .config-list-table td:nth-child(8) { overflow-wrap: anywhere; }
+.inherit-text { color: #4c8a35; font-weight: 700; }
+.status-disabled { color: #d9534f; }
 .account-score-table { min-width: 1280px; }
 .account-score-table th:nth-child(1) { width: 34px; }
 .account-score-table th:nth-child(2) { width: 78px; }
@@ -354,6 +377,17 @@ main { padding: 20px; }
 .admin-dialog-actions { display: flex; justify-content: center; gap: 14px; margin-top: 22px; }
 .admin-dialog-actions button { min-width: 110px; }
 .rule-settings-dialog { width: min(1180px, calc(100vw - 60px)); }
+.config-detail-dialog { width: min(1080px, calc(100vw - 60px)); }
+.config-detail-form { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 14px 12px; align-items: start; }
+.config-detail-label { min-height: 34px; display: flex; align-items: center; justify-content: flex-end; color: #203646; font-weight: 700; }
+.config-detail-form > input, .config-detail-form > select, .config-detail-form > textarea, .config-detail-form > div > input { width: 100%; min-height: 34px; padding: 6px 10px; border: 1px solid #8ba1aa; background: #fff; }
+.config-detail-form textarea { min-height: 86px; resize: vertical; line-height: 1.6; }
+.config-detail-form input:disabled, .config-detail-form textarea:disabled { color: #647684; background: #eef0f0; }
+.config-site-field { display: grid; grid-template-columns: minmax(0, 1fr) 110px; align-items: center; gap: 14px; }
+.config-site-field > label { display: inline-flex; align-items: center; gap: 6px; color: #d9534f; }
+.config-site-field input[type="checkbox"], .config-disabled-check input { width: 16px; min-height: 16px; margin: 0; accent-color: #4f94e8; }
+.field-help { margin: 5px 0 0; color: #6f7e86; font-size: 12px; }
+.config-disabled-check { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; }
 .config-help { margin: 0 0 12px; color: #5f7079; font-size: 12px; }
 .config-table-wrap { max-height: calc(100vh - 250px); overflow: auto; border: 1px solid #a9b6b4; background: #fff; }
 .config-table { width: 100%; border-collapse: collapse; table-layout: fixed; }

@@ -15,14 +15,17 @@
         <aside class="admin-menu" aria-label="管理后台菜单">
           <div class="admin-menu-title">管理后台</div>
           <ul class="admin-menu-groups">
-            <li>＋ 黑名单管理</li><li>＋ 风控管理</li><li>＋ 开发管理</li><li>＋ 网站管理</li><li>＋ 游戏管理</li>
+            <li>＋ 黑名单管理</li><li>＋ 风控管理</li><li>＋ 开发管理</li>
+            <li class="menu-expandable" id="websiteManagementMenu">＋ 网站管理<ul class="website-submenu hidden"><li id="basicConfigMenu">基本配置</li></ul></li>
+            <li>＋ 游戏管理</li>
             <li class="expanded">－ 用户管理
-              <ul><li>用户信息黑名单</li><li>用户列表</li><li>用户白名单</li><li class="active">用户账号评分<span class="menu-count-badge">24</span></li><li>登录临时冻结</li><li>账号反查</li></ul>
+              <ul><li>用户信息黑名单</li><li>用户列表</li><li>用户白名单</li><li class="active" id="accountScoreMenu">用户账号评分<span class="menu-count-badge">24</span></li><li>登录临时冻结</li><li>账号反查</li></ul>
             </li>
             <li>＋ 资金管理</li><li>＋ 配额组管理</li>
           </ul>
         </aside>
         <div class="admin-workspace">
+          <div class="admin-feature" id="scoreFeature">
           <div class="admin-breadcrumb"><strong>后台管理</strong> - 用户管理 - <span>用户账号评分</span><small>当前操作人：Cora</small></div>
           <nav class="admin-page-tabs" aria-label="用户账号评分功能">
             <button class="admin-page-tab active" data-admin-tab="account">用户账号评分</button>
@@ -32,7 +35,7 @@
           <div class="admin-tab-panel active" id="accountPanel">
             <div class="account-page-head">
               <div><h1>用户账号评分</h1><p>查询全部会员的当前评分、分数扣减判断条件、验证状态与冻结状态，评分及操作变更均保留记录</p></div>
-              <div class="account-head-actions"><button class="low-score-quick" id="lowScoreQuickFilter"><strong>60分以下用户共24名</strong><span>点击快速查看名单</span></button><button class="admin-btn" id="batchVerifyBtn">批量验证</button></div>
+              <div class="account-head-actions"><button class="low-score-quick" id="lowScoreQuickFilter"><strong>60分以下用户共24名</strong></button><button class="admin-btn" id="batchVerifyBtn">批量验证</button></div>
             </div>
             <div class="filter-bar pending-filter">
               <label class="user-search-filter"><select id="pendingUserType" aria-label="查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option><option value="ip">IP</option><option value="device">设备号</option></select><input id="pendingUserFilter" placeholder="输入会员ID"></label>
@@ -60,6 +63,17 @@
               <div class="section-heading"><div><h2>风险分数控制区间</h2><p>最终分数只决定验证强度</p></div><button class="admin-btn secondary" id="editBandsBtn">修改区间</button></div>
               <div class="band-grid" id="bandGrid"></div>
             </section>
+          </div>
+          </div>
+
+          <div class="admin-feature hidden" id="basicConfigFeature">
+            <div class="admin-breadcrumb"><strong>后台管理</strong> - 网站管理 - <span>基本配置</span><small>当前操作人：Cora</small></div>
+            <div class="basic-config-toolbar">
+              <div class="basic-config-actions"><button class="admin-btn secondary" id="refreshConfigBtn">刷新配置</button><button class="admin-btn secondary" id="addConfigBtn">增加配置项</button><button class="admin-btn secondary">基本配置列表</button></div>
+              <div class="basic-config-filters"><label>编码：<select><option>全部</option></select></label><label>系统名称：<input id="configSystemFilter" placeholder="全部"></label><label>配置标题：<input id="configTitleFilter" placeholder="全部"></label><button class="admin-btn secondary" id="configSearchBtn">开始查询</button></div>
+            </div>
+            <div class="config-location">当前菜单位置：<strong>基本配置</strong>　&gt;　风险评分配置</div>
+            <div class="table-wrap config-list-wrap"><table class="admin-table config-list-table"><thead><tr><th>编号</th><th>系统名称</th><th>配置标题</th><th>基础配置</th><th>恒行3</th><th>亚体</th><th>启航</th><th>默认值</th><th>状态</th><th>操作</th></tr></thead><tbody id="basicConfigTableBody"><tr data-config-row><td>5688</td><td>risk_score_alert_tgid</td><td>风险评分提醒tgid</td><td id="riskTgidBaseValue">—</td><td class="inherit-text">继承</td><td class="inherit-text">继承</td><td class="inherit-text">继承</td><td id="riskTgidDefaultValue">—</td><td class="status-enabled" id="riskTgidStatus">启用</td><td><button class="table-link" id="setRiskTgidBtn">设置</button><button class="table-link" id="editRiskTgidBtn">修改</button><button class="table-link">删除</button><button class="table-link" id="toggleRiskTgidBtn">设为禁用</button></td></tr></tbody></table></div>
           </div>
         </div>
       </div>

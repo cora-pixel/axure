@@ -28,6 +28,14 @@ const scoringConfig = {
   r13Minutes: 10, r13T1: 60, r13T2: 120, r13T3: 240, r13S1: 30, r13S2: 50, r13S3: 70,
 };
 
+const riskTgidConfig = {
+  baseValue: '',
+  defaultValue: '',
+  disabled: false,
+  siteValues: { h3: '', asia: '', qh: '' },
+  inherited: { h3: true, asia: true, qh: true },
+};
+
 const bands = [
   { range: '80至100', action: '正常放行', className: 'healthy', detail: '正常登录，不弹出验证；后台记录环境与分数。' },
   { range: '60至79', action: '预警观察', className: 'watch', detail: '不打扰用户；进入观察名单并持续累积风险信号。' },
@@ -519,6 +527,89 @@ function openScoringSettingsDialog() {
   });
 }
 
+function renderRiskTgidConfigRow() {
+  if (!$('#riskTgidBaseValue')) return;
+  $('#riskTgidBaseValue').textContent = riskTgidConfig.baseValue || '—';
+  $('#riskTgidDefaultValue').textContent = riskTgidConfig.defaultValue || '—';
+  $('#riskTgidStatus').textContent = riskTgidConfig.disabled ? '禁用' : '启用';
+  $('#riskTgidStatus').className = riskTgidConfig.disabled ? 'status-disabled' : 'status-enabled';
+  $('#toggleRiskTgidBtn').textContent = riskTgidConfig.disabled ? '设为启用' : '设为禁用';
+}
+
+function configSiteField(label, key) {
+  const inherited = riskTgidConfig.inherited[key];
+  return `<div class="config-detail-label">${label}配置属性：</div><div class="config-site-field"><input data-site-value="${key}" value="${riskTgidConfig.siteValues[key]}" ${inherited ? 'disabled' : ''}><label><input type="checkbox" data-site-inherit="${key}" ${inherited ? 'checked' : ''}>继承</label></div>`;
+}
+
+function openRiskTgidConfigDialog() {
+  openDialog('设置配置：风险评分提醒tgid', `
+    <div class="config-detail-form">
+      <div class="config-detail-label">配置分组：</div><select><option>风险评分配置</option></select>
+      <div class="config-detail-label">系统名称：</div><input value="risk_score_alert_tgid" disabled>
+      <div class="config-detail-label">配置标题：</div><input value="风险评分提醒tgid" disabled>
+      <div class="config-detail-label">基础配置：</div><div><input id="riskTgidBaseInput" value="${riskTgidConfig.baseValue}" placeholder="请输入TGID，多个用英文逗号分隔"><p class="field-help">填写接收风险评分提醒的Telegram ID，多个TGID使用英文逗号分隔。</p></div>
+      ${configSiteField('恒行3', 'h3')}
+      ${configSiteField('亚体', 'asia')}
+      ${configSiteField('启航', 'qh')}
+      <div class="config-detail-label">配置默认值：</div><input id="riskTgidDefaultInput" value="${riskTgidConfig.defaultValue}" placeholder="未配置站点值时使用">
+      <div class="config-detail-label">配置分组：</div><select><option>单值型</option></select>
+      <div class="config-detail-label">配置值属性：</div><select><option>字符串</option></select>
+      <div class="config-detail-label">配置描述：</div><textarea disabled>用于配置用户账号风险评分提醒的Telegram ID。账号分数进入提醒范围时，系统向配置的TGID发送预警消息；多个TGID使用英文逗号分隔。</textarea>
+      <div class="config-detail-label">是否禁用：</div><label class="config-disabled-check"><input type="checkbox" id="riskTgidDisabled" ${riskTgidConfig.disabled ? 'checked' : ''}>选中禁用</label>
+    </div>
+    <p class="config-error" id="riskTgidError" aria-live="polite"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn" data-save-tgid>保存配置</button><button class="admin-btn secondary" data-reset-tgid>重新设置</button><button class="admin-btn secondary" data-dialog-cancel>返回列表</button></div>
+  `);
+  $('#adminDialog').classList.add('config-detail-dialog');
+  $$('[data-site-inherit]').forEach(input => input.addEventListener('change', () => {
+    const field = $(`[data-site-value="${input.dataset.siteInherit}"]`);
+    field.disabled = input.checked;
+    if (input.checked) field.value = '';
+  }));
+  $('[data-reset-tgid]').addEventListener('click', () => {
+    $('#riskTgidBaseInput').value = riskTgidConfig.baseValue;
+    $('#riskTgidDefaultInput').value = riskTgidConfig.defaultValue;
+    $('#riskTgidDisabled').checked = riskTgidConfig.disabled;
+    $$('[data-site-inherit]').forEach(input => {
+      const key = input.dataset.siteInherit;
+      input.checked = riskTgidConfig.inherited[key];
+      const field = $(`[data-site-value="${key}"]`);
+      field.value = riskTgidConfig.siteValues[key];
+      field.disabled = input.checked;
+    });
+    $('#riskTgidError').textContent = '';
+  });
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-tgid]').addEventListener('click', () => {
+    const normalize = value => value.trim().replace(/\s+/g, '');
+    const baseValue = normalize($('#riskTgidBaseInput').value);
+    const defaultValue = normalize($('#riskTgidDefaultInput').value);
+    const isValid = value => !value || /^-?\d+(,-?\d+)*$/.test(value);
+    const siteValues = {};
+    const inherited = {};
+    $$('[data-site-inherit]').forEach(input => {
+      const key = input.dataset.siteInherit;
+      inherited[key] = input.checked;
+      siteValues[key] = input.checked ? '' : normalize($(`[data-site-value="${key}"]`).value);
+    });
+    if (![baseValue, defaultValue, ...Object.values(siteValues)].every(isValid)) {
+      $('#riskTgidError').textContent = 'TGID仅支持整数；多个TGID请使用英文逗号分隔。';
+      return;
+    }
+    Object.assign(riskTgidConfig, { baseValue, defaultValue, siteValues, inherited, disabled: $('#riskTgidDisabled').checked });
+    renderRiskTgidConfigRow();
+    closeDialog();
+  });
+}
+
+function showAdminFeature(feature) {
+  const showConfig = feature === 'config';
+  $('#scoreFeature').classList.toggle('hidden', showConfig);
+  $('#basicConfigFeature').classList.toggle('hidden', !showConfig);
+  $('#accountScoreMenu').classList.toggle('active', !showConfig);
+  $('#basicConfigMenu').classList.toggle('active', showConfig);
+}
+
 function openDialog(title, body) {
   $('#adminDialog').className = 'admin-dialog';
   $('#adminDialog').innerHTML = `<div class="admin-dialog-head"><h2>${title}</h2><button data-dialog-close>×</button></div><div class="admin-dialog-body">${body}</div>`;
@@ -765,6 +856,36 @@ if ($('#password')) $('#password').addEventListener('keydown', event => { if (ev
 
 if ($('#ruleSettingsBtn')) $('#ruleSettingsBtn').addEventListener('click', openScoringSettingsDialog);
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
+if ($('#websiteManagementMenu')) $('#websiteManagementMenu').addEventListener('click', event => {
+  if (event.target.closest('#basicConfigMenu')) return;
+  const submenu = $('.website-submenu');
+  const willOpen = submenu.classList.contains('hidden');
+  submenu.classList.toggle('hidden', !willOpen);
+  $('#websiteManagementMenu').firstChild.nodeValue = willOpen ? '－ 网站管理' : '＋ 网站管理';
+});
+if ($('#basicConfigMenu')) $('#basicConfigMenu').addEventListener('click', event => {
+  event.stopPropagation();
+  showAdminFeature('config');
+});
+if ($('#accountScoreMenu')) $('#accountScoreMenu').addEventListener('click', () => showAdminFeature('score'));
+if ($('#setRiskTgidBtn')) $('#setRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
+if ($('#editRiskTgidBtn')) $('#editRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
+if ($('#addConfigBtn')) $('#addConfigBtn').addEventListener('click', openRiskTgidConfigDialog);
+if ($('#toggleRiskTgidBtn')) $('#toggleRiskTgidBtn').addEventListener('click', () => {
+  riskTgidConfig.disabled = !riskTgidConfig.disabled;
+  renderRiskTgidConfigRow();
+});
+if ($('#configSearchBtn')) $('#configSearchBtn').addEventListener('click', () => {
+  const systemKeyword = $('#configSystemFilter').value.trim().toLowerCase();
+  const titleKeyword = $('#configTitleFilter').value.trim().toLowerCase();
+  $('[data-config-row]').classList.toggle('hidden', !'risk_score_alert_tgid'.includes(systemKeyword) || !'风险评分提醒tgid'.includes(titleKeyword));
+});
+if ($('#refreshConfigBtn')) $('#refreshConfigBtn').addEventListener('click', () => {
+  $('#configSystemFilter').value = '';
+  $('#configTitleFilter').value = '';
+  $('[data-config-row]').classList.remove('hidden');
+  renderRiskTgidConfigRow();
+});
 if ($('#batchVerifyBtn')) $('#batchVerifyBtn').addEventListener('click', () => {
   openBatchVerifyDialog($$('.account-select:checked').map(input => input.dataset.selectUser));
 });
@@ -815,4 +936,5 @@ if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (
 if ($('#ruleTableBody')) { syncRulesFromConfig(); renderRules(); }
 if ($('#bandGrid')) renderBands();
 if ($('#pendingTableBody')) { updateScoreTierSummary(); renderFilteredPending(); }
+if ($('#riskTgidBaseValue')) renderRiskTgidConfigRow();
 if ($('#scoreOrb')) updateScoreUI();
