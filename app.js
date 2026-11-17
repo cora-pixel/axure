@@ -257,9 +257,15 @@ function renderVerificationSuccess() {
     openSecurityModal(modalFrame('恭喜您，通过安全验证。', `
       <div class="status-icon success">✓</div>
       <div class="modal-copy success-fund-copy"><span>检测到您未设置资金密码请立即设定。</span></div>
-      <div class="modal-actions"><button class="primary wide" data-set-fund>立即设定</button></div>
-    `, false), { maskClose: true });
-    $('[data-set-fund]').addEventListener('click', () => {
+      <div class="modal-actions"><button class="primary wide" data-set-fund disabled>立即设定</button></div>
+    `, false), { maskClose: false });
+    const setFundButton = $('[data-set-fund]');
+    window.clearTimeout(renderVerificationSuccess.readyTimer);
+    renderVerificationSuccess.readyTimer = window.setTimeout(() => {
+      setFundButton.disabled = false;
+      $('#modalMask').dataset.maskClose = 'true';
+    }, 800);
+    setFundButton.addEventListener('click', () => {
       closeSecurityModal();
       showHome();
       setFrontState('验证成功', '等待设置资金密码');
