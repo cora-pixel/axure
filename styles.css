@@ -323,6 +323,12 @@ main { padding: 20px; }
 .detail-summary strong { display: block; margin-top: 6px; }
 .detail-section { margin-top: 18px; }
 .detail-section h3 { margin: 0 0 8px; font-size: 15px; }
+.detail-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.detail-section-head h3 { margin: 0; }
+.detail-section-head .table-link { color: #d9534f; }
+.environment-account { display: flex; align-items: center; gap: 16px; padding: 12px; background: #eef3f5; border-left: 3px solid #526ba3; }
+.environment-account span { color: #74828c; font-size: 12px; }
+.device-value { overflow-wrap: anywhere; }
 .mini-table { width: 100%; border-collapse: collapse; }
 .mini-table th { background: #93a9cf; padding: 8px; font-size: 12px; }
 .mini-table td { border: 1px solid #deddd0; padding: 8px; font-size: 12px; }

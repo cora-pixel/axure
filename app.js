@@ -39,6 +39,25 @@ const pendingRows = [
   },
 ];
 
+const commonEnvironmentByMember = {
+  '2795074': {
+    ips: [['139.162.87.78', '72', '2026-11-15 20:18', '系统识别'], ['47.76.91.34', '53', '2026-11-12 09:42', '系统识别']],
+    devices: [['Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW', '32', '2026-11-15 20:18', '系统识别'], ['iOS-Safari-JRPu3of08JTLzcQXOVB8', '9', '2026-11-08 18:06', '验证通过']],
+  },
+  '2826222': {
+    ips: [['202.55.225.254', '26', '2026-11-16 22:10', '系统识别']],
+    devices: [['Android-Chrome-VKgIPg9S6c8pXd8C0fB6', '18', '2026-11-16 22:10', '系统识别']],
+  },
+  '2826202': {
+    ips: [['47.76.91.34', '18', '2026-11-14 16:35', '验证通过']],
+    devices: [['Win10-Edge-eDC760OPpeNearzyKXK', '12', '2026-11-14 16:35', '验证通过']],
+  },
+  '2827144': {
+    ips: [['139.162.60.207', '42', '2026-11-17 10:26', '验证通过']],
+    devices: [['Win10-Chrome-95T0XYr9BIOdkdF4a29J', '23', '2026-11-17 10:26', '验证通过']],
+  },
+};
+
 const methodMeta = {
   phone: { name: '手机验证', sub: '+86 137****8374', placeholder: '请输入6位验证码', expected: '863921', hint: '验证码已发送至 +86 137****8374' },
   email: { name: '邮箱验证', sub: 'cor***@mail.com', placeholder: '请输入6位验证码', expected: '863921', hint: '验证码已发送至 cor***@mail.com' },
@@ -409,10 +428,30 @@ function openPendingDetail(memberId) {
       <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div><span>验证状态</span><strong>${row.status}</strong></div><div><span>冻结状态</span><strong class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</strong></div>
     </div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>累计分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
-    <div class="detail-section"><h3>风险与环境信息</h3><table class="mini-table"><tbody><tr><td>触发原因</td><td colspan="3">${row.reason}</td></tr><tr><td>当前IP</td><td>${row.ip}</td><td>设备状态</td><td>${row.device}</td></tr><tr><td>备注</td><td colspan="3">${row.note || '—'}</td></tr></tbody></table></div>
+    <div class="detail-section"><div class="detail-section-head"><h3>风险与环境信息</h3><button class="table-link" data-view-common="${row.memberId}">查看常用IP／设备</button></div><table class="mini-table"><tbody><tr><td>触发原因</td><td colspan="3">${row.reason}</td></tr><tr><td>当前IP</td><td>${row.ip}</td><td>设备状态</td><td>${row.device}</td></tr><tr><td>备注</td><td colspan="3">${row.note || '—'}</td></tr></tbody></table></div>
     <div class="detail-section"><h3>验证及变更记录</h3><table class="mini-table"><thead><tr><th>时间</th><th>类型</th><th>内容</th><th>操作人</th></tr></thead><tbody>${resetRecord}${latestRecord}<tr><td>2026-11-17 08:20</td><td>评分记录</td><td>${row.reason}</td><td>系统</td></tr></tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>关闭</button></div>
   `);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-view-common]').addEventListener('click', () => openCommonEnvironmentDialog(row.memberId));
+}
+
+function openCommonEnvironmentDialog(memberId) {
+  const row = pendingRows.find(item => item.memberId === memberId);
+  const environment = commonEnvironmentByMember[memberId] || { ips: [], devices: [] };
+  const ipRows = environment.ips.length
+    ? environment.ips.map(item => `<tr><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td><td>${item[3]}</td></tr>`).join('')
+    : '<tr><td colspan="4">暂无常用IP</td></tr>';
+  const deviceRows = environment.devices.length
+    ? environment.devices.map(item => `<tr><td class="device-value">${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td><td>${item[3]}</td></tr>`).join('')
+    : '<tr><td colspan="4">暂无常用设备</td></tr>';
+  openDialog('常用IP／设备', `
+    <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
+    <div class="detail-section"><h3>常用IP</h3><table class="mini-table"><thead><tr><th>IP</th><th>登录次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${ipRows}</tbody></table></div>
+    <div class="detail-section"><h3>常用设备</h3><table class="mini-table"><thead><tr><th>设备号</th><th>登录次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-back-detail>返回评分详情</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>
+  `);
+  $('[data-back-detail]').addEventListener('click', () => openPendingDetail(memberId));
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
