@@ -272,16 +272,17 @@ main { padding: 20px; }
 .account-page-head { min-height: 60px; display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding: 8px 12px; background: #f5f6ef; border: 1px solid #5d9185; }
 .account-page-head h1 { margin: 0; color: #314e75; font-size: 18px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
-.account-score-table { min-width: 1030px; }
-.account-score-table th:nth-child(1) { width: 82px; }
-.account-score-table th:nth-child(2) { width: 130px; }
-.account-score-table th:nth-child(3) { width: 56px; }
-.account-score-table th:nth-child(4) { width: 82px; }
-.account-score-table th:nth-child(5) { width: 96px; }
-.account-score-table th:nth-child(6) { width: 225px; }
-.account-score-table th:nth-child(7) { width: 132px; }
-.account-score-table th:nth-child(8) { width: 75px; }
-.account-score-table th:nth-child(9) { width: 190px; }
+.account-score-table { min-width: 1120px; }
+.account-score-table th:nth-child(1) { width: 78px; }
+.account-score-table th:nth-child(2) { width: 120px; }
+.account-score-table th:nth-child(3) { width: 52px; }
+.account-score-table th:nth-child(4) { width: 76px; }
+.account-score-table th:nth-child(5) { width: 88px; }
+.account-score-table th:nth-child(6) { width: 72px; }
+.account-score-table th:nth-child(7) { width: 190px; }
+.account-score-table th:nth-child(8) { width: 125px; }
+.account-score-table th:nth-child(9) { width: 68px; }
+.account-score-table th:nth-child(10) { width: 180px; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
 .verify-status { font-weight: 700; }
@@ -289,6 +290,9 @@ main { padding: 20px; }
 .verify-status.one { color: #d88618; }
 .verify-status.two { color: #7656a8; }
 .verify-status.failed { color: #d9534f; }
+.freeze-status { font-weight: 700; }
+.freeze-status.normal { color: #3e8e68; }
+.freeze-status.frozen { color: #d9534f; }
 .table-footer { min-height: 42px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; color: #5d6d76; background: #f5f6ef; border: 1px solid #78a7a1; border-top: 0; font-size: 12px; }
 .batch-help { margin: -4px 0 14px 132px; color: #6f7e86; font-size: 12px; }
 .batch-preview { margin: 12px 0 0 132px; padding: 9px 11px; color: #315f52; background: #edf7f3; border: 1px solid #a8cabe; font-size: 12px; }
