@@ -286,3 +286,28 @@ main { padding: 20px; }
   body { min-width: 1000px; }
   .frontend-layout { grid-template-columns: minmax(650px, 1fr) 300px; }
 }
+
+/* Standalone frontend prototype */
+.frontend-body { min-width: 1440px; background: #eef1f7; }
+.frontend-main { padding: 0; }
+.frontend-stack { width: 100%; max-width: 2560px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.frontend-stack .prototype-stage { width: 100%; min-height: 0; aspect-ratio: 2560 / 1122; overflow: hidden; border: 0; box-shadow: none; background: #e5e8f5; }
+.prototype-canvas { position: absolute; inset: 0; }
+.prototype-canvas img { display: block; width: 100%; height: 100%; object-fit: fill; user-select: none; pointer-events: none; }
+.screen-hotspot { position: absolute; z-index: 3; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.screen-hotspot:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.login-submit-hotspot { left: 51.05%; top: 62.45%; width: 14.25%; height: 5.15%; }
+.login-close-hotspot { left: 65.45%; top: 37.6%; width: 1.65%; height: 4%; }
+.frontend-stack .modal-mask { inset: 0; }
+.frontend-stack .security-modal { width: 520px; max-height: 88%; }
+.frontend-stack .toast { top: 18px; }
+.horizontal-simulator { width: calc(100% - 32px); margin: 0 16px 16px; display: grid; grid-template-columns: 170px minmax(330px, 1.4fr) minmax(300px, 1.25fr) 220px 190px; gap: 14px; align-items: stretch; padding: 16px; }
+.horizontal-simulator .simulator-block { min-width: 0; }
+.horizontal-simulator .panel-title { padding-right: 12px; border-right: 1px solid #dfe5e9; }
+.horizontal-simulator .segmented { margin: 0 0 10px; }
+.horizontal-simulator .method-block h3, .horizontal-simulator .demo-values h3 { margin: 0 0 8px; }
+.horizontal-simulator .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.horizontal-simulator .toggle-row { height: 34px; }
+.horizontal-simulator .demo-values { margin: 0; padding: 11px 13px; }
+.horizontal-simulator .demo-values p { white-space: nowrap; }
+.horizontal-simulator .state-log { margin: 0; padding: 12px 14px; border: 1px solid #dfe5e9; background: #f7f9fa; }

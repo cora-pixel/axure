@@ -88,9 +88,18 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.add('hidden'), 3200);
 }
 
+function setPrototypeScreen(screen) {
+  const background = $('#prototypeBackground');
+  if (!background) return;
+  const isLogin = screen === 'login';
+  background.src = isLogin ? 'assets/cora001-login.png' : 'assets/cora001-home.png';
+  background.alt = isLogin ? '杏彩体育登录页面' : '杏彩体育首页';
+  if ($('#loginBtn')) $('#loginBtn').classList.toggle('hidden', !isLogin);
+  if ($('#loginCloseBtn')) $('#loginCloseBtn').classList.toggle('hidden', !isLogin);
+}
+
 function showHome() {
-  $('#loginCard').classList.add('hidden');
-  $('#homeContent').classList.remove('hidden');
+  setPrototypeScreen('home');
 }
 
 function resetFront() {
@@ -99,8 +108,7 @@ function resetFront() {
   state.selectedMethod = null;
   $('#modalMask').classList.add('hidden');
   $('#securityModal').innerHTML = '';
-  $('#homeContent').classList.add('hidden');
-  $('#loginCard').classList.remove('hidden');
+  setPrototypeScreen('login');
   setFrontState('等待登录', '风险分数将在登录时生效');
 }
 
@@ -129,6 +137,7 @@ function startLoginFlow() {
   const score = state.score;
   const action = actionForScore(score);
   setFrontState(action, `登录风险分数：${score}分`);
+  showHome();
 
   if (score >= 80) {
     showHome();
@@ -481,6 +490,10 @@ if ($('#scenarioButtons')) $('#scenarioButtons').addEventListener('click', event
 
 $$('[data-method-toggle]').forEach(toggle => toggle.addEventListener('change', () => { state.available[toggle.dataset.methodToggle] = toggle.checked; }));
 if ($('#loginBtn')) $('#loginBtn').addEventListener('click', startLoginFlow);
+if ($('#loginCloseBtn')) $('#loginCloseBtn').addEventListener('click', () => {
+  showHome();
+  setFrontState('已关闭登录弹框', '当前显示首页背景');
+});
 if ($('#password')) $('#password').addEventListener('keydown', event => { if (event.key === 'Enter') startLoginFlow(); });
 
 if ($('#ruleSearchBtn')) $('#ruleSearchBtn').addEventListener('click', () => renderRules($('#ruleCategoryFilter').value));
