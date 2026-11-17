@@ -429,8 +429,8 @@ function matchesAccountSearch(row, type, keyword) {
   if (type === 'memberId') return row.memberId.includes(keyword);
   if (type === 'user') return row.user.toLowerCase().includes(keyword);
   const environment = commonEnvironmentByMember[row.memberId] || { ips: [], devices: [] };
-  if (type === 'ip') return [row.ip, ...environment.ips.map(item => item[0])].some(value => value.toLowerCase().includes(keyword));
-  if (type === 'device') return [row.currentDeviceId, ...environment.devices.map(item => item[0])].filter(Boolean).some(value => value.toLowerCase().includes(keyword));
+  if (type === 'ip') return [row.ip, ...environment.ips.map(item => item[0]), ...riskEntries(row, 'ip').map(item => item.value)].filter(Boolean).some(value => value.toLowerCase().includes(keyword));
+  if (type === 'device') return [row.currentDeviceId, ...environment.devices.map(item => item[0]), ...riskEntries(row, 'device').map(item => item.value)].filter(Boolean).some(value => value.toLowerCase().includes(keyword));
   return true;
 }
 
