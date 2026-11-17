@@ -252,16 +252,19 @@ function renderVerificationSuccess() {
   state.score = 100;
   updateScoreUI();
   setFrontState('验证成功', '本次分数恢复100分；下次登录重新评分');
-  openSecurityModal(modalFrame('恭喜您，通过安全验证。', `
-    <div class="status-icon success">✓</div>
-    <div class="modal-copy success-fund-copy"><span>检测到您未设置资金密码请立即设定。</span></div>
-    <div class="modal-actions"><button class="primary wide" data-set-fund>立即设定</button></div>
-  `, false), { maskClose: true });
-  $('[data-set-fund]').addEventListener('click', () => {
-    closeSecurityModal();
-    showHome();
-    setFrontState('验证成功', '等待设置资金密码');
-  });
+  closeSecurityModal();
+  window.setTimeout(() => {
+    openSecurityModal(modalFrame('恭喜您，通过安全验证。', `
+      <div class="status-icon success">✓</div>
+      <div class="modal-copy success-fund-copy"><span>检测到您未设置资金密码请立即设定。</span></div>
+      <div class="modal-actions"><button class="primary wide" data-set-fund>立即设定</button></div>
+    `, false), { maskClose: true });
+    $('[data-set-fund]').addEventListener('click', () => {
+      closeSecurityModal();
+      showHome();
+      setFrontState('验证成功', '等待设置资金密码');
+    });
+  }, 160);
 }
 
 function renderManualBlock(reason) {
