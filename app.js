@@ -34,19 +34,19 @@ const bands = [
 
 const pendingRows = [
   {
-    memberId: '2795074', user: 'hxm001@as', score: 15, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；风险设备号关联51-100人；24小时内频繁切换环境', reason: '陌生IP＋设备无法证明可信；命中风险设备号51至100人', ip: '103.88.14.26', device: '非有效设备号', status: '未通过验证', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
+    memberId: '2795074', user: 'hxm001@as', score: 15, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；风险设备号关联51-100人；24小时内频繁切换环境', reason: '陌生IP＋设备无法证明可信；命中风险设备号51至100人', ip: '103.88.14.26', currentDeviceId: 'unknown', device: '非有效设备号', status: '未通过验证', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋设备无法证明可信', '-45', '55'], ['R06 风险设备号', '48小时关联68个有效用户', '-45', '10'], ['R07 变化速度', '短时高频切换环境', '-10', '0']],
   },
   {
-    memberId: '2826222', user: 'yongson005', score: 35, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；风险IP关联21-50人', reason: '陌生IP＋有效陌生设备；风险IP关联21至50人', ip: '202.55.225.254', device: '有效陌生设备', status: '两步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
+    memberId: '2826222', user: 'yongson005', score: 35, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；风险IP关联21-50人', reason: '陌生IP＋有效陌生设备；风险IP关联21至50人', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '两步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和有效设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35']],
   },
   {
-    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则直接扣45分', ip: '47.76.91.34', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
+    memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则直接扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '一步验证', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', '陌生IP＋未获取有效设备号', '-45', '55']],
   },
   {
-    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 35, resetTime: '2026-11-17 10:26', resetOperator: '系统',
+    memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', currentDeviceId: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 35, resetTime: '2026-11-17 10:26', resetOperator: '系统',
     breakdown: [['初始分', '每次登录从100分开始', '100', '100'], ['R03 组合规则', 'IP和设备均未命中常用环境', '-45', '55'], ['R05 风险IP', '48小时关联27个有效用户', '-20', '35'], ['验证成功', '更新常用IP及有效设备号', '+65', '100']],
   },
 ];
@@ -348,7 +348,7 @@ function renderPending(rows = pendingRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#pendingTableBody').innerHTML = sortedRows.map((row, index) => `
     <tr>
-      <td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
+      <td><input type="checkbox" class="account-select" data-select-user="${row.user}" aria-label="选择${row.user}"></td><td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
       <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-common-id="${row.memberId}">常用IP／设备</button><button class="table-link" data-manual-id="${row.memberId}">手动验证</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
     </tr>`).join('');
   $('#accountTotal').textContent = sortedRows.length;
@@ -356,15 +356,46 @@ function renderPending(rows = pendingRows) {
   $$('[data-common-id]').forEach(button => button.addEventListener('click', () => openCommonEnvironmentDialog(button.dataset.commonId)));
   $$('[data-manual-id]').forEach(button => button.addEventListener('click', () => openManualVerifyDialog(button.dataset.manualId)));
   $$('[data-note-id]').forEach(button => button.addEventListener('click', () => openNoteDialog(button.dataset.noteId)));
+  if ($('#selectAllAccounts')) {
+    $('#selectAllAccounts').checked = false;
+    $('#selectAllAccounts').indeterminate = false;
+  }
+  $$('.account-select').forEach(input => input.addEventListener('change', updateAccountSelectionState));
+}
+
+function updateAccountSelectionState() {
+  const visible = $$('.account-select');
+  const checked = visible.filter(input => input.checked);
+  if (!$('#selectAllAccounts')) return;
+  $('#selectAllAccounts').checked = visible.length > 0 && checked.length === visible.length;
+  $('#selectAllAccounts').indeterminate = checked.length > 0 && checked.length < visible.length;
+}
+
+function matchesAccountSearch(row, type, keyword) {
+  if (!keyword) return true;
+  if (type === 'memberId') return row.memberId.includes(keyword);
+  if (type === 'user') return row.user.toLowerCase().includes(keyword);
+  const environment = commonEnvironmentByMember[row.memberId] || { ips: [], devices: [] };
+  if (type === 'ip') return [row.ip, ...environment.ips.map(item => item[0])].some(value => value.toLowerCase().includes(keyword));
+  if (type === 'device') return [row.currentDeviceId, ...environment.devices.map(item => item[0])].filter(Boolean).some(value => value.toLowerCase().includes(keyword));
+  return true;
+}
+
+function matchesScoreTier(score, tier) {
+  if (tier === 'all') return true;
+  const [min, max] = tier.split('-').map(Number);
+  return score >= min && score <= max;
 }
 
 function renderFilteredPending() {
-  const user = $('#pendingUserFilter').value.trim().toLowerCase();
-  const userType = $('#pendingUserType').value;
+  const keyword = $('#pendingUserFilter').value.trim().toLowerCase();
+  const searchType = $('#pendingUserType').value;
   const condition = $('#pendingConditionFilter').value.trim().toLowerCase();
+  const scoreTier = $('#pendingScoreTier').value;
   renderPending(pendingRows.filter(row =>
-    (!user || (userType === 'memberId' ? row.memberId.includes(user) : row.user.toLowerCase().includes(user))) &&
-    (!condition || row.scoreCondition.toLowerCase().includes(condition))
+    matchesAccountSearch(row, searchType, keyword) &&
+    (!condition || row.scoreCondition.toLowerCase().includes(condition)) &&
+    matchesScoreTier(row.score, scoreTier)
   ));
 }
 
@@ -542,6 +573,36 @@ function formatAdminTime() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
+function applyVerificationResult(row, result, note) {
+  const previousScore = row.score;
+  row.manualResult = result;
+  row.status = result;
+  row.source = '手动验证';
+  row.operator = 'Cora';
+  row.time = formatAdminTime();
+  if (result === '验证通过') {
+    row.score = 100;
+    row.action = '正常放行';
+    row.freezeStatus = '正常';
+    row.scoreCondition = '无扣分条件';
+    row.resetFrom = previousScore;
+    row.resetTime = row.time;
+    row.resetOperator = 'Cora';
+    row.reason = '后台确认验证通过并更新常用环境';
+    row.note = note || '后台手动确认验证通过';
+    if (previousScore < 100) row.breakdown.push(['验证通过', '分数重置为100并更新常用环境', `+${100 - previousScore}`, '100']);
+  } else {
+    row.action = '阻断人工';
+    row.freezeStatus = '冻结';
+    row.reason = '后台确认验证失败并冻结账号';
+    row.note = note || '后台手动确认验证失败';
+    row.breakdown.push(['验证失败', '保留当前分数和扣分条件，账号冻结', '—', row.score]);
+    delete row.resetFrom;
+    delete row.resetTime;
+    delete row.resetOperator;
+  }
+}
+
 function openManualVerifyDialog(memberId) {
   const row = pendingRows.find(item => item.memberId === memberId);
   openDialog('手动验证', `
@@ -561,34 +622,56 @@ function openManualVerifyDialog(memberId) {
       $('#manualVerifyError').textContent = '请选择验证通过或验证失败。';
       return;
     }
-    const result = selected.value;
-    const previousScore = row.score;
-    row.manualResult = result;
-    row.status = result;
-    row.source = '手动验证';
-    row.operator = 'Cora';
-    row.time = formatAdminTime();
-    if (result === '验证通过') {
-      row.score = 100;
-      row.action = '正常放行';
-      row.freezeStatus = '正常';
-      row.scoreCondition = '无扣分条件';
-      row.resetFrom = previousScore;
-      row.resetTime = row.time;
-      row.resetOperator = 'Cora';
-      row.reason = '后台确认验证通过并更新常用环境';
-      row.note = $('#manualVerifyNote').value.trim() || '后台手动确认验证通过';
-      if (previousScore < 100) row.breakdown.push(['验证通过', '分数重置为100并更新常用环境', `+${100 - previousScore}`, '100']);
-    } else {
-      row.action = '阻断人工';
-      row.freezeStatus = '冻结';
-      row.reason = '后台确认验证失败并冻结账号';
-      row.note = $('#manualVerifyNote').value.trim() || '后台手动确认验证失败';
-      row.breakdown.push(['验证失败', '保留当前分数和扣分条件，账号冻结', '—', row.score]);
-      delete row.resetFrom;
-      delete row.resetTime;
-      delete row.resetOperator;
+    applyVerificationResult(row, selected.value, $('#manualVerifyNote').value.trim());
+    closeDialog();
+    renderFilteredPending();
+  });
+}
+
+function openBatchVerifyDialog(initialUsers = []) {
+  openDialog('批量验证', `
+    <div class="admin-form batch-verify-form">
+      <label>会员账号</label><textarea id="batchVerifyUsers" placeholder="例如：hxm001@as,yongson005">${initialUsers.join(',')}</textarea>
+      <span></span><div class="batch-input-help">多个会员账号请使用英文逗号分隔，不填写会员ID。</div>
+      <label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchResult" value="验证通过">验证通过</label><label><input type="radio" name="batchResult" value="验证失败">验证失败</label></div>
+      <label>备注 <em class="required-mark">*</em></label><textarea id="batchVerifyNote" placeholder="请输入本次批量验证说明"></textarea>
+    </div>
+    <p class="config-error" id="batchVerifyError" aria-live="polite"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch>确认</button></div>
+  `);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-batch]').addEventListener('click', () => {
+    const raw = $('#batchVerifyUsers').value.trim();
+    const result = $('input[name="batchResult"]:checked');
+    const note = $('#batchVerifyNote').value.trim();
+    if (!raw) {
+      $('#batchVerifyError').textContent = '请输入会员账号。';
+      return;
     }
+    if (raw.includes('，')) {
+      $('#batchVerifyError').textContent = '会员账号之间请使用英文逗号分隔。';
+      return;
+    }
+    const parts = raw.split(',').map(value => value.trim());
+    if (parts.some(value => !value)) {
+      $('#batchVerifyError').textContent = '请检查会员账号格式，英文逗号前后都需要填写账号。';
+      return;
+    }
+    const users = [...new Set(parts)];
+    const unknown = users.filter(user => !pendingRows.some(row => row.user === user));
+    if (unknown.length) {
+      $('#batchVerifyError').textContent = `未找到会员账号：${unknown.join('、')}`;
+      return;
+    }
+    if (!result) {
+      $('#batchVerifyError').textContent = '请选择验证通过或验证失败。';
+      return;
+    }
+    if (!note) {
+      $('#batchVerifyError').textContent = '备注为必填项。';
+      return;
+    }
+    users.forEach(user => applyVerificationResult(pendingRows.find(row => row.user === user), result.value, note));
     closeDialog();
     renderFilteredPending();
   });
@@ -644,18 +727,27 @@ if ($('#ruleSearchBtn')) $('#ruleSearchBtn').addEventListener('click', () => ren
 if ($('#ruleResetBtn')) $('#ruleResetBtn').addEventListener('click', () => { $('#ruleCategoryFilter').value = 'all'; renderRules(); });
 if ($('#ruleSettingsBtn')) $('#ruleSettingsBtn').addEventListener('click', openScoringSettingsDialog);
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
+if ($('#batchVerifyBtn')) $('#batchVerifyBtn').addEventListener('click', () => {
+  openBatchVerifyDialog($$('.account-select:checked').map(input => input.dataset.selectUser));
+});
+if ($('#selectAllAccounts')) $('#selectAllAccounts').addEventListener('change', event => {
+  $$('.account-select').forEach(input => { input.checked = event.target.checked; });
+  updateAccountSelectionState();
+});
 if ($('#pendingSearchBtn')) $('#pendingSearchBtn').addEventListener('click', () => {
   renderFilteredPending();
 });
 if ($('#pendingUserType')) $('#pendingUserType').addEventListener('change', () => {
+  const placeholders = { memberId: '输入会员ID', user: '输入会员账号', ip: '请输入关联IP', device: '请输入关联设备号' };
   $('#pendingUserFilter').value = '';
-  $('#pendingUserFilter').placeholder = $('#pendingUserType').value === 'memberId' ? '输入会员ID' : '输入会员账号';
+  $('#pendingUserFilter').placeholder = placeholders[$('#pendingUserType').value];
 });
 if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () => {
   $('#pendingUserType').value = 'memberId';
   $('#pendingUserFilter').value = '';
   $('#pendingUserFilter').placeholder = '输入会员ID';
   $('#pendingConditionFilter').value = '';
+  $('#pendingScoreTier').value = 'all';
   renderFilteredPending();
 });
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });

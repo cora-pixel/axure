@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>后台用户账号评分原型</title>
-  <link rel="stylesheet" href="styles.css?v=20261117-b18">
+  <link rel="stylesheet" href="styles.css?v=20261117-b19">
 </head>
 <body>
   <header class="topbar backend-topbar">
@@ -39,15 +39,17 @@
           <div class="admin-tab-panel active" id="accountPanel">
             <div class="account-page-head">
               <div><h1>用户账号评分</h1><p>查询全部会员的当前评分、分数扣减判断条件与冻结状态，评分及操作变更均保留记录</p></div>
+              <button class="admin-btn" id="batchVerifyBtn">批量验证</button>
             </div>
             <div class="filter-bar pending-filter">
-              <label class="user-search-filter"><select id="pendingUserType" aria-label="会员查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option></select><input id="pendingUserFilter" placeholder="输入会员ID"></label>
+              <label class="user-search-filter"><select id="pendingUserType" aria-label="查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option><option value="ip">IP</option><option value="device">设备号</option></select><input id="pendingUserFilter" placeholder="输入会员ID"></label>
               <label class="condition-search-filter"><span>扣分判断条件</span><input id="pendingConditionFilter" placeholder="输入判断条件关键词"></label>
+              <label class="score-tier-filter"><span>分数档位</span><select id="pendingScoreTier"><option value="all">全部</option><option value="80-100">80至100分</option><option value="60-79">60至79分</option><option value="40-59">40至59分</option><option value="20-39">20至39分</option><option value="0-19">0至19分</option></select></label>
               <button class="admin-btn secondary" id="pendingSearchBtn">查询</button><button class="link-btn" id="pendingResetBtn">重置</button>
             </div>
             <div class="table-wrap">
               <table class="admin-table account-score-table">
-                <thead><tr><th>会员ID</th><th>会员账号</th><th>分数</th><th>分数扣减判断条件</th><th>冻结状态</th><th>备注</th><th>更新时间</th><th>操作人</th><th>操作</th></tr></thead>
+                <thead><tr><th><input type="checkbox" id="selectAllAccounts" aria-label="全选账号"></th><th>会员ID</th><th>会员账号</th><th>分数</th><th>分数扣减判断条件</th><th>冻结状态</th><th>备注</th><th>更新时间</th><th>操作人</th><th>操作</th></tr></thead>
                 <tbody id="pendingTableBody"></tbody>
               </table>
             </div>
@@ -75,6 +77,6 @@
   </main>
 
   <div class="dialog-mask hidden" id="dialogMask"><div class="admin-dialog" id="adminDialog"></div></div>
-  <script src="app.js?v=20261117-b18"></script>
+  <script src="app.js?v=20261117-b19"></script>
 </body>
 </html>
