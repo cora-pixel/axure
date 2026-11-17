@@ -293,7 +293,7 @@ main { padding: 20px; }
 .account-score-table th:nth-child(6) { width: 170px; }
 .account-score-table th:nth-child(7) { width: 125px; }
 .account-score-table th:nth-child(8) { width: 68px; }
-.account-score-table th:nth-child(9) { width: 140px; }
+.account-score-table th:nth-child(9) { width: 260px; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
 .score-condition { line-height: 1.55; overflow-wrap: anywhere; }
@@ -318,6 +318,9 @@ main { padding: 20px; }
 .admin-form { display: grid; grid-template-columns: 120px 1fr; gap: 14px 12px; align-items: center; }
 .admin-form input, .admin-form select, .admin-form textarea { width: 100%; min-height: 34px; padding: 7px 10px; border: 1px solid #8ba1aa; background: #fff; }
 .admin-form textarea { min-height: 76px; resize: vertical; }
+.manual-result-options { display: flex; align-items: center; gap: 28px; min-height: 34px; }
+.manual-result-options label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.manual-result-options input { width: auto; min-height: 0; margin: 0; }
 .admin-dialog-actions { display: flex; justify-content: center; gap: 14px; margin-top: 22px; }
 .admin-dialog-actions button { min-width: 110px; }
 .rule-settings-dialog { width: min(1180px, calc(100vw - 60px)); }

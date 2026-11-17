@@ -349,10 +349,12 @@ function renderPending(rows = pendingRows) {
   $('#pendingTableBody').innerHTML = sortedRows.map((row, index) => `
     <tr>
       <td>${row.memberId}</td><td>${row.user}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.scoreCondition}</td><td><span class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</span></td><td>${row.note || '—'}</td><td>${row.time}</td><td>${row.operator}</td>
-      <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
+      <td><button class="table-link" data-detail-id="${row.memberId}">评分详情</button><button class="table-link" data-common-id="${row.memberId}">常用IP／设备</button><button class="table-link" data-manual-id="${row.memberId}">手动验证</button><button class="table-link" data-note-id="${row.memberId}">修改备注</button></td>
     </tr>`).join('');
   $('#accountTotal').textContent = sortedRows.length;
   $$('[data-detail-id]').forEach(button => button.addEventListener('click', () => openPendingDetail(button.dataset.detailId)));
+  $$('[data-common-id]').forEach(button => button.addEventListener('click', () => openCommonEnvironmentDialog(button.dataset.commonId)));
+  $$('[data-manual-id]').forEach(button => button.addEventListener('click', () => openManualVerifyDialog(button.dataset.manualId)));
   $$('[data-note-id]').forEach(button => button.addEventListener('click', () => openNoteDialog(button.dataset.noteId)));
 }
 
@@ -497,10 +499,10 @@ function openPendingDetail(memberId) {
   const row = pendingRows.find(item => item.memberId === memberId);
   const breakdownRows = row.breakdown.map((item, order) => `<tr><td>${order + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td><td>${item[3]}</td></tr>`).reverse().join('');
   const resetRecord = row.resetFrom !== undefined
-    ? `<tr><td>${row.resetTime}</td><td>分数重置</td><td>验证成功，分数由${row.resetFrom}重置为100，并更新常用环境</td><td>${row.resetOperator}</td></tr>`
+    ? `<tr><td>${row.resetTime}</td><td>分数重置</td><td>${row.manualResult === '验证通过' ? '手动验证通过' : '验证成功'}，分数由${row.resetFrom}重置为100，并更新常用环境</td><td>${row.resetOperator}</td></tr>`
     : '';
   const latestRecord = row.resetFrom === undefined
-    ? `<tr><td>${row.time}</td><td>${row.source}</td><td>分数更新为${row.score}；扣分条件：${row.scoreCondition}</td><td>${row.operator}</td></tr>`
+    ? `<tr><td>${row.time}</td><td>${row.source}</td><td>分数更新为${row.score}；扣分条件：${row.scoreCondition}${row.manualResult ? `；手动验证：${row.manualResult}` : ''}</td><td>${row.operator}</td></tr>`
     : '';
   openDialog('账号评分详情', `
     <div class="detail-summary">
@@ -512,10 +514,10 @@ function openPendingDetail(memberId) {
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>关闭</button></div>
   `);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
-  $('[data-view-common]').addEventListener('click', () => openCommonEnvironmentDialog(row.memberId));
+  $('[data-view-common]').addEventListener('click', () => openCommonEnvironmentDialog(row.memberId, true));
 }
 
-function openCommonEnvironmentDialog(memberId) {
+function openCommonEnvironmentDialog(memberId, returnToDetail = false) {
   const row = pendingRows.find(item => item.memberId === memberId);
   const environment = commonEnvironmentByMember[memberId] || { ips: [], devices: [] };
   const ipRows = environment.ips.length
@@ -528,10 +530,68 @@ function openCommonEnvironmentDialog(memberId) {
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
     <div class="detail-section"><h3>常用IP</h3><table class="mini-table"><thead><tr><th>IP</th><th>登录次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${ipRows}</tbody></table></div>
     <div class="detail-section"><h3>常用设备</h3><table class="mini-table"><thead><tr><th>设备号</th><th>登录次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
-    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-back-detail>返回评分详情</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>
+    <div class="admin-dialog-actions">${returnToDetail ? '<button class="admin-btn secondary" data-back-detail>返回评分详情</button>' : ''}<button class="admin-btn" data-dialog-cancel>关闭</button></div>
   `);
-  $('[data-back-detail]').addEventListener('click', () => openPendingDetail(memberId));
+  if ($('[data-back-detail]')) $('[data-back-detail]').addEventListener('click', () => openPendingDetail(memberId));
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+}
+
+function formatAdminTime() {
+  const now = new Date();
+  const pad = value => String(value).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+function openManualVerifyDialog(memberId) {
+  const row = pendingRows.find(item => item.memberId === memberId);
+  openDialog('手动验证', `
+    <div class="admin-form">
+      <label>会员ID</label><input value="${row.memberId}" disabled>
+      <label>会员账号</label><input value="${row.user}" disabled>
+      <label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="manualResult" value="验证通过">验证通过</label><label><input type="radio" name="manualResult" value="验证失败">验证失败</label></div>
+      <label>备注</label><textarea id="manualVerifyNote" placeholder="原备注：${row.note || '无'}；请输入本次验证说明"></textarea>
+    </div>
+    <p class="config-error" id="manualVerifyError" aria-live="polite"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-manual>确认</button></div>
+  `);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-manual]').addEventListener('click', () => {
+    const selected = $('input[name="manualResult"]:checked');
+    if (!selected) {
+      $('#manualVerifyError').textContent = '请选择验证通过或验证失败。';
+      return;
+    }
+    const result = selected.value;
+    const previousScore = row.score;
+    row.manualResult = result;
+    row.status = result;
+    row.source = '手动验证';
+    row.operator = 'Cora';
+    row.time = formatAdminTime();
+    if (result === '验证通过') {
+      row.score = 100;
+      row.action = '正常放行';
+      row.freezeStatus = '正常';
+      row.scoreCondition = '无扣分条件';
+      row.resetFrom = previousScore;
+      row.resetTime = row.time;
+      row.resetOperator = 'Cora';
+      row.reason = '后台确认验证通过并更新常用环境';
+      row.note = $('#manualVerifyNote').value.trim() || '后台手动确认验证通过';
+      if (previousScore < 100) row.breakdown.push(['验证通过', '分数重置为100并更新常用环境', `+${100 - previousScore}`, '100']);
+    } else {
+      row.action = '阻断人工';
+      row.freezeStatus = '冻结';
+      row.reason = '后台确认验证失败并冻结账号';
+      row.note = $('#manualVerifyNote').value.trim() || '后台手动确认验证失败';
+      row.breakdown.push(['验证失败', '保留当前分数和扣分条件，账号冻结', '—', row.score]);
+      delete row.resetFrom;
+      delete row.resetTime;
+      delete row.resetOperator;
+    }
+    closeDialog();
+    renderFilteredPending();
+  });
 }
 
 function openNoteDialog(memberId) {
