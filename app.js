@@ -617,6 +617,9 @@ function renderLoginAlerts(rows = loginAlertRows) {
   $('#loginAlertTableBody').innerHTML = sortedRows.map(row => `
     <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
   $('#loginAlertTotal').textContent = sortedRows.length;
+  const alertCount = loginAlertRows.length;
+  if ($('#loginAlertTabBadge')) $('#loginAlertTabBadge').textContent = alertCount;
+  if ($('#accountAlertBadge')) $('#accountAlertBadge').textContent = alertCount;
   $$('[data-login-alert-detail]').forEach(button => button.addEventListener('click', () => openLoginAlertDetail(button.dataset.loginAlertDetail)));
   $$('[data-login-alert-verify]').forEach(button => button.addEventListener('click', () => openLoginAlertVerifyDialog(button.dataset.loginAlertVerify)));
   if ($('#selectAllLoginAlerts')) {

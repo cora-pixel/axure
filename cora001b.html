@@ -19,7 +19,7 @@
             <li class="menu-expandable" id="websiteManagementMenu">＋ 网站管理<ul class="website-submenu hidden"><li id="basicConfigMenu">基本配置</li></ul></li>
             <li>＋ 游戏管理</li>
             <li class="expanded">－ 用户管理
-              <ul><li>用户信息黑名单</li><li>用户列表</li><li>用户白名单</li><li class="active" id="accountScoreMenu">登录风险评分<span class="menu-count-badge">24</span></li><li>登录临时冻结</li><li>账号反查</li></ul>
+              <ul><li>用户信息黑名单</li><li>用户列表</li><li>用户白名单</li><li class="active" id="accountScoreMenu">登录风险评分<span class="menu-count-badge" id="accountAlertBadge">0</span></li><li>登录临时冻结</li><li>账号反查</li></ul>
             </li>
             <li>＋ 资金管理</li><li>＋ 配额组管理</li>
           </ul>
@@ -28,7 +28,7 @@
           <div class="admin-feature" id="scoreFeature">
           <div class="admin-breadcrumb"><strong>后台管理</strong> - 用户管理 - <span>登录评分告警</span><small>当前操作人：Cora</small></div>
           <nav class="admin-page-tabs" aria-label="登录风险评分功能">
-            <button class="admin-page-tab active" data-admin-tab="alerts">登录评分告警</button>
+            <button class="admin-page-tab active" data-admin-tab="alerts">登录评分告警<span class="tab-count-badge" id="loginAlertTabBadge">0</span></button>
             <button class="admin-page-tab" data-admin-tab="records">登录评分总表</button>
             <button class="admin-page-tab" data-admin-tab="rules">评分规则设置</button>
           </nav>
