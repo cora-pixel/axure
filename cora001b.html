@@ -29,6 +29,7 @@
           <div class="admin-breadcrumb"><strong>后台管理</strong> - 用户管理 - <span>用户账号评分</span><small>当前操作人：Cora</small></div>
           <nav class="admin-page-tabs" aria-label="用户账号评分功能">
             <button class="admin-page-tab active" data-admin-tab="account">用户账号评分</button>
+            <button class="admin-page-tab" data-admin-tab="alerts">登录评分告警</button>
             <button class="admin-page-tab" data-admin-tab="rules">评分规则设置</button>
           </nav>
 
@@ -52,6 +53,20 @@
               </table>
             </div>
             <div class="table-footer"><span>共 <strong id="accountTotal">0</strong> 条记录</span><span>1　2　3　下一页</span></div>
+          </div>
+
+          <div class="admin-tab-panel" id="alertsPanel">
+            <div class="account-page-head">
+              <div><h1>登录评分告警</h1><p>按登录记录展示评分低于60分的数据；同一用户多次低分登录分别保留，普通及格登录不进入本列表</p></div>
+            </div>
+            <div class="filter-bar login-alert-filter">
+              <label><select id="loginAlertSearchType" aria-label="告警查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option><option value="ip">登录IP</option><option value="device">登录设备</option></select><input id="loginAlertKeyword" placeholder="输入会员ID"></label>
+              <label><span>分数档位</span><select id="loginAlertScoreTier"><option value="all">60分以下</option><option value="40-59">40至59分</option><option value="20-39">20至39分</option><option value="0-19">0至19分</option></select></label>
+              <label><span>处置状态</span><select id="loginAlertStatus"><option value="all">全部</option><option value="待处理">待处理</option><option value="验证失败">验证失败</option><option value="验证通过">验证通过</option></select></label>
+              <button class="admin-btn secondary" id="loginAlertSearchBtn">查询</button><button class="link-btn" id="loginAlertResetBtn">重置</button>
+            </div>
+            <div class="table-wrap"><table class="admin-table login-alert-table"><thead><tr><th>告警编号</th><th>会员ID</th><th>会员账号</th><th>登录时间</th><th>登录IP</th><th>登录设备</th><th>本次评分</th><th>扣分判断条件</th><th>控制结果</th><th>处置状态</th><th>操作</th></tr></thead><tbody id="loginAlertTableBody"></tbody></table></div>
+            <div class="table-footer"><span>共 <strong id="loginAlertTotal">0</strong> 条告警记录</span><span>1　2　3　下一页</span></div>
           </div>
 
           <div class="admin-tab-panel" id="rulesPanel">

@@ -130,6 +130,14 @@ pendingRows.forEach(row => Object.assign(row, alertStateByMember[row.memberId] |
   riskEvents: [],
 }));
 
+const loginAlertRows = [
+  { id: 'LA202611170005', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 09:46', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 0, condition: 'IP不在常用IP中；设备无法证明为常用；长期风险设备关联51-100人', control: '阻断并冻结', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R06 长期风险设备', '48小时关联68个有效用户', '-65']] },
+  { id: 'LA202611170004', memberId: '2826222', user: 'yongson005', time: '2026-11-17 09:18', ip: '202.55.225.254', device: 'Android-Chrome-R8tLp7Qm2Xc9', score: 25, condition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时切换5个以上陌生环境', control: '双项验证', status: '验证失败', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30']] },
+  { id: 'LA202611170003', memberId: '2826202', user: 'cora888@as', time: '2026-11-17 08:52', ip: '47.76.91.34', device: '未获取', score: 55, condition: 'IP不在常用IP中；本次未获取到有效设备号', control: '单项验证', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋无有效设备号', '-45']] },
+  { id: 'LA202611170002', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 08:20', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 55, condition: 'IP不在常用IP中；设备无法证明为常用', control: '单项验证', status: '验证失败', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45']] },
+  { id: 'LA202611170001', memberId: '2827144', user: 'evan001@h8', time: '2026-11-17 08:20', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', score: 10, condition: 'IP与设备均不在常用环境；长期风险IP关联21-50人', control: '阻断人工', status: '验证通过', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45']] },
+];
+
 const commonEnvironmentByMember = {
   '2795074': {
     ips: [['139.162.87.78', '72', '2026-11-15 20:18', '阈值命中'], ['47.76.91.34', '53', '2026-11-12 09:42', '阈值命中']],
@@ -537,6 +545,41 @@ function renderFilteredPending() {
     (verificationStatus === 'all' || row.status === verificationStatus) &&
     (!activeRiskQuickFilter || riskEntries(row, activeRiskQuickFilter).length > 0)
   ));
+}
+
+function renderLoginAlerts(rows = loginAlertRows) {
+  const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
+  $('#loginAlertTableBody').innerHTML = sortedRows.map(row => `
+    <tr><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td>${row.ip}</td><td class="device-value">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-user-alert="${row.memberId}">用户告警</button></td></tr>`).join('');
+  $('#loginAlertTotal').textContent = sortedRows.length;
+  $$('[data-login-alert-detail]').forEach(button => button.addEventListener('click', () => openLoginAlertDetail(button.dataset.loginAlertDetail)));
+  $$('[data-user-alert]').forEach(button => button.addEventListener('click', () => openPendingDetail(button.dataset.userAlert)));
+}
+
+function renderFilteredLoginAlerts() {
+  const type = $('#loginAlertSearchType').value;
+  const keyword = $('#loginAlertKeyword').value.trim().toLowerCase();
+  const tier = $('#loginAlertScoreTier').value;
+  const status = $('#loginAlertStatus').value;
+  renderLoginAlerts(loginAlertRows.filter(row => {
+    const searchable = { memberId: row.memberId, user: row.user, ip: row.ip, device: row.device }[type].toLowerCase();
+    return (!keyword || searchable.includes(keyword)) &&
+      (tier === 'all' || matchesScoreTier(row.score, tier)) &&
+      (status === 'all' || row.status === status);
+  }));
+}
+
+function openLoginAlertDetail(alertId) {
+  const alert = loginAlertRows.find(item => item.id === alertId);
+  const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('');
+  openDialog('登录评分告警明细', `
+    <div class="detail-summary login-alert-summary"><div><span>告警编号</span><strong>${alert.id}</strong></div><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${alert.time}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
+    <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody><tr><td>登录IP</td><td>${alert.ip}</td><td>登录设备</td><td class="device-value">${alert.device}</td></tr><tr><td>控制结果</td><td>${alert.control}</td><td>扣分判断条件</td><td>${alert.condition}</td></tr></tbody></table></div>
+    <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-view-user-alert="${alert.memberId}">查看用户告警</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  $('#adminDialog').classList.add('score-detail-dialog');
+  $('[data-view-user-alert]').addEventListener('click', () => openPendingDetail(alert.memberId));
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
 function syncRulesFromConfig() {
@@ -988,7 +1031,8 @@ $$('.admin-page-tab').forEach(tab => tab.addEventListener('click', () => {
   $$('.admin-tab-panel').forEach(panel => panel.classList.remove('active'));
   $(`#${tab.dataset.adminTab}Panel`).classList.add('active');
   const breadcrumb = $('.admin-breadcrumb span');
-  if (breadcrumb) breadcrumb.textContent = tab.dataset.adminTab === 'rules' ? '评分规则设置' : '用户账号评分';
+  const breadcrumbTitles = { account: '用户账号评分', alerts: '登录评分告警', rules: '评分规则设置' };
+  if (breadcrumb) breadcrumb.textContent = breadcrumbTitles[tab.dataset.adminTab];
 }));
 
 if ($('#scenarioButtons')) $('#scenarioButtons').addEventListener('click', event => {
@@ -1109,11 +1153,26 @@ if ($('#pendingResetBtn')) $('#pendingResetBtn').addEventListener('click', () =>
   $('#pendingVerificationStatus').value = 'all';
   renderFilteredPending();
 });
+if ($('#loginAlertSearchType')) $('#loginAlertSearchType').addEventListener('change', () => {
+  const placeholders = { memberId: '输入会员ID', user: '输入会员账号', ip: '输入登录IP', device: '输入登录设备号' };
+  $('#loginAlertKeyword').value = '';
+  $('#loginAlertKeyword').placeholder = placeholders[$('#loginAlertSearchType').value];
+});
+if ($('#loginAlertSearchBtn')) $('#loginAlertSearchBtn').addEventListener('click', renderFilteredLoginAlerts);
+if ($('#loginAlertResetBtn')) $('#loginAlertResetBtn').addEventListener('click', () => {
+  $('#loginAlertSearchType').value = 'memberId';
+  $('#loginAlertKeyword').value = '';
+  $('#loginAlertKeyword').placeholder = '输入会员ID';
+  $('#loginAlertScoreTier').value = 'all';
+  $('#loginAlertStatus').value = 'all';
+  renderLoginAlerts();
+});
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });
 
 if ($('#ruleTableBody')) { syncRulesFromConfig(); renderRules(); }
 if ($('#bandGrid')) renderBands();
 if ($('#pendingTableBody')) { updateRiskQuickCounts(); updateScoreTierSummary(); renderFilteredPending(); }
+if ($('#loginAlertTableBody')) renderLoginAlerts();
 if ($('#riskTgidBaseValue')) renderRiskTgidConfigRow();
 if ($('#commonDaysBaseValue')) renderCommonEnvironmentConfigRows();
 if ($('#scoreOrb')) updateScoreUI();
