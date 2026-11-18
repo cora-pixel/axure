@@ -638,7 +638,7 @@ function openLoginAlertDetail(alertId) {
 function renderScoreRecords(rows = loginScoreRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#scoreRecordTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
+    <tr><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
   $('#scoreRecordTotal').textContent = sortedRows.length;
   $$('[data-score-record-detail]').forEach(button => button.addEventListener('click', () => openScoreRecordDetail(button.dataset.scoreRecordDetail)));
   $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openLoginAlertVerifyDialog(button.dataset.scoreRecordVerify.replace(/^SR/, 'LA'))));
@@ -648,12 +648,15 @@ function renderFilteredScoreRecords() {
   const type = $('#scoreRecordSearchType').value;
   const keyword = $('#scoreRecordKeyword').value.trim().toLowerCase();
   const tier = $('#scoreRecordTier').value;
-  const alerted = $('#scoreRecordAlerted').value;
+  const status = $('#scoreRecordStatus').value;
+  const loginDate = $('#scoreRecordLoginDate').value;
   renderScoreRecords(loginScoreRows.filter(row => {
     const searchable = { memberId: row.memberId, user: row.user, ip: row.ip, device: row.device }[type].toLowerCase();
+    const displayStatus = row.disposition === '无需处置' ? '正常' : row.disposition;
     return (!keyword || searchable.includes(keyword)) &&
       (tier === 'all' || matchesScoreTier(row.score, tier)) &&
-      (alerted === 'all' || (alerted === 'yes') === row.alerted);
+      (status === 'all' || displayStatus === status) &&
+      (!loginDate || row.time.startsWith(loginDate));
   }));
 }
 
@@ -663,7 +666,7 @@ function openScoreRecordDetail(recordId) {
     ? record.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('')
     : '<tr><td colspan="4">本次登录未命中扣分规则</td></tr>';
   openDialog('登录评分明细', `
-    <div class="detail-summary login-alert-summary"><div><span>评分编号</span><strong>${record.id}</strong></div><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${record.time}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition}</strong></div></div>
+    <div class="detail-summary login-alert-summary"><div><span>评分编号</span><strong>${record.id}</strong></div><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${record.time}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody><tr><td>登录IP</td><td>${record.ip}</td><td>登录设备</td><td class="device-value">${record.device}</td></tr><tr><td>建议动作</td><td>${record.control}</td><td>扣分判断条件</td><td>${record.condition}</td></tr><tr><td>备注</td><td colspan="3">${record.note || '--'}</td></tr></tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
@@ -1349,7 +1352,8 @@ if ($('#scoreRecordResetBtn')) $('#scoreRecordResetBtn').addEventListener('click
   $('#scoreRecordKeyword').value = '';
   $('#scoreRecordKeyword').placeholder = '输入会员ID';
   $('#scoreRecordTier').value = 'all';
-  $('#scoreRecordAlerted').value = 'all';
+  $('#scoreRecordStatus').value = 'all';
+  $('#scoreRecordLoginDate').value = '';
   renderScoreRecords();
 });
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });
