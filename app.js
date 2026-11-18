@@ -237,6 +237,10 @@ function actionForScore(score) {
   return '阻断或人工';
 }
 
+function formatLoginTime(value) {
+  return value && value.length === 16 ? `${value}:00` : value;
+}
+
 function setFrontState(title, detail) {
   $('#frontState').textContent = title;
   $('#frontStateDetail').textContent = detail;
@@ -590,7 +594,7 @@ function renderFilteredPending() {
 function renderLoginAlerts(rows = loginAlertRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#loginAlertTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择告警${row.id}"></td><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td>${row.ip}</td><td class="device-value">${row.device}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.riskIp ? row.ip : '--'}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.riskDevice ? row.device : '--'}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
+    <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td>${row.ip}</td><td class="device-value">${row.device}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.riskIp ? row.ip : '--'}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.riskDevice ? row.device : '--'}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
   $('#loginAlertTotal').textContent = sortedRows.length;
   $$('[data-login-alert-detail]').forEach(button => button.addEventListener('click', () => openLoginAlertDetail(button.dataset.loginAlertDetail)));
   $$('[data-login-alert-verify]').forEach(button => button.addEventListener('click', () => openLoginAlertVerifyDialog(button.dataset.loginAlertVerify)));
@@ -626,7 +630,7 @@ function openLoginAlertDetail(alertId) {
   const alert = loginAlertRows.find(item => item.id === alertId);
   const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('');
   openDialog('登录评分告警明细', `
-    <div class="detail-summary login-alert-summary"><div><span>告警编号</span><strong>${alert.id}</strong></div><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${alert.time}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
+    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody><tr><td>登录IP</td><td>${alert.ip}</td><td>登录设备</td><td class="device-value">${alert.device}</td></tr><tr><td>控制结果</td><td>${alert.control}</td><td>扣分判断条件</td><td>${alert.condition}</td></tr><tr><td>备注</td><td colspan="3">${alert.note || '--'}</td></tr></tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-alert-verify="${alert.id}">手动验证</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
@@ -638,10 +642,10 @@ function openLoginAlertDetail(alertId) {
 function renderScoreRecords(rows = loginScoreRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#scoreRecordTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
+    <tr><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
   $('#scoreRecordTotal').textContent = sortedRows.length;
   $$('[data-score-record-detail]').forEach(button => button.addEventListener('click', () => openScoreRecordDetail(button.dataset.scoreRecordDetail)));
-  $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openLoginAlertVerifyDialog(button.dataset.scoreRecordVerify.replace(/^SR/, 'LA'))));
+  $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openScoreRecordVerifyDialog(button.dataset.scoreRecordVerify)));
 }
 
 function renderFilteredScoreRecords() {
@@ -656,7 +660,7 @@ function renderFilteredScoreRecords() {
     return (!keyword || searchable.includes(keyword)) &&
       (tier === 'all' || matchesScoreTier(row.score, tier)) &&
       (status === 'all' || displayStatus === status) &&
-      (!loginDate || row.time.startsWith(loginDate));
+      (!loginDate || formatLoginTime(row.time) === loginDate.replace('T', ' '));
   }));
 }
 
@@ -666,7 +670,7 @@ function openScoreRecordDetail(recordId) {
     ? record.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('')
     : '<tr><td colspan="4">本次登录未命中扣分规则</td></tr>';
   openDialog('登录评分明细', `
-    <div class="detail-summary login-alert-summary"><div><span>评分编号</span><strong>${record.id}</strong></div><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${record.time}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
+    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody><tr><td>登录IP</td><td>${record.ip}</td><td>登录设备</td><td class="device-value">${record.device}</td></tr><tr><td>建议动作</td><td>${record.control}</td><td>扣分判断条件</td><td>${record.condition}</td></tr><tr><td>备注</td><td colspan="3">${record.note || '--'}</td></tr></tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
@@ -677,7 +681,7 @@ function openScoreRecordDetail(recordId) {
 function openLoginAlertVerifyDialog(alertId) {
   const alert = loginAlertRows.find(item => item.id === alertId);
   openDialog('登录告警手动验证', `
-    <div class="admin-form"><label>告警编号</label><input value="${alert.id}" disabled><label>会员账号</label><input value="${alert.user}" disabled><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="alertVerifyResult" value="验证通过">验证通过</label><label><input type="radio" name="alertVerifyResult" value="验证失败">验证失败</label></div><label>备注</label><textarea id="alertVerifyNote" placeholder="请输入验证说明，必填"></textarea></div>
+    <div class="admin-form"><label>会员账号</label><input value="${alert.user}" disabled><label>登录时间</label><input value="${formatLoginTime(alert.time)}" disabled><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="alertVerifyResult" value="验证通过">验证通过</label><label><input type="radio" name="alertVerifyResult" value="验证失败">验证失败</label></div><label>备注</label><textarea id="alertVerifyNote" placeholder="请输入验证说明，必填"></textarea></div>
     <p class="field-help">验证失败时本条告警继续保留；验证通过后从告警表移除。验证结果和备注均同步写入登录评分总表。</p><p class="config-error" id="alertVerifyError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-alert-verify>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
@@ -689,6 +693,42 @@ function openLoginAlertVerifyDialog(alertId) {
     closeDialog();
     renderFilteredLoginAlerts();
     renderFilteredScoreRecords();
+  });
+}
+
+function openScoreRecordVerifyDialog(recordId) {
+  const record = loginScoreRows.find(item => item.id === recordId);
+  openDialog('修改验证结果', `
+    <div class="admin-form"><label>会员账号</label><input value="${record.user}" disabled><label>登录时间</label><input value="${formatLoginTime(record.time)}" disabled><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="scoreVerifyResult" value="验证通过" ${record.disposition === '验证通过' ? 'checked' : ''}>验证通过</label><label><input type="radio" name="scoreVerifyResult" value="验证失败" ${record.disposition === '验证失败' ? 'checked' : ''}>验证失败</label></div><label>备注</label><textarea id="scoreVerifyNote" placeholder="请输入验证说明，必填">${record.note === '--' ? '' : record.note}</textarea></div>
+    <p class="field-help">修改为验证失败后重新进入告警表；修改为验证通过后从告警表移除。</p><p class="config-error" id="scoreVerifyError"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-score-verify>确认修改</button></div>`);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-score-verify]').addEventListener('click', () => {
+    const result = $('input[name="scoreVerifyResult"]:checked')?.value;
+    const note = $('#scoreVerifyNote').value.trim();
+    if (!result || !note) { $('#scoreVerifyError').textContent = '请选择验证结果并填写备注。'; return; }
+    record.disposition = result;
+    record.note = note;
+    record.alerted = true;
+    const alertId = record.id.replace(/^SR/, 'LA');
+    const existingAlert = loginAlertRows.find(item => item.id === alertId);
+    if (result === '验证通过') {
+      const alertIndex = loginAlertRows.findIndex(item => item.id === alertId);
+      if (alertIndex >= 0) loginAlertRows.splice(alertIndex, 1);
+    } else if (existingAlert) {
+      existingAlert.status = '验证失败';
+      existingAlert.note = note;
+    } else {
+      loginAlertRows.push({
+        id: alertId, memberId: record.memberId, user: record.user, time: record.time,
+        ip: record.ip, device: record.device, riskIp: record.riskIp, riskDevice: record.riskDevice,
+        score: record.score, condition: record.condition, control: record.control,
+        status: '验证失败', note, breakdown: record.breakdown,
+      });
+    }
+    closeDialog();
+    renderFilteredScoreRecords();
+    renderFilteredLoginAlerts();
   });
 }
 
@@ -714,7 +754,7 @@ function openLoginAlertBatchVerifyDialog(alertIds) {
     return;
   }
   openDialog('批量验证', `
-    <div class="admin-form"><label>已选告警</label><textarea disabled>${alerts.map(item => `${item.id}／${item.user}`).join('\n')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
+    <div class="admin-form"><label>已选记录</label><textarea disabled>${alerts.map(item => `${item.user}／${formatLoginTime(item.time)}`).join('\n')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
     <p class="field-help">验证失败的记录继续保留在告警表；验证通过的记录从告警表移除。共选择${alerts.length}条。</p><p class="config-error" id="batchAlertError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-alert>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
