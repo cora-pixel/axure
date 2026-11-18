@@ -131,14 +131,14 @@ pendingRows.forEach(row => Object.assign(row, alertStateByMember[row.memberId] |
 }));
 
 const loginAlertRows = [
-  { id: 'LA202611170005', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 09:46', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 0, condition: 'IP不在常用IP中；设备无法证明为常用；长期风险设备关联51-100人', control: '阻断并冻结', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R06 长期风险设备', '48小时关联68个有效用户', '-65']] },
+  { id: 'LA202611170005', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 09:46', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 0, condition: 'IP不在常用IP中；设备无法证明为常用；长期风险IP关联21-50人；长期风险设备关联51-100人', control: '阻断并冻结', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45'], ['R06 长期风险设备', '48小时关联68个有效用户', '-65']] },
   { id: 'LA202611170004', memberId: '2826222', user: 'yongson005', time: '2026-11-17 09:18', ip: '202.55.225.254', device: 'Android-Chrome-R8tLp7Qm2Xc9', score: 25, condition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时切换5个以上陌生环境', control: '双项验证', status: '验证失败', note: '运营核实为异常登录，未更新常用环境', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30']] },
   { id: 'LA202611170003', memberId: '2826202', user: 'cora888@as', time: '2026-11-17 08:52', ip: '47.76.91.34', device: '未获取', score: 55, condition: 'IP不在常用IP中；本次未获取到有效设备号', control: '单项验证', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋无有效设备号', '-45']] },
   { id: 'LA202611170002', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 08:20', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 55, condition: 'IP不在常用IP中；设备无法证明为常用', control: '单项验证', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45']] },
 ];
 
 const loginRiskMarkers = {
-  LA202611170005: { riskIp: false, riskDevice: true },
+  LA202611170005: { riskIp: true, riskDevice: true },
   LA202611170004: { riskIp: false, riskDevice: false },
   LA202611170003: { riskIp: false, riskDevice: false },
   LA202611170002: { riskIp: false, riskDevice: true },
@@ -146,11 +146,26 @@ const loginRiskMarkers = {
 loginAlertRows.forEach(row => Object.assign(row, loginRiskMarkers[row.id]));
 
 const loginScoreRows = [
-  { id: 'SR202611170008', memberId: '2861008', user: 'lin008@h8', time: '2026-11-17 11:05', ip: '118.31.22.18', device: 'iOS-Safari-NORMAL8a2P', riskIp: false, riskDevice: false, score: 100, condition: '无扣分条件', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [] },
-  { id: 'SR202611170007', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 10:32', ip: '139.162.87.78', device: 'Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW', riskIp: false, riskDevice: false, score: 90, condition: 'IP不在常用IP中', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R01 IP变化', '当前IP不在常用IP中', '-10']] },
-  { id: 'SR202611170006', memberId: '2827301', user: 'mika007@as', time: '2026-11-17 10:05', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', riskIp: true, riskDevice: false, score: 70, condition: '长期风险IP关联9-20人', control: '预警观察', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R05 长期风险IP', '48小时关联9个有效用户', '-30']] },
+  { id: 'SR202611170020', memberId: '2861020', user: 'normal020@h8', time: '2026-11-17 14:20', ip: '118.31.22.20', device: 'iOS-Safari-NORMAL20', riskIp: false, riskDevice: false, score: 100, condition: '无扣分条件', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [] },
+  { id: 'SR202611170019', memberId: '2861019', user: 'nodevice019@h8', time: '2026-11-17 14:05', ip: '118.31.22.19', device: '未获取', riskIp: false, riskDevice: false, score: 95, condition: '本次未获取到有效设备号；IP命中常用IP', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R04 设备号缺失', '本次未获取到有效设备号', '-5']] },
+  { id: 'SR202611170018', memberId: '2861018', user: 'ipchange018@h8', time: '2026-11-17 13:50', ip: '47.91.18.18', device: 'Win10-Chrome-NORMAL18', riskIp: false, riskDevice: false, score: 90, condition: 'IP不在常用IP中', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R01 IP变化', '当前IP不在常用IP中', '-10']] },
+  { id: 'SR202611170017', memberId: '2861017', user: 'device017@h8', time: '2026-11-17 13:35', ip: '139.162.17.17', device: 'Android-Chrome-NEW17', riskIp: false, riskDevice: false, score: 85, condition: '有效设备号不在常用设备中', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R02 设备变化', '有效设备号不在常用设备中', '-15']] },
+  { id: 'SR202611170016', memberId: '2827301', user: 'mika007@as', time: '2026-11-17 13:20', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', riskIp: true, riskDevice: false, score: 70, condition: '长期风险IP关联9-20人', control: '预警观察', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R05 长期风险IP', '48小时关联9个有效用户', '-30']] },
+  { id: 'SR202611170015', memberId: '2861015', user: 'riskdev015@h8', time: '2026-11-17 13:05', ip: '103.27.15.15', device: 'Android-Chrome-RISK15', riskIp: false, riskDevice: true, score: 70, condition: '长期风险设备关联9-20人', control: '预警观察', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R06 长期风险设备', '48小时关联12个有效用户', '-30']] },
+  { id: 'SR202611170014', memberId: '2861014', user: 'sameip014@h8', time: '2026-11-17 12:50', ip: '203.0.113.14', device: 'Win10-Chrome-SAMEIP14', riskIp: true, riskDevice: false, score: 55, condition: '2小时内同一IP登录3-5个不同有效账号', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R08 同IP多账号', '2小时内同一IP登录4个有效账号', '-45']] },
+  { id: 'SR202611170013', memberId: '2861013', user: 'sameip013@h8', time: '2026-11-17 12:35', ip: '203.0.113.13', device: 'Win10-Chrome-SAMEIP13', riskIp: true, riskDevice: false, score: 35, condition: '2小时内同一IP登录6-8个不同有效账号', control: '双项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R08 同IP多账号', '2小时内同一IP登录7个有效账号', '-65']] },
+  { id: 'SR202611170012', memberId: '2861012', user: 'sameip012@h8', time: '2026-11-17 12:20', ip: '203.0.113.12', device: 'Win10-Chrome-SAMEIP12', riskIp: true, riskDevice: false, score: 15, condition: '2小时内同一IP登录9个以上不同有效账号', control: '阻断人工', disposition: '验证通过', note: '人工核验为本人登录，告警已关闭', alerted: true, breakdown: [['R08 同IP多账号', '2小时内同一IP登录11个有效账号', '-85']] },
+  { id: 'SR202611170011', memberId: '2861011', user: 'samedev011@h8', time: '2026-11-17 12:05', ip: '103.27.11.11', device: 'Win10-Chrome-SAMEDEVICE11', riskIp: false, riskDevice: true, score: 55, condition: '2小时内同一设备登录3-5个不同有效账号', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R09 同设备多账号', '2小时内同一设备登录5个有效账号', '-45']] },
+  { id: 'SR202611170010', memberId: '2861010', user: 'samedev010@h8', time: '2026-11-17 11:50', ip: '103.27.10.10', device: 'Win10-Chrome-SAMEDEVICE10', riskIp: false, riskDevice: true, score: 35, condition: '2小时内同一设备登录6-8个不同有效账号', control: '双项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R09 同设备多账号', '2小时内同一设备登录8个有效账号', '-65']] },
+  { id: 'SR202611170009', memberId: '2861009', user: 'samedev009@h8', time: '2026-11-17 11:35', ip: '103.27.9.9', device: 'Win10-Chrome-SAMEDEVICE09', riskIp: false, riskDevice: true, score: 15, condition: '2小时内同一设备登录9个以上不同有效账号', control: '阻断人工', disposition: '验证通过', note: '人工核验通过，告警已关闭', alerted: true, breakdown: [['R09 同设备多账号', '2小时内同一设备登录12个有效账号', '-85']] },
+  { id: 'SR202611170008', memberId: '2861008', user: 'highfreq008@h8', time: '2026-11-17 11:20', ip: '198.51.100.8', device: 'Android-Chrome-HIGHFREQ08', riskIp: false, riskDevice: false, score: 55, condition: '10分钟内同一账号登录认证或密码错误5-9次', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R10 账号高频登录', '10分钟内登录认证或密码错误8次', '-45']] },
+  { id: 'SR202611170007', memberId: '2861007', user: 'highfreq007@h8', time: '2026-11-17 11:05', ip: '198.51.100.7', device: 'Android-Chrome-HIGHFREQ07', riskIp: false, riskDevice: false, score: 35, condition: '10分钟内同一账号登录认证或密码错误10-19次', control: '双项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R10 账号高频登录', '10分钟内登录认证或密码错误16次', '-65']] },
+  { id: 'SR202611170006', memberId: '2861006', user: 'apiattack006@h8', time: '2026-11-17 10:50', ip: '198.51.100.6', device: '未获取', riskIp: true, riskDevice: false, score: 15, condition: '10分钟内同一IP调用登录接口240次以上', control: '阻断人工', disposition: '验证通过', note: '人工核验通过，来源IP已纳入风险观察', alerted: true, breakdown: [['R13 登录接口高频', '10分钟内同一IP调用登录接口286次', '-85']] },
+  { id: 'SR202611170005', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 09:46', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 0, condition: 'IP不在常用IP中；设备无法证明为常用；长期风险IP关联21-50人；长期风险设备关联51-100人', control: '阻断并冻结', disposition: '待验证', note: '--', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45'], ['R06 长期风险设备', '48小时关联68个有效用户', '-65']] },
   { id: 'SR202611170004', memberId: '2826222', user: 'yongson005', time: '2026-11-17 09:18', ip: '202.55.225.254', device: 'Android-Chrome-R8tLp7Qm2Xc9', riskIp: false, riskDevice: false, score: 25, condition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时切换5个以上陌生环境', control: '双项验证', disposition: '验证失败', note: '运营核实为异常登录，未更新常用环境', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30']] },
-  { id: 'SR202611170001', memberId: '2827144', user: 'evan001@h8', time: '2026-11-17 08:20', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', riskIp: true, riskDevice: false, score: 10, condition: 'IP与设备均不在常用环境；长期风险IP关联21-50人', control: '阻断人工', disposition: '验证通过', note: '用户验证通过，已更新本次IP和设备为常用环境', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45']] },
+  { id: 'SR202611170003', memberId: '2826202', user: 'cora888@as', time: '2026-11-17 08:52', ip: '47.76.91.34', device: '未获取', riskIp: false, riskDevice: false, score: 55, condition: 'IP不在常用IP中；本次未获取到有效设备号', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋无有效设备号', '-45']] },
+  { id: 'SR202611170002', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 08:20', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: false, riskDevice: true, score: 55, condition: 'IP不在常用IP中；设备无法证明为常用', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45']] },
+  { id: 'SR202611170001', memberId: '2827144', user: 'evan001@h8', time: '2026-11-17 08:05', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', riskIp: true, riskDevice: false, score: 10, condition: 'IP与设备均不在常用环境；长期风险IP关联21-50人', control: '阻断人工', disposition: '验证通过', note: '用户验证通过，已更新本次IP和设备为常用环境', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45']] },
 ];
 
 const riskIpRows = [
@@ -575,10 +590,23 @@ function renderFilteredPending() {
 function renderLoginAlerts(rows = loginAlertRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#loginAlertTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td>${row.ip}</td><td class="device-value">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
+    <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择告警${row.id}"></td><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td>${row.ip}</td><td class="device-value">${row.device}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.riskIp ? row.ip : '--'}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.riskDevice ? row.device : '--'}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
   $('#loginAlertTotal').textContent = sortedRows.length;
   $$('[data-login-alert-detail]').forEach(button => button.addEventListener('click', () => openLoginAlertDetail(button.dataset.loginAlertDetail)));
   $$('[data-login-alert-verify]').forEach(button => button.addEventListener('click', () => openLoginAlertVerifyDialog(button.dataset.loginAlertVerify)));
+  if ($('#selectAllLoginAlerts')) {
+    $('#selectAllLoginAlerts').checked = false;
+    $('#selectAllLoginAlerts').indeterminate = false;
+  }
+  $$('.login-alert-select').forEach(input => input.addEventListener('change', updateLoginAlertSelectionState));
+}
+
+function updateLoginAlertSelectionState() {
+  const visible = $$('.login-alert-select');
+  const checked = visible.filter(input => input.checked);
+  if (!$('#selectAllLoginAlerts')) return;
+  $('#selectAllLoginAlerts').checked = visible.length > 0 && checked.length === visible.length;
+  $('#selectAllLoginAlerts').indeterminate = checked.length > 0 && checked.length < visible.length;
 }
 
 function renderFilteredLoginAlerts() {
@@ -610,9 +638,10 @@ function openLoginAlertDetail(alertId) {
 function renderScoreRecords(rows = loginScoreRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#scoreRecordTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'pending' : 'closed'}">${row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button></td></tr>`).join('');
+    <tr><td>${row.id}</td><td>${row.memberId}</td><td>${row.user}</td><td>${row.time}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
   $('#scoreRecordTotal').textContent = sortedRows.length;
   $$('[data-score-record-detail]').forEach(button => button.addEventListener('click', () => openScoreRecordDetail(button.dataset.scoreRecordDetail)));
+  $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openLoginAlertVerifyDialog(button.dataset.scoreRecordVerify.replace(/^SR/, 'LA'))));
 }
 
 function renderFilteredScoreRecords() {
@@ -634,7 +663,7 @@ function openScoreRecordDetail(recordId) {
     ? record.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('')
     : '<tr><td colspan="4">本次登录未命中扣分规则</td></tr>';
   openDialog('登录评分明细', `
-    <div class="detail-summary login-alert-summary"><div><span>评分编号</span><strong>${record.id}</strong></div><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${record.time}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'pending' : 'closed'}">${record.disposition}</strong></div></div>
+    <div class="detail-summary login-alert-summary"><div><span>评分编号</span><strong>${record.id}</strong></div><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${record.time}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody><tr><td>登录IP</td><td>${record.ip}</td><td>登录设备</td><td class="device-value">${record.device}</td></tr><tr><td>建议动作</td><td>${record.control}</td><td>扣分判断条件</td><td>${record.condition}</td></tr><tr><td>备注</td><td colspan="3">${record.note || '--'}</td></tr></tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
@@ -653,23 +682,44 @@ function openLoginAlertVerifyDialog(alertId) {
     const result = $('input[name="alertVerifyResult"]:checked')?.value;
     const note = $('#alertVerifyNote').value.trim();
     if (!result || !note) { $('#alertVerifyError').textContent = '请选择验证结果并填写备注。'; return; }
-    const existingRecord = loginScoreRows.find(item => item.id === alert.id.replace(/^LA/, 'SR'));
-    const record = {
-      ...alert,
-      id: alert.id.replace(/^LA/, 'SR'),
-      disposition: result,
-      note,
-      alerted: true,
-    };
-    if (existingRecord) Object.assign(existingRecord, record);
-    else loginScoreRows.push(record);
-    if (result === '验证通过') {
-      const alertIndex = loginAlertRows.findIndex(item => item.id === alert.id);
-      if (alertIndex >= 0) loginAlertRows.splice(alertIndex, 1);
-    } else {
-      alert.status = '验证失败';
-      alert.note = note;
-    }
+    applyLoginAlertVerification(alert, result, note);
+    closeDialog();
+    renderFilteredLoginAlerts();
+    renderFilteredScoreRecords();
+  });
+}
+
+function applyLoginAlertVerification(alert, result, note) {
+  const existingRecord = loginScoreRows.find(item => item.id === alert.id.replace(/^LA/, 'SR'));
+  const record = { ...alert, id: alert.id.replace(/^LA/, 'SR'), disposition: result, note, alerted: true };
+  if (existingRecord) Object.assign(existingRecord, record);
+  else loginScoreRows.push(record);
+  if (result === '验证通过') {
+    const alertIndex = loginAlertRows.findIndex(item => item.id === alert.id);
+    if (alertIndex >= 0) loginAlertRows.splice(alertIndex, 1);
+  } else {
+    alert.status = '验证失败';
+    alert.note = note;
+  }
+}
+
+function openLoginAlertBatchVerifyDialog(alertIds) {
+  const alerts = loginAlertRows.filter(item => alertIds.includes(item.id));
+  if (!alerts.length) {
+    openDialog('批量验证', '<p class="config-error">请先在告警列表中选择需要验证的记录。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
+  openDialog('批量验证', `
+    <div class="admin-form"><label>已选告警</label><textarea disabled>${alerts.map(item => `${item.id}／${item.user}`).join('\n')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
+    <p class="field-help">验证失败的记录继续保留在告警表；验证通过的记录从告警表移除。共选择${alerts.length}条。</p><p class="config-error" id="batchAlertError"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-alert>确认</button></div>`);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-batch-alert]').addEventListener('click', () => {
+    const result = $('input[name="batchAlertResult"]:checked')?.value;
+    const note = $('#batchAlertNote').value.trim();
+    if (!result || !note) { $('#batchAlertError').textContent = '请选择验证结果并填写备注。'; return; }
+    alerts.forEach(alert => applyLoginAlertVerification(alert, result, note));
     closeDialog();
     renderFilteredLoginAlerts();
     renderFilteredScoreRecords();
@@ -1275,6 +1325,11 @@ if ($('#loginAlertSearchType')) $('#loginAlertSearchType').addEventListener('cha
   $('#loginAlertKeyword').placeholder = placeholders[$('#loginAlertSearchType').value];
 });
 if ($('#loginAlertSearchBtn')) $('#loginAlertSearchBtn').addEventListener('click', renderFilteredLoginAlerts);
+if ($('#loginAlertBatchVerifyBtn')) $('#loginAlertBatchVerifyBtn').addEventListener('click', () => openLoginAlertBatchVerifyDialog($$('.login-alert-select:checked').map(input => input.dataset.alertId)));
+if ($('#selectAllLoginAlerts')) $('#selectAllLoginAlerts').addEventListener('change', event => {
+  $$('.login-alert-select').forEach(input => { input.checked = event.target.checked; });
+  updateLoginAlertSelectionState();
+});
 if ($('#loginAlertResetBtn')) $('#loginAlertResetBtn').addEventListener('click', () => {
   $('#loginAlertSearchType').value = 'memberId';
   $('#loginAlertKeyword').value = '';
