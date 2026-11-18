@@ -298,6 +298,7 @@ main { padding: 20px; }
 .account-page-head { min-height: 60px; display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding: 8px 12px; background: #f5f6ef; border: 1px solid #5d9185; }
 .account-page-head h1 { margin: 0; color: #314e75; font-size: 18px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
+.alert-model-note { padding: 8px 12px; color: #2f5c53; background: #edf7f3; border: 1px solid #78aa9c; border-top: 0; font-size: 12px; line-height: 1.5; }
 .account-head-actions { display: flex; align-items: center; gap: 12px; }
 .risk-quick-group { display: flex; align-items: center; gap: 8px; }
 .risk-count-quick { min-width: 150px; height: 34px; padding: 0 14px; border: 1px solid rgba(201, 78, 74, .38); color: #b6403d; background: rgba(217, 83, 79, .12); text-align: center; }
@@ -412,6 +413,15 @@ main { padding: 20px; }
 .detail-summary span { display: block; color: #74828c; font-size: 12px; }
 .detail-summary strong { display: block; margin-top: 6px; }
 .detail-summary .condition-summary strong { line-height: 1.45; }
+.detail-summary small { display: block; margin-top: 4px; color: #7b8790; font-size: 11px; }
+.alert-detail-summary { grid-template-columns: 1.1fr .65fr .8fr 1.65fr .7fr .7fr; }
+.alert-status.pending { color: #d9534f; }
+.alert-status.closed { color: #3e8e68; }
+.alert-lock-note { padding: 9px 12px; color: #74520b; background: #fff8df; border: 1px solid #e5c66f; font-size: 12px; line-height: 1.5; }
+.detail-help { margin: -2px 0 8px; color: #6f7c84; font-size: 12px; }
+.score-detail-dialog { width: min(1120px, calc(100vw - 60px)); }
+.risk-event-history { min-width: 1020px; }
+.risk-event-history th, .risk-event-history td { white-space: nowrap; }
 .detail-section { margin-top: 18px; }
 .detail-section h3 { margin: 0 0 8px; font-size: 15px; }
 .detail-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }

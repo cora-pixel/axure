@@ -72,6 +72,64 @@ const pendingRows = [
   },
 ];
 
+const alertStateByMember = {
+  '2795074': {
+    latestLoginScore: 88,
+    latestLoginTime: '2026-11-17 10:32',
+    alertStatus: '待处理',
+    alertOpenedAt: '2026-11-17 08:20',
+    riskEvents: [
+      { time: '2026-11-17 09:46', type: '低分告警更新', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', rule: 'R03 -45；R06 -65', loginScore: 0, alertScore: 0, result: '阻断并冻结' },
+      { time: '2026-11-17 08:20', type: '低分告警生成', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', rule: 'R03 -45', loginScore: 55, alertScore: 55, result: '单项验证' },
+    ],
+  },
+  '2826222': {
+    latestLoginScore: 86,
+    latestLoginTime: '2026-11-17 10:18',
+    alertStatus: '待处理',
+    alertOpenedAt: '2026-11-17 09:18',
+    riskEvents: [
+      { time: '2026-11-17 09:18', type: '低分告警生成', ip: '202.55.225.254', device: 'Android-Chrome-R8tLp7Qm2Xc9', rule: 'R03 -45；R07 -30', loginScore: 25, alertScore: 25, result: '双项验证' },
+    ],
+  },
+  '2826202': {
+    latestLoginScore: 55,
+    latestLoginTime: '2026-11-17 08:52',
+    alertStatus: '待处理',
+    alertOpenedAt: '2026-11-17 08:52',
+    riskEvents: [
+      { time: '2026-11-17 08:52', type: '低分告警生成', ip: '47.76.91.34', device: '未获取', rule: 'R03 -45', loginScore: 55, alertScore: 55, result: '单项验证' },
+    ],
+  },
+  '2827144': {
+    latestLoginScore: 100,
+    latestLoginTime: '2026-11-17 10:26',
+    alertStatus: '已关闭',
+    alertOpenedAt: '2026-11-17 08:20',
+    riskEvents: [
+      { time: '2026-11-17 10:26', type: '告警关闭', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', rule: '验证通过，更新常用环境', loginScore: 10, alertScore: 100, result: '恢复正常' },
+      { time: '2026-11-17 08:20', type: '低分告警生成', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', rule: 'R03 -45；R05 -45', loginScore: 10, alertScore: 10, result: '阻断人工' },
+    ],
+  },
+  '2827301': {
+    latestLoginScore: 70,
+    latestLoginTime: '2026-11-17 10:05',
+    alertStatus: '观察中',
+    alertOpenedAt: '—',
+    riskEvents: [
+      { time: '2026-11-17 10:05', type: '风险事件', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', rule: 'R05 -30', loginScore: 70, alertScore: 70, result: '预警观察' },
+    ],
+  },
+};
+
+pendingRows.forEach(row => Object.assign(row, alertStateByMember[row.memberId] || {
+  latestLoginScore: row.score,
+  latestLoginTime: row.time,
+  alertStatus: row.score < 60 ? '待处理' : '观察中',
+  alertOpenedAt: row.score < 60 ? row.time : '—',
+  riskEvents: [],
+}));
+
 const commonEnvironmentByMember = {
   '2795074': {
     ips: [['139.162.87.78', '72', '2026-11-15 20:18', '阈值命中'], ['47.76.91.34', '53', '2026-11-12 09:42', '阈值命中']],
@@ -754,12 +812,9 @@ function openBandsDialog() {
 function openPendingDetail(memberId) {
   const row = pendingRows.find(item => item.memberId === memberId);
   const breakdownRows = row.breakdown.map((item, order) => `<tr><td>${order + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td><td>${item[3]}</td></tr>`).reverse().join('');
-  const scoreItems = row.breakdown.filter(item => item[0] !== '评分基准' && !item[0].includes('验证'));
-  const assessmentScore = row.resetFrom !== undefined ? row.resetFrom : row.score;
-  const deductionSummary = scoreItems.length ? scoreItems.map(item => `${item[0]} ${item[2]}`).join('；') : '无扣分';
-  const loginScoreRows = `
-    <tr><td>${row.time}</td><td>${row.ip}</td><td class="device-value">${row.currentDeviceId || '未获取'}</td><td>100</td><td>${deductionSummary}</td><td>${assessmentScore}</td><td>${row.action}</td><td>${row.status}</td><td>${row.score}</td></tr>
-    <tr><td>2026-11-16 20:15</td><td>${row.ip}</td><td class="device-value">${row.currentDeviceId || '未获取'}</td><td>100</td><td>无扣分</td><td>100</td><td>正常放行</td><td>未验证</td><td>100</td></tr>`;
+  const riskEventRows = row.riskEvents.length
+    ? row.riskEvents.map(event => `<tr><td>${event.time}</td><td>${event.type}</td><td>${event.ip || '--'}</td><td class="device-value">${event.device || '--'}</td><td>${event.rule}</td><td>${event.loginScore}</td><td>${event.alertScore}</td><td>${event.result}</td></tr>`).join('')
+    : '<tr><td colspan="8">暂无需要关注的风险评分事件</td></tr>';
   const resetRecord = row.resetFrom !== undefined
     ? `<tr><td>${row.resetTime}</td><td>验证记录</td><td>${row.manualResult === '验证通过' ? '手动验证通过' : '验证成功'}，该次登录有效分数由${row.resetFrom}更新为100，并更新常用环境</td><td>${row.resetOperator}</td></tr>`
     : '';
@@ -767,15 +822,17 @@ function openPendingDetail(memberId) {
     ? `<tr><td>${row.time}</td><td>${row.source}</td><td>分数更新为${row.score}；扣分条件：${row.scoreCondition}${row.manualResult ? `；手动验证：${row.manualResult}` : ''}</td><td>${row.operator}</td></tr>`
     : '';
   openDialog('账号评分详情', `
-    <div class="detail-summary">
-      <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div class="condition-summary"><span>分数扣减判断条件</span><strong>${row.scoreCondition}</strong></div><div><span>验证状态</span><strong class="verify-status ${row.status === '验证通过' ? 'normal' : 'failed'}">${row.status}</strong></div><div><span>冻结状态</span><strong class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</strong></div>
+    <div class="detail-summary alert-detail-summary">
+      <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前告警分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div><span>最近登录评分</span><strong class="${scoreClass(row.latestLoginScore)}">${row.latestLoginScore}</strong><small>${row.latestLoginTime}</small></div><div class="condition-summary"><span>告警扣分判断条件</span><strong>${row.scoreCondition}</strong></div><div><span>告警状态</span><strong class="alert-status ${row.alertStatus === '待处理' ? 'pending' : 'closed'}">${row.alertStatus}</strong></div><div><span>冻结状态</span><strong class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</strong></div>
     </div>
-    <div class="detail-section"><h3>最近一次登录评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>本次分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
-    <div class="detail-section"><h3>每次登录评分表</h3><div class="table-wrap"><table class="mini-table login-score-history"><thead><tr><th>登录时间</th><th>登录IP</th><th>设备号</th><th>初始分</th><th>命中规则／扣分</th><th>评分结果</th><th>控制结果</th><th>验证结果</th><th>有效分数</th></tr></thead><tbody>${loginScoreRows}</tbody></table></div></div>
+    <div class="alert-lock-note"><strong>告警分数已锁定：</strong>每次登录仍从100分独立评分；在当前告警处理完成前，后续高分不覆盖告警分数，只有新的更低分会更新该告警。</div>
+    <div class="detail-section"><h3>当前告警评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>告警分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
+    <div class="detail-section"><h3>风险评分事件明细</h3><p class="detail-help">仅记录低于60分、高危规则命中、验证和人工处理事件；普通登录不在此处逐条展示。</p><div class="table-wrap"><table class="mini-table risk-event-history"><thead><tr><th>事件时间</th><th>事件类型</th><th>风险IP</th><th>风险设备</th><th>命中规则／处理</th><th>本次登录评分</th><th>更新后告警分数</th><th>控制结果</th></tr></thead><tbody>${riskEventRows}</tbody></table></div></div>
     <div class="detail-section"><div class="detail-section-head"><h3>风险与环境信息</h3><button class="table-link" data-view-common="${row.memberId}">查看常用IP／设备</button></div><table class="mini-table"><tbody><tr><td>触发原因</td><td colspan="3">${row.reason}</td></tr><tr><td>当前IP</td><td>${row.ip}</td><td>当前设备号</td><td class="device-value">${row.currentDeviceId || '未获取'}</td></tr><tr><td>备注</td><td colspan="3">${row.note || '—'}</td></tr></tbody></table></div>
     <div class="detail-section"><h3>验证及变更记录</h3><table class="mini-table"><thead><tr><th>时间</th><th>类型</th><th>内容</th><th>操作人</th></tr></thead><tbody>${resetRecord}${latestRecord}<tr><td>2026-11-17 08:20</td><td>评分记录</td><td>${row.reason}</td><td>系统</td></tr></tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>关闭</button></div>
   `);
+  $('#adminDialog').classList.add('score-detail-dialog');
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-view-common]').addEventListener('click', () => openCommonEnvironmentDialog(row.memberId, true));
 }
@@ -822,11 +879,17 @@ function applyVerificationResult(row, result, note) {
     row.resetOperator = 'Cora';
     row.reason = '后台确认验证通过并更新常用环境';
     row.note = note || '后台手动确认验证通过';
+    row.alertStatus = '已关闭';
+    row.latestLoginScore = 100;
+    row.latestLoginTime = row.time;
+    row.riskEvents.unshift({ time: row.time, type: '告警关闭', ip: row.ip, device: row.currentDeviceId || '未获取', rule: '手动验证通过，更新常用环境', loginScore: previousScore, alertScore: 100, result: '恢复正常' });
     if (previousScore < 100) row.breakdown.push(['验证通过', '该次登录有效分数更新为100并写入常用环境', '更新', '100']);
   } else {
     row.reason = '后台确认验证失败，冻结状态保持不变';
     row.note = note || '后台手动确认验证失败';
-    row.breakdown.push(['验证失败', '保留该次登录评分结果和冻结状态；下次登录重新从100分评分', '—', row.score]);
+    row.alertStatus = '待处理';
+    row.riskEvents.unshift({ time: row.time, type: '验证失败', ip: row.ip, device: row.currentDeviceId || '未获取', rule: '保留当前未处理告警', loginScore: row.latestLoginScore, alertScore: row.score, result: '告警继续保留' });
+    row.breakdown.push(['验证失败', '保留当前告警分数和冻结状态；后续登录独立评分但不覆盖未处理告警', '—', row.score]);
     delete row.resetFrom;
     delete row.resetTime;
     delete row.resetOperator;
