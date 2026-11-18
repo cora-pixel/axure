@@ -819,6 +819,14 @@ function openRiskEntityDetail(type, value) {
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
+function openRiskListDialog(type) {
+  const isIp = type === 'ip';
+  const rows = [...(isIp ? riskIpRows : riskDeviceRows)].sort((a, b) => b.accounts - a.accounts || b.logins - a.logins);
+  const listRows = rows.map(row => `<tr><td class="${isIp ? '' : 'device-value'}">${row.value}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td></tr>`).join('');
+  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th></tr></thead><tbody>${listRows}</tbody></table></div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+}
+
 function syncRulesFromConfig() {
   const update = (id, values) => Object.assign(rules.find(rule => rule.id === id), values);
   update('R01', { score: `-${scoringConfig.r01Score}` });
@@ -1419,6 +1427,8 @@ if ($('#loginAlertSearchType')) $('#loginAlertSearchType').addEventListener('cha
 });
 if ($('#loginAlertSearchBtn')) $('#loginAlertSearchBtn').addEventListener('click', renderFilteredLoginAlerts);
 if ($('#loginAlertBatchVerifyBtn')) $('#loginAlertBatchVerifyBtn').addEventListener('click', () => openLoginAlertBatchVerifyDialog($$('.login-alert-select:checked').map(input => input.dataset.alertId)));
+if ($('#riskIpListBtn')) $('#riskIpListBtn').addEventListener('click', () => openRiskListDialog('ip'));
+if ($('#riskDeviceListBtn')) $('#riskDeviceListBtn').addEventListener('click', () => openRiskListDialog('device'));
 if ($('#selectAllLoginAlerts')) $('#selectAllLoginAlerts').addEventListener('change', event => {
   $$('.login-alert-select').forEach(input => { input.checked = event.target.checked; });
   updateLoginAlertSelectionState();
@@ -1452,6 +1462,8 @@ if ($('#ruleTableBody')) { syncRulesFromConfig(); renderRules(); }
 if ($('#bandGrid')) renderBands();
 if ($('#pendingTableBody')) { updateRiskQuickCounts(); updateScoreTierSummary(); renderFilteredPending(); }
 if ($('#loginAlertTableBody')) renderLoginAlerts();
+if ($('#riskIpListCount')) $('#riskIpListCount').textContent = riskIpRows.length;
+if ($('#riskDeviceListCount')) $('#riskDeviceListCount').textContent = riskDeviceRows.length;
 if ($('#scoreRecordTableBody')) renderScoreRecords();
 if ($('#riskTgidBaseValue')) renderRiskTgidConfigRow();
 if ($('#commonIpBaseValue')) renderCommonEnvironmentConfigRows();
