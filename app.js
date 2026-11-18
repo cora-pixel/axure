@@ -37,8 +37,8 @@ const riskTgidConfig = {
 };
 
 const commonEnvironmentConfig = {
-  days: 30,
-  count: 5,
+  ip: { days: 30, count: 5 },
+  device: { days: 30, count: 5 },
 };
 
 const bands = [
@@ -957,35 +957,36 @@ function openRiskTgidConfigDialog() {
 }
 
 function renderCommonEnvironmentConfigRows() {
-  if ($('#commonDaysBaseValue')) $('#commonDaysBaseValue').textContent = commonEnvironmentConfig.days;
-  if ($('#commonDaysDefaultValue')) $('#commonDaysDefaultValue').textContent = commonEnvironmentConfig.days;
-  if ($('#commonCountBaseValue')) $('#commonCountBaseValue').textContent = commonEnvironmentConfig.count;
-  if ($('#commonCountDefaultValue')) $('#commonCountDefaultValue').textContent = commonEnvironmentConfig.count;
+  const ipValue = `${commonEnvironmentConfig.ip.days},${commonEnvironmentConfig.ip.count}`;
+  const deviceValue = `${commonEnvironmentConfig.device.days},${commonEnvironmentConfig.device.count}`;
+  if ($('#commonIpBaseValue')) $('#commonIpBaseValue').textContent = ipValue;
+  if ($('#commonIpDefaultValue')) $('#commonIpDefaultValue').textContent = ipValue;
+  if ($('#commonDeviceBaseValue')) $('#commonDeviceBaseValue').textContent = deviceValue;
+  if ($('#commonDeviceDefaultValue')) $('#commonDeviceDefaultValue').textContent = deviceValue;
 }
 
 function openCommonEnvironmentConfigDialog(type) {
-  const isDays = type === 'days';
-  const title = isDays ? '常用IP/设备统计天数' : '常用IP/设备使用次数阈值';
-  const systemName = isDays ? 'common_ip_device_stat_days' : 'common_ip_device_use_count';
-  const value = isDays ? commonEnvironmentConfig.days : commonEnvironmentConfig.count;
-  const unit = isDays ? '天' : '次';
-  const description = isDays
-    ? '以本次登录时间为截止点，向前滚动N天统计同一账号的有效IP和有效设备使用次数。'
-    : '同一账号的同一有效IP或有效设备在统计周期内成功登录达到M次后，自动认定为常用IP或常用设备。';
+  const isIp = type === 'ip';
+  const config = commonEnvironmentConfig[type];
+  const title = isIp ? '常用IP判定配置' : '常用设备判定配置';
+  const systemName = isIp ? 'common_ip_rule' : 'common_device_rule';
+  const targetLabel = isIp ? 'IP' : '设备';
+  const description = `配置格式为“统计天数,${targetLabel}使用次数”。例如30,5表示同一账号的同一有效${targetLabel}在30天内成功登录达到5次后，认定为常用${targetLabel}。`;
   openDialog(`设置配置：${title}`, `
     <div class="config-detail-form">
       <div class="config-detail-label">配置分组：</div><select><option>常用IP／设备配置</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <div class="config-detail-label">基础配置：</div><div><input id="commonConfigValue" type="number" min="1" step="1" value="${value}"><p class="field-help">请输入大于0的整数，单位：${unit}。</p></div>
+      <div class="config-detail-label">统计天数：</div><div><input id="commonConfigDays" type="number" min="1" step="1" value="${config.days}"><p class="field-help">以本次登录时间为截止点，向前滚动统计。</p></div>
+      <div class="config-detail-label">${targetLabel}使用次数：</div><div><input id="commonConfigCount" type="number" min="1" step="1" value="${config.count}"><p class="field-help">统计周期内成功登录达到该次数后认定为常用${targetLabel}。</p></div>
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
-      <div class="config-detail-label">配置默认值：</div><input value="${value}" disabled>
-      <div class="config-detail-label">配置分组：</div><select><option>单值型</option></select>
-      <div class="config-detail-label">配置值属性：</div><select><option>整数</option></select>
+      <div class="config-detail-label">配置默认值：</div><input value="${config.days},${config.count}" disabled>
+      <div class="config-detail-label">配置类型：</div><select><option>组合值</option></select>
+      <div class="config-detail-label">配置值属性：</div><select><option>整数,整数</option></select>
       <div class="config-detail-label">配置描述：</div><textarea disabled>${description}</textarea>
-      <div class="config-detail-label">统计口径：</div><textarea disabled>只统计成功登录；页面刷新、Token续期、无效IP及device_valid不等于1的设备不计次数。IP与设备按会员ID分别统计。</textarea>
+      <div class="config-detail-label">统计口径：</div><textarea disabled>只统计成功登录；页面刷新、Token续期和无效${targetLabel}不计次数。同一${targetLabel}按会员ID分别统计。</textarea>
     </div>
     <p class="config-error" id="commonConfigError" aria-live="polite"></p>
     <div class="admin-dialog-actions"><button class="admin-btn" data-save-common-config>保存配置</button><button class="admin-btn secondary" data-dialog-cancel>返回列表</button></div>
@@ -993,12 +994,13 @@ function openCommonEnvironmentConfigDialog(type) {
   $('#adminDialog').classList.add('config-detail-dialog');
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-common-config]').addEventListener('click', () => {
-    const nextValue = Number($('#commonConfigValue').value);
-    if (!Number.isInteger(nextValue) || nextValue <= 0) {
-      $('#commonConfigError').textContent = '请输入大于0的整数。';
+    const days = Number($('#commonConfigDays').value);
+    const count = Number($('#commonConfigCount').value);
+    if (![days, count].every(value => Number.isInteger(value) && value > 0)) {
+      $('#commonConfigError').textContent = '统计天数和使用次数均须为大于0的整数。';
       return;
     }
-    commonEnvironmentConfig[type] = nextValue;
+    commonEnvironmentConfig[type] = { days, count };
     renderCommonEnvironmentConfigRows();
     closeDialog();
   });
@@ -1100,8 +1102,8 @@ function openCommonEnvironmentDialog(memberId, returnToDetail = false) {
     : '<tr><td colspan="4">暂无常用设备</td></tr>';
   openDialog('常用IP／设备', `
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
-    <div class="detail-section"><h3>常用IP</h3><table class="mini-table"><thead><tr><th>IP</th><th>${commonEnvironmentConfig.days}天内使用次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${ipRows}</tbody></table></div>
-    <div class="detail-section"><h3>常用设备</h3><table class="mini-table"><thead><tr><th>设备号</th><th>${commonEnvironmentConfig.days}天内使用次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
+    <div class="detail-section"><h3>常用IP</h3><table class="mini-table"><thead><tr><th>IP</th><th>${commonEnvironmentConfig.ip.days}天内使用次数（达到${commonEnvironmentConfig.ip.count}次）</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${ipRows}</tbody></table></div>
+    <div class="detail-section"><h3>常用设备</h3><table class="mini-table"><thead><tr><th>设备号</th><th>${commonEnvironmentConfig.device.days}天内使用次数（达到${commonEnvironmentConfig.device.count}次）</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
     <div class="admin-dialog-actions">${returnToDetail ? '<button class="admin-btn secondary" data-back-detail>返回评分详情</button>' : ''}<button class="admin-btn" data-dialog-cancel>关闭</button></div>
   `);
   if ($('[data-back-detail]')) $('[data-back-detail]').addEventListener('click', () => openPendingDetail(memberId));
@@ -1285,10 +1287,10 @@ if ($('#basicConfigMenu')) $('#basicConfigMenu').addEventListener('click', event
 if ($('#accountScoreMenu')) $('#accountScoreMenu').addEventListener('click', () => showAdminFeature('score'));
 if ($('#setRiskTgidBtn')) $('#setRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
 if ($('#editRiskTgidBtn')) $('#editRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
-if ($('#setCommonDaysBtn')) $('#setCommonDaysBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('days'));
-if ($('#editCommonDaysBtn')) $('#editCommonDaysBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('days'));
-if ($('#setCommonCountBtn')) $('#setCommonCountBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('count'));
-if ($('#editCommonCountBtn')) $('#editCommonCountBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('count'));
+if ($('#setCommonIpBtn')) $('#setCommonIpBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('ip'));
+if ($('#editCommonIpBtn')) $('#editCommonIpBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('ip'));
+if ($('#setCommonDeviceBtn')) $('#setCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
+if ($('#editCommonDeviceBtn')) $('#editCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
 if ($('#addConfigBtn')) $('#addConfigBtn').addEventListener('click', openRiskTgidConfigDialog);
 if ($('#toggleRiskTgidBtn')) $('#toggleRiskTgidBtn').addEventListener('click', () => {
   riskTgidConfig.disabled = !riskTgidConfig.disabled;
@@ -1404,5 +1406,5 @@ if ($('#pendingTableBody')) { updateRiskQuickCounts(); updateScoreTierSummary();
 if ($('#loginAlertTableBody')) renderLoginAlerts();
 if ($('#scoreRecordTableBody')) renderScoreRecords();
 if ($('#riskTgidBaseValue')) renderRiskTgidConfigRow();
-if ($('#commonDaysBaseValue')) renderCommonEnvironmentConfigRows();
+if ($('#commonIpBaseValue')) renderCommonEnvironmentConfigRows();
 if ($('#scoreOrb')) updateScoreUI();
