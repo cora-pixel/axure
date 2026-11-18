@@ -822,8 +822,19 @@ function openRiskEntityDetail(type, value) {
 function openRiskListDialog(type) {
   const isIp = type === 'ip';
   const rows = [...(isIp ? riskIpRows : riskDeviceRows)].sort((a, b) => b.accounts - a.accounts || b.logins - a.logins);
-  const listRows = rows.map(row => `<tr><td class="${isIp ? '' : 'device-value'}">${row.value}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td></tr>`).join('');
-  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th></tr></thead><tbody>${listRows}</tbody></table></div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  const listRows = rows.map(row => `<tr><td class="${isIp ? '' : 'device-value'}">${row.value}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td><td><button class="table-link" data-view-risk-records="${type}" data-risk-value="${row.value}">查看</button></td></tr>`).join('');
+  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th><th>操作</th></tr></thead><tbody>${listRows}</tbody></table></div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  $$('[data-view-risk-records]').forEach(button => button.addEventListener('click', () => {
+    closeDialog();
+    $('[data-admin-tab="records"]').click();
+    $('#scoreRecordSearchType').value = button.dataset.viewRiskRecords;
+    $('#scoreRecordKeyword').value = button.dataset.riskValue;
+    $('#scoreRecordKeyword').placeholder = button.dataset.viewRiskRecords === 'ip' ? '输入登录IP' : '输入登录设备号';
+    $('#scoreRecordTier').value = 'all';
+    $('#scoreRecordStatus').value = 'all';
+    $('#scoreRecordLoginDate').value = '';
+    renderFilteredScoreRecords();
+  }));
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
