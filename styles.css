@@ -259,7 +259,7 @@ main { padding: 20px; }
 .band-card.healthy { border-color: var(--green); }.band-card.watch { border-color: #315f9c; }.band-card.single { border-color: #7656a8; }.band-card.double { border-color: #d88618; }.band-card.block { border-color: #d9534f; }
 
 .account-score-view { margin: -20px; }
-.admin-system-shell { min-height: 100vh; display: grid; grid-template-columns: 205px minmax(0, 1fr); background: #8fa5c8; }
+.admin-system-shell { min-height: 100vh; display: grid; grid-template-columns: 245px minmax(0, 1fr); background: #8fa5c8; }
 .admin-menu { color: #183a29; background: #f4f4ea; border-right: 4px solid #405982; }
 .admin-menu-title { height: 42px; display: flex; align-items: center; padding: 0 12px; color: #fff; background: #405982; font-size: 21px; font-weight: 700; }
 .admin-menu-groups, .admin-menu-groups ul { margin: 0; padding: 0; list-style: none; }

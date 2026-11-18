@@ -1349,7 +1349,7 @@ $$('.admin-page-tab').forEach(tab => tab.addEventListener('click', () => {
   $$('.admin-tab-panel').forEach(panel => panel.classList.remove('active'));
   $(`#${tab.dataset.adminTab}Panel`).classList.add('active');
   const breadcrumb = $('.admin-breadcrumb span');
-  const breadcrumbTitles = { alerts: '登录评分告警', records: '登录评分总表', rules: '评分规则设置' };
+  const breadcrumbTitles = { alerts: '用户登录评分告警报表', records: '用户登录评分告警报表', rules: '用户登录评分告警报表' };
   if (breadcrumb) breadcrumb.textContent = breadcrumbTitles[tab.dataset.adminTab];
 }));
 
