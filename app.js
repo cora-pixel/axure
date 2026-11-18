@@ -977,8 +977,7 @@ function openCommonEnvironmentConfigDialog(type) {
       <div class="config-detail-label">配置分组：</div><select><option>常用IP／设备配置</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <div class="config-detail-label">统计天数：</div><div><input id="commonConfigDays" type="number" min="1" step="1" value="${config.days}"><p class="field-help">以本次登录时间为截止点，向前滚动统计。</p></div>
-      <div class="config-detail-label">${targetLabel}使用次数：</div><div><input id="commonConfigCount" type="number" min="1" step="1" value="${config.count}"><p class="field-help">统计周期内成功登录达到该次数后认定为常用${targetLabel}。</p></div>
+      <div class="config-detail-label">基础配置：</div><div><input id="commonConfigValue" value="${config.days},${config.count}" placeholder="统计天数,${targetLabel}使用次数"><p class="field-help">请按“统计天数,${targetLabel}使用次数”填写，例如30,5。</p></div>
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
@@ -994,9 +993,13 @@ function openCommonEnvironmentConfigDialog(type) {
   $('#adminDialog').classList.add('config-detail-dialog');
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-common-config]').addEventListener('click', () => {
-    const days = Number($('#commonConfigDays').value);
-    const count = Number($('#commonConfigCount').value);
-    if (![days, count].every(value => Number.isInteger(value) && value > 0)) {
+    const value = $('#commonConfigValue').value.trim().replace(/\s+/g, '');
+    if (!/^\d+,\d+$/.test(value)) {
+      $('#commonConfigError').textContent = `请按“统计天数,${targetLabel}使用次数”填写，并使用英文逗号。`;
+      return;
+    }
+    const [days, count] = value.split(',').map(Number);
+    if (![days, count].every(item => Number.isInteger(item) && item > 0)) {
       $('#commonConfigError').textContent = '统计天数和使用次数均须为大于0的整数。';
       return;
     }
