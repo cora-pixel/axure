@@ -616,10 +616,17 @@ function renderLoginAlerts(rows = loginAlertRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#loginAlertTableBody').innerHTML = sortedRows.map(row => `
     <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
+  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = '<tr><td colspan="12" class="empty-table-cell">暂无数据</td></tr>';
   $('#loginAlertTotal').textContent = sortedRows.length;
   const alertCount = loginAlertRows.length;
-  if ($('#loginAlertTabBadge')) $('#loginAlertTabBadge').textContent = alertCount;
-  if ($('#accountAlertBadge')) $('#accountAlertBadge').textContent = alertCount;
+  if ($('#loginAlertTabBadge')) {
+    $('#loginAlertTabBadge').textContent = alertCount;
+    $('#loginAlertTabBadge').hidden = alertCount === 0;
+  }
+  if ($('#accountAlertBadge')) {
+    $('#accountAlertBadge').textContent = alertCount;
+    $('#accountAlertBadge').hidden = alertCount === 0;
+  }
   $$('[data-login-alert-detail]').forEach(button => button.addEventListener('click', () => openLoginAlertDetail(button.dataset.loginAlertDetail)));
   $$('[data-login-alert-verify]').forEach(button => button.addEventListener('click', () => openLoginAlertVerifyDialog(button.dataset.loginAlertVerify)));
   if ($('#selectAllLoginAlerts')) {
@@ -667,10 +674,24 @@ function openLoginAlertDetail(alertId) {
 function renderScoreRecords(rows = loginScoreRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#scoreRecordTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
+    <tr><td>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<input type="checkbox" class="score-record-select" data-record-id="${row.id}" aria-label="选择${row.user}的评分记录">` : ''}</td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${row.riskIp ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${row.riskDevice ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
+  if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = '<tr><td colspan="12" class="empty-table-cell">暂无数据</td></tr>';
   $('#scoreRecordTotal').textContent = sortedRows.length;
   $$('[data-score-record-detail]').forEach(button => button.addEventListener('click', () => openScoreRecordDetail(button.dataset.scoreRecordDetail)));
   $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openScoreRecordVerifyDialog(button.dataset.scoreRecordVerify)));
+  if ($('#selectAllScoreRecords')) {
+    $('#selectAllScoreRecords').checked = false;
+    $('#selectAllScoreRecords').indeterminate = false;
+  }
+  $$('.score-record-select').forEach(input => input.addEventListener('change', updateScoreRecordSelectionState));
+}
+
+function updateScoreRecordSelectionState() {
+  const visible = $$('.score-record-select');
+  const checked = visible.filter(input => input.checked);
+  if (!$('#selectAllScoreRecords')) return;
+  $('#selectAllScoreRecords').checked = visible.length > 0 && checked.length === visible.length;
+  $('#selectAllScoreRecords').indeterminate = checked.length > 0 && checked.length < visible.length;
 }
 
 function renderFilteredScoreRecords() {
@@ -733,26 +754,53 @@ function openScoreRecordVerifyDialog(recordId) {
     const result = $('input[name="scoreVerifyResult"]:checked')?.value;
     const note = $('#scoreVerifyNote').value.trim();
     if (!result || !note) { $('#scoreVerifyError').textContent = '请选择验证结果并填写备注。'; return; }
-    appendScoreVerificationRecord(record, result, note);
-    record.disposition = result;
-    record.note = note;
-    record.alerted = true;
-    const alertId = record.id.replace(/^SR/, 'LA');
-    const existingAlert = loginAlertRows.find(item => item.id === alertId);
-    if (result === '验证通过') {
-      const alertIndex = loginAlertRows.findIndex(item => item.id === alertId);
-      if (alertIndex >= 0) loginAlertRows.splice(alertIndex, 1);
-    } else if (existingAlert) {
-      existingAlert.status = '验证失败';
-      existingAlert.note = note;
-    } else {
-      loginAlertRows.push({
-        id: alertId, memberId: record.memberId, user: record.user, time: record.time,
-        ip: record.ip, device: record.device, riskIp: record.riskIp, riskDevice: record.riskDevice,
-        score: record.score, condition: record.condition, control: record.control,
-        status: '验证失败', note, breakdown: record.breakdown,
-      });
-    }
+    applyScoreRecordVerification(record, result, note);
+    closeDialog();
+    renderFilteredScoreRecords();
+    renderFilteredLoginAlerts();
+  });
+}
+
+function applyScoreRecordVerification(record, result, note) {
+  appendScoreVerificationRecord(record, result, note);
+  record.disposition = result;
+  record.note = note;
+  record.alerted = true;
+  const alertId = record.id.replace(/^SR/, 'LA');
+  const existingAlert = loginAlertRows.find(item => item.id === alertId);
+  if (result === '验证通过') {
+    const alertIndex = loginAlertRows.findIndex(item => item.id === alertId);
+    if (alertIndex >= 0) loginAlertRows.splice(alertIndex, 1);
+  } else if (existingAlert) {
+    existingAlert.status = '验证失败';
+    existingAlert.note = note;
+  } else {
+    loginAlertRows.push({
+      id: alertId, memberId: record.memberId, user: record.user, time: record.time,
+      ip: record.ip, device: record.device, riskIp: record.riskIp, riskDevice: record.riskDevice,
+      score: record.score, condition: record.condition, control: record.control,
+      status: '验证失败', note, breakdown: record.breakdown,
+    });
+  }
+}
+
+function openScoreRecordBatchVerifyDialog(recordIds) {
+  const records = loginScoreRows.filter(item => recordIds.includes(item.id));
+  if (!records.length) {
+    openDialog('批量验证', '<p class="config-error">请先在登录评分总表中勾选需要验证的记录。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
+  openDialog('批量验证', `
+    <div class="admin-form"><label>已选记录</label><textarea disabled>${records.map(item => `${item.user}／${formatLoginTime(item.time)}`).join('\n')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchScoreResult" value="验证通过">验证通过</label><label><input type="radio" name="batchScoreResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchScoreNote" placeholder="请输入本次批量验证说明"></textarea></div>
+    <p class="field-help">验证失败的记录进入或继续保留在告警表；验证通过的记录从告警表移除。共选择${records.length}条。</p><p class="config-error" id="batchScoreError"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-score>确认</button></div>`);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-batch-score]').addEventListener('click', () => {
+    const result = $('input[name="batchScoreResult"]:checked')?.value;
+    const note = $('#batchScoreNote').value.trim();
+    if (!result || !note) { $('#batchScoreError').textContent = '请选择验证结果并填写备注。'; return; }
+    records.forEach(record => applyScoreRecordVerification(record, result, note));
     closeDialog();
     renderFilteredScoreRecords();
     renderFilteredLoginAlerts();
@@ -1458,6 +1506,11 @@ if ($('#scoreRecordSearchType')) $('#scoreRecordSearchType').addEventListener('c
   $('#scoreRecordKeyword').placeholder = placeholders[$('#scoreRecordSearchType').value];
 });
 if ($('#scoreRecordSearchBtn')) $('#scoreRecordSearchBtn').addEventListener('click', renderFilteredScoreRecords);
+if ($('#scoreRecordBatchVerifyBtn')) $('#scoreRecordBatchVerifyBtn').addEventListener('click', () => openScoreRecordBatchVerifyDialog($$('.score-record-select:checked').map(input => input.dataset.recordId)));
+if ($('#selectAllScoreRecords')) $('#selectAllScoreRecords').addEventListener('change', event => {
+  $$('.score-record-select').forEach(input => { input.checked = event.target.checked; });
+  updateScoreRecordSelectionState();
+});
 if ($('#scoreRecordResetBtn')) $('#scoreRecordResetBtn').addEventListener('click', () => {
   $('#scoreRecordSearchType').value = 'memberId';
   $('#scoreRecordKeyword').value = '';

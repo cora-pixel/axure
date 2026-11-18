@@ -36,9 +36,12 @@
           <div class="admin-tab-panel" id="recordsPanel">
             <div class="account-page-head">
               <div><h1>登录评分总表</h1><p>每次登录请求独立从100分评分并保留记录；登录IP或登录设备命中风险关联时直接标红</p></div>
-              <div class="risk-quick-group">
-                <button class="risk-count-quick" id="riskIpListBtn">风险IP共<strong id="riskIpListCount">0</strong>条</button>
-                <button class="risk-count-quick" id="riskDeviceListBtn">风险设备共<strong id="riskDeviceListCount">0</strong>条</button>
+              <div class="account-head-actions">
+                <div class="risk-quick-group">
+                  <button class="risk-count-quick" id="riskIpListBtn">风险IP共<strong id="riskIpListCount">0</strong>条</button>
+                  <button class="risk-count-quick" id="riskDeviceListBtn">风险设备共<strong id="riskDeviceListCount">0</strong>条</button>
+                </div>
+                <button class="admin-btn" id="scoreRecordBatchVerifyBtn">批量验证</button>
               </div>
             </div>
             <div class="filter-bar login-alert-filter">
@@ -48,7 +51,7 @@
               <label><span>登录时间</span><input type="datetime-local" step="1" id="scoreRecordLoginDate"></label>
               <button class="admin-btn secondary" id="scoreRecordSearchBtn">查询</button><button class="link-btn" id="scoreRecordResetBtn">重置</button>
             </div>
-            <div class="table-wrap"><table class="admin-table score-record-table"><thead><tr><th>会员ID</th><th>会员账号</th><th>登录时间</th><th>登录IP</th><th>登录设备</th><th>本次评分</th><th>扣分判断条件</th><th>建议动作</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="scoreRecordTableBody"></tbody></table></div>
+            <div class="table-wrap"><table class="admin-table score-record-table"><thead><tr><th><input type="checkbox" id="selectAllScoreRecords" aria-label="全选可验证评分记录"></th><th>会员ID</th><th>会员账号</th><th>登录时间</th><th>登录IP</th><th>登录设备</th><th>本次评分</th><th>扣分判断条件</th><th>建议动作</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="scoreRecordTableBody"></tbody></table></div>
             <div class="table-footer"><span>共 <strong id="scoreRecordTotal">0</strong> 条评分记录</span><span>1　2　3　下一页</span></div>
           </div>
 
