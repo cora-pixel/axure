@@ -37,8 +37,8 @@ const riskTgidConfig = {
 };
 
 const commonEnvironmentConfig = {
-  ip: { days: 30, count: 5 },
-  device: { days: 30, count: 5 },
+  ip: { days: 30, count: 5, disabled: false },
+  device: { days: 30, count: 5, disabled: false },
 };
 
 const bands = [
@@ -963,6 +963,15 @@ function renderCommonEnvironmentConfigRows() {
   if ($('#commonIpDefaultValue')) $('#commonIpDefaultValue').textContent = ipValue;
   if ($('#commonDeviceBaseValue')) $('#commonDeviceBaseValue').textContent = deviceValue;
   if ($('#commonDeviceDefaultValue')) $('#commonDeviceDefaultValue').textContent = deviceValue;
+  [['ip', 'commonIpStatus', 'toggleCommonIpBtn'], ['device', 'commonDeviceStatus', 'toggleCommonDeviceBtn']].forEach(([type, statusId, toggleId]) => {
+    const status = $(`#${statusId}`);
+    const toggle = $(`#${toggleId}`);
+    if (status) {
+      status.textContent = commonEnvironmentConfig[type].disabled ? '禁用' : '启用';
+      status.className = commonEnvironmentConfig[type].disabled ? 'status-disabled' : 'status-enabled';
+    }
+    if (toggle) toggle.textContent = commonEnvironmentConfig[type].disabled ? '设为启用' : '设为禁用';
+  });
 }
 
 function openCommonEnvironmentConfigDialog(type) {
@@ -1003,7 +1012,7 @@ function openCommonEnvironmentConfigDialog(type) {
       $('#commonConfigError').textContent = '统计天数和使用次数均须为大于0的整数。';
       return;
     }
-    commonEnvironmentConfig[type] = { days, count };
+    commonEnvironmentConfig[type] = { ...commonEnvironmentConfig[type], days, count };
     renderCommonEnvironmentConfigRows();
     closeDialog();
   });
@@ -1294,6 +1303,14 @@ if ($('#setCommonIpBtn')) $('#setCommonIpBtn').addEventListener('click', () => o
 if ($('#editCommonIpBtn')) $('#editCommonIpBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('ip'));
 if ($('#setCommonDeviceBtn')) $('#setCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
 if ($('#editCommonDeviceBtn')) $('#editCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
+if ($('#toggleCommonIpBtn')) $('#toggleCommonIpBtn').addEventListener('click', () => {
+  commonEnvironmentConfig.ip.disabled = !commonEnvironmentConfig.ip.disabled;
+  renderCommonEnvironmentConfigRows();
+});
+if ($('#toggleCommonDeviceBtn')) $('#toggleCommonDeviceBtn').addEventListener('click', () => {
+  commonEnvironmentConfig.device.disabled = !commonEnvironmentConfig.device.disabled;
+  renderCommonEnvironmentConfigRows();
+});
 if ($('#addConfigBtn')) $('#addConfigBtn').addEventListener('click', openRiskTgidConfigDialog);
 if ($('#toggleRiskTgidBtn')) $('#toggleRiskTgidBtn').addEventListener('click', () => {
   riskTgidConfig.disabled = !riskTgidConfig.disabled;
