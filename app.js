@@ -977,7 +977,7 @@ function openCommonEnvironmentConfigDialog(type) {
       <div class="config-detail-label">配置分组：</div><select><option>常用IP／设备配置</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <div class="config-detail-label">基础配置：</div><div><input id="commonConfigValue" value="${config.days},${config.count}" placeholder="统计天数,${targetLabel}使用次数"><p class="field-help">请按“统计天数,${targetLabel}使用次数”填写，例如30,5。</p></div>
+      <div class="config-detail-label">基础配置：</div><div><input id="commonConfigValue" value="${config.days},${config.count}" placeholder="统计天数,${targetLabel}使用次数"><p class="field-help">参数1为统计天数，参数2为${targetLabel}使用次数；例如30,5表示30天内使用达到5次。</p></div>
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
