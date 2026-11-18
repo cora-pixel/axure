@@ -311,10 +311,10 @@ main { padding: 20px; }
 .config-location { min-height: 38px; display: flex; align-items: center; margin-top: 8px; padding: 0 12px; background: #f5f6ef; border: 1px solid #5d9185; color: #5f7079; }
 .config-location strong { color: #314e75; }
 .config-list-wrap { margin-top: 10px; }
-.config-list-table { min-width: 1280px; }
+.config-list-table { min-width: 1460px; }
 .config-list-table th:nth-child(1) { width: 70px; }
-.config-list-table th:nth-child(2) { width: 190px; }
-.config-list-table th:nth-child(3) { width: 190px; }
+.config-list-table th:nth-child(2) { width: 250px; }
+.config-list-table th:nth-child(3) { width: 230px; }
 .config-list-table th:nth-child(4) { width: 180px; }
 .config-list-table th:nth-child(5), .config-list-table th:nth-child(6), .config-list-table th:nth-child(7) { width: 90px; }
 .config-list-table th:nth-child(8) { width: 150px; }
@@ -423,6 +423,8 @@ main { padding: 20px; }
 .mini-table { width: 100%; border-collapse: collapse; }
 .mini-table th { background: #93a9cf; padding: 8px; font-size: 12px; }
 .mini-table td { border: 1px solid #deddd0; padding: 8px; font-size: 12px; }
+.login-score-history { min-width: 1220px; }
+.login-score-history th, .login-score-history td { white-space: nowrap; }
 
 @media (max-width: 1250px) {
   body { min-width: 1000px; }

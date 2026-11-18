@@ -36,9 +36,14 @@ const riskTgidConfig = {
   inherited: { h3: true, asia: true, qh: true },
 };
 
+const commonEnvironmentConfig = {
+  days: 30,
+  count: 5,
+};
+
 const bands = [
   { range: '80至100', action: '正常放行', className: 'healthy', detail: '正常登录，不弹出验证；后台记录环境与分数。' },
-  { range: '60至79', action: '预警观察', className: 'watch', detail: '不打扰用户；进入观察名单并持续累积风险信号。' },
+  { range: '60至79', action: '预警观察', className: 'watch', detail: '不打扰用户；后台保留该次登录评分并继续观察后续登录。' },
   { range: '40至59', action: '单项验证', className: 'single', detail: '从可用方式中任选1项；成功后更新常用环境并恢复100分。' },
   { range: '20至39', action: '双项验证', className: 'double', detail: '完成2种不同验证；可用方式不足2项时转人工。' },
   { range: '0至19', action: '阻断或人工', className: 'block', detail: '停止后续操作；进入待验证名单并引导联系客服。' },
@@ -47,38 +52,38 @@ const bands = [
 const pendingRows = [
   {
     memberId: '2795074', user: 'hxm001@as', score: 0, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；长期风险设备关联51-100人（设备号：Win10-Chrome-RISK51Hxm8K2p）', reason: '陌生IP＋有效陌生设备；命中长期风险设备51至100人', ip: '103.88.14.26', currentDeviceId: 'Win10-Chrome-RISK51Hxm8K2p', device: '有效陌生设备', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统', riskIps: [{ value: '45.76.188.92', accounts: 9 }], riskDevices: [{ value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 68 }],
-    breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：103.88.14.26；有效陌生设备：Win10-Chrome-RISK51Hxm8K2p', '-45', '55'], ['R06 长期风险设备', '设备号Win10-Chrome-RISK51Hxm8K2p在48小时关联68个有效用户', '-65', '0']],
+    breakdown: [['评分基准', '本次登录从100分开始评分', '100', '100'], ['R03 组合规则', '陌生IP：103.88.14.26；有效陌生设备：Win10-Chrome-RISK51Hxm8K2p', '-45', '55'], ['R06 长期风险设备', '设备号Win10-Chrome-RISK51Hxm8K2p在48小时关联68个有效用户', '-65', '0']],
   },
   {
     memberId: '2826222', user: 'yongson005', score: 25, action: '双项验证', scoreCondition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时内切换5个以上陌生环境', reason: '陌生IP＋有效陌生设备；短时间频繁切换登录环境', ip: '202.55.225.254', currentDeviceId: 'Android-Chrome-R8tLp7Qm2Xc9', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 09:18', note: '用户反馈更换手机', operator: '系统', riskIps: [], riskDevices: [{ value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 68 }],
-    breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：202.55.225.254；有效陌生设备：Android-Chrome-R8tLp7Qm2Xc9', '-45', '55'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30', '25']],
+    breakdown: [['评分基准', '本次登录从100分开始评分', '100', '100'], ['R03 组合规则', '陌生IP：202.55.225.254；有效陌生设备：Android-Chrome-R8tLp7Qm2Xc9', '-45', '55'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30', '25']],
   },
   {
     memberId: '2826202', user: 'cora888@as', score: 55, action: '单项验证', scoreCondition: 'IP不在常用IP中；本次未获取到有效设备号', reason: '陌生IP＋设备无法证明可信；组合规则扣45分', ip: '47.76.91.34', currentDeviceId: '', device: '未获取有效设备号', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 08:52', note: '风险评分预警', operator: '系统', riskIps: [{ value: '139.162.60.207', accounts: 27 }], riskDevices: [{ value: 'Android-Chrome-RISK21Demo7', accounts: 22 }],
-    breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：47.76.91.34；未获取有效设备号', '-45', '55']],
+    breakdown: [['评分基准', '本次登录从100分开始评分', '100', '100'], ['R03 组合规则', '陌生IP：47.76.91.34；未获取有效设备号', '-45', '55']],
   },
   {
     memberId: '2827144', user: 'evan001@h8', score: 100, action: '正常放行', scoreCondition: '无扣分条件', reason: '已完成验证并更新常用环境', ip: '139.162.60.207', currentDeviceId: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', device: '有效常用设备', status: '验证通过', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:26', note: '用户验证通过', operator: '系统', resetFrom: 10, resetTime: '2026-11-17 10:26', resetOperator: 'cora', riskIps: [{ value: '139.162.60.207', accounts: 27 }], riskDevices: [],
-    breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R03 组合规则', '陌生IP：139.162.60.207；有效陌生设备：Win10-Chrome-95T0XYr9BIOdkdF4a29J', '-45', '55'], ['R05 长期风险IP', 'IP 139.162.60.207在48小时关联27个有效用户', '-45', '10'], ['验证成功', '更新常用IP及有效设备号', '重置', '100']],
+    breakdown: [['评分基准', '本次登录从100分开始评分', '100', '100'], ['R03 组合规则', '陌生IP：139.162.60.207；有效陌生设备：Win10-Chrome-95T0XYr9BIOdkdF4a29J', '-45', '55'], ['R05 长期风险IP', 'IP 139.162.60.207在48小时关联27个有效用户', '-45', '10'], ['验证成功', '该次有效分数更新为100', '更新', '100']],
   },
   {
     memberId: '2827301', user: 'mika007@as', score: 70, action: '预警观察', scoreCondition: '长期风险IP关联9-20人（IP：45.76.188.92）', reason: '长期风险IP在48小时内关联9个有效用户', ip: '45.76.188.92', currentDeviceId: 'Android-Chrome-L2mQ8vP7sN4', device: '有效陌生设备', status: '验证失败', freezeStatus: '正常', source: '系统评分', time: '2026-11-17 10:05', note: '进入评分预警观察', operator: '系统', riskIps: [{ value: '45.76.188.92', accounts: 9 }], riskDevices: [{ value: 'Android-Chrome-RISK21Demo7', accounts: 22 }],
-    breakdown: [['评分基准', '账号首次纳入评分时初始化为100分', '100', '100'], ['R05 长期风险IP', 'IP 45.76.188.92在48小时关联9个有效用户', '-30', '70']],
+    breakdown: [['评分基准', '本次登录从100分开始评分', '100', '100'], ['R05 长期风险IP', 'IP 45.76.188.92在48小时关联9个有效用户', '-30', '70']],
   },
 ];
 
 const commonEnvironmentByMember = {
   '2795074': {
-    ips: [['139.162.87.78', '72', '2026-11-15 20:18', '系统识别'], ['47.76.91.34', '53', '2026-11-12 09:42', '系统识别']],
-    devices: [['Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW', '32', '2026-11-15 20:18', '系统识别'], ['iOS-Safari-JRPu3of08JTLzcQXOVB8', '9', '2026-11-08 18:06', '验证通过']],
+    ips: [['139.162.87.78', '72', '2026-11-15 20:18', '阈值命中'], ['47.76.91.34', '53', '2026-11-12 09:42', '阈值命中']],
+    devices: [['Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW', '32', '2026-11-15 20:18', '阈值命中'], ['iOS-Safari-JRPu3of08JTLzcQXOVB8', '9', '2026-11-08 18:06', '验证通过']],
   },
   '2826222': {
-    ips: [['202.55.225.254', '26', '2026-11-16 22:10', '系统识别']],
-    devices: [['Android-Chrome-VKgIPg9S6c8pXd8C0fB6', '18', '2026-11-16 22:10', '系统识别']],
+    ips: [['202.55.225.254', '26', '2026-11-16 22:10', '阈值命中']],
+    devices: [['Android-Chrome-VKgIPg9S6c8pXd8C0fB6', '18', '2026-11-16 22:10', '阈值命中']],
   },
   '2827301': {
-    ips: [['103.27.186.14', '18', '2026-11-16 16:40', '系统识别'], ['45.76.188.92', '4', '2026-11-17 10:05', '观察中']],
-    devices: [['Android-Chrome-P8vK3sM2qL9', '11', '2026-11-16 16:40', '系统识别']],
+    ips: [['103.27.186.14', '18', '2026-11-16 16:40', '阈值命中'], ['45.76.188.92', '4', '2026-11-17 10:05', '观察中']],
+    devices: [['Android-Chrome-P8vK3sM2qL9', '11', '2026-11-16 16:40', '阈值命中']],
   },
   '2826202': {
     ips: [['47.76.91.34', '18', '2026-11-14 16:35', '验证通过']],
@@ -641,6 +646,54 @@ function openRiskTgidConfigDialog() {
   });
 }
 
+function renderCommonEnvironmentConfigRows() {
+  if ($('#commonDaysBaseValue')) $('#commonDaysBaseValue').textContent = commonEnvironmentConfig.days;
+  if ($('#commonDaysDefaultValue')) $('#commonDaysDefaultValue').textContent = commonEnvironmentConfig.days;
+  if ($('#commonCountBaseValue')) $('#commonCountBaseValue').textContent = commonEnvironmentConfig.count;
+  if ($('#commonCountDefaultValue')) $('#commonCountDefaultValue').textContent = commonEnvironmentConfig.count;
+}
+
+function openCommonEnvironmentConfigDialog(type) {
+  const isDays = type === 'days';
+  const title = isDays ? '常用IP/设备统计天数' : '常用IP/设备使用次数阈值';
+  const systemName = isDays ? 'common_ip_device_stat_days' : 'common_ip_device_use_count';
+  const value = isDays ? commonEnvironmentConfig.days : commonEnvironmentConfig.count;
+  const unit = isDays ? '天' : '次';
+  const description = isDays
+    ? '以本次登录时间为截止点，向前滚动N天统计同一账号的有效IP和有效设备使用次数。'
+    : '同一账号的同一有效IP或有效设备在统计周期内成功登录达到M次后，自动认定为常用IP或常用设备。';
+  openDialog(`设置配置：${title}`, `
+    <div class="config-detail-form">
+      <div class="config-detail-label">配置分组：</div><select><option>常用IP／设备配置</option></select>
+      <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
+      <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
+      <div class="config-detail-label">基础配置：</div><div><input id="commonConfigValue" type="number" min="1" step="1" value="${value}"><p class="field-help">请输入大于0的整数，单位：${unit}。</p></div>
+      <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
+      <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
+      <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
+      <div class="config-detail-label">配置默认值：</div><input value="${value}" disabled>
+      <div class="config-detail-label">配置分组：</div><select><option>单值型</option></select>
+      <div class="config-detail-label">配置值属性：</div><select><option>整数</option></select>
+      <div class="config-detail-label">配置描述：</div><textarea disabled>${description}</textarea>
+      <div class="config-detail-label">统计口径：</div><textarea disabled>只统计成功登录；页面刷新、Token续期、无效IP及device_valid不等于1的设备不计次数。IP与设备按会员ID分别统计。</textarea>
+    </div>
+    <p class="config-error" id="commonConfigError" aria-live="polite"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn" data-save-common-config>保存配置</button><button class="admin-btn secondary" data-dialog-cancel>返回列表</button></div>
+  `);
+  $('#adminDialog').classList.add('config-detail-dialog');
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-common-config]').addEventListener('click', () => {
+    const nextValue = Number($('#commonConfigValue').value);
+    if (!Number.isInteger(nextValue) || nextValue <= 0) {
+      $('#commonConfigError').textContent = '请输入大于0的整数。';
+      return;
+    }
+    commonEnvironmentConfig[type] = nextValue;
+    renderCommonEnvironmentConfigRows();
+    closeDialog();
+  });
+}
+
 function showAdminFeature(feature) {
   const showConfig = feature === 'config';
   $('#scoreFeature').classList.toggle('hidden', showConfig);
@@ -701,8 +754,14 @@ function openBandsDialog() {
 function openPendingDetail(memberId) {
   const row = pendingRows.find(item => item.memberId === memberId);
   const breakdownRows = row.breakdown.map((item, order) => `<tr><td>${order + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td><td>${item[3]}</td></tr>`).reverse().join('');
+  const scoreItems = row.breakdown.filter(item => item[0] !== '评分基准' && !item[0].includes('验证'));
+  const assessmentScore = row.resetFrom !== undefined ? row.resetFrom : row.score;
+  const deductionSummary = scoreItems.length ? scoreItems.map(item => `${item[0]} ${item[2]}`).join('；') : '无扣分';
+  const loginScoreRows = `
+    <tr><td>${row.time}</td><td>${row.ip}</td><td class="device-value">${row.currentDeviceId || '未获取'}</td><td>100</td><td>${deductionSummary}</td><td>${assessmentScore}</td><td>${row.action}</td><td>${row.status}</td><td>${row.score}</td></tr>
+    <tr><td>2026-11-16 20:15</td><td>${row.ip}</td><td class="device-value">${row.currentDeviceId || '未获取'}</td><td>100</td><td>无扣分</td><td>100</td><td>正常放行</td><td>未验证</td><td>100</td></tr>`;
   const resetRecord = row.resetFrom !== undefined
-    ? `<tr><td>${row.resetTime}</td><td>分数重置</td><td>${row.manualResult === '验证通过' ? '手动验证通过' : '验证成功'}，分数由${row.resetFrom}重置为100，并更新常用环境</td><td>${row.resetOperator}</td></tr>`
+    ? `<tr><td>${row.resetTime}</td><td>验证记录</td><td>${row.manualResult === '验证通过' ? '手动验证通过' : '验证成功'}，该次登录有效分数由${row.resetFrom}更新为100，并更新常用环境</td><td>${row.resetOperator}</td></tr>`
     : '';
   const latestRecord = row.resetFrom === undefined
     ? `<tr><td>${row.time}</td><td>${row.source}</td><td>分数更新为${row.score}；扣分条件：${row.scoreCondition}${row.manualResult ? `；手动验证：${row.manualResult}` : ''}</td><td>${row.operator}</td></tr>`
@@ -711,9 +770,10 @@ function openPendingDetail(memberId) {
     <div class="detail-summary">
       <div><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div><div><span>当前分数</span><strong class="${scoreClass(row.score)}">${row.score}</strong></div><div class="condition-summary"><span>分数扣减判断条件</span><strong>${row.scoreCondition}</strong></div><div><span>验证状态</span><strong class="verify-status ${row.status === '验证通过' ? 'normal' : 'failed'}">${row.status}</strong></div><div><span>冻结状态</span><strong class="freeze-status ${row.freezeStatus === '冻结' ? 'frozen' : 'normal'}">${row.freezeStatus || '正常'}</strong></div>
     </div>
-    <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>累计分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
+    <div class="detail-section"><h3>最近一次登录评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>分值</th><th>本次分数</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
+    <div class="detail-section"><h3>每次登录评分表</h3><div class="table-wrap"><table class="mini-table login-score-history"><thead><tr><th>登录时间</th><th>登录IP</th><th>设备号</th><th>初始分</th><th>命中规则／扣分</th><th>评分结果</th><th>控制结果</th><th>验证结果</th><th>有效分数</th></tr></thead><tbody>${loginScoreRows}</tbody></table></div></div>
     <div class="detail-section"><div class="detail-section-head"><h3>风险与环境信息</h3><button class="table-link" data-view-common="${row.memberId}">查看常用IP／设备</button></div><table class="mini-table"><tbody><tr><td>触发原因</td><td colspan="3">${row.reason}</td></tr><tr><td>当前IP</td><td>${row.ip}</td><td>当前设备号</td><td class="device-value">${row.currentDeviceId || '未获取'}</td></tr><tr><td>备注</td><td colspan="3">${row.note || '—'}</td></tr></tbody></table></div>
-    <div class="detail-section"><h3>评分及变更记录</h3><table class="mini-table"><thead><tr><th>时间</th><th>类型</th><th>内容</th><th>操作人</th></tr></thead><tbody>${resetRecord}${latestRecord}<tr><td>2026-11-17 08:20</td><td>评分记录</td><td>${row.reason}</td><td>系统</td></tr></tbody></table></div>
+    <div class="detail-section"><h3>验证及变更记录</h3><table class="mini-table"><thead><tr><th>时间</th><th>类型</th><th>内容</th><th>操作人</th></tr></thead><tbody>${resetRecord}${latestRecord}<tr><td>2026-11-17 08:20</td><td>评分记录</td><td>${row.reason}</td><td>系统</td></tr></tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>关闭</button></div>
   `);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
@@ -731,8 +791,8 @@ function openCommonEnvironmentDialog(memberId, returnToDetail = false) {
     : '<tr><td colspan="4">暂无常用设备</td></tr>';
   openDialog('常用IP／设备', `
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
-    <div class="detail-section"><h3>常用IP</h3><table class="mini-table"><thead><tr><th>IP</th><th>登录次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${ipRows}</tbody></table></div>
-    <div class="detail-section"><h3>常用设备</h3><table class="mini-table"><thead><tr><th>设备号</th><th>登录次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
+    <div class="detail-section"><h3>常用IP</h3><table class="mini-table"><thead><tr><th>IP</th><th>${commonEnvironmentConfig.days}天内使用次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${ipRows}</tbody></table></div>
+    <div class="detail-section"><h3>常用设备</h3><table class="mini-table"><thead><tr><th>设备号</th><th>${commonEnvironmentConfig.days}天内使用次数</th><th>最近活跃时间</th><th>来源</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
     <div class="admin-dialog-actions">${returnToDetail ? '<button class="admin-btn secondary" data-back-detail>返回评分详情</button>' : ''}<button class="admin-btn" data-dialog-cancel>关闭</button></div>
   `);
   if ($('[data-back-detail]')) $('[data-back-detail]').addEventListener('click', () => openPendingDetail(memberId));
@@ -762,11 +822,11 @@ function applyVerificationResult(row, result, note) {
     row.resetOperator = 'Cora';
     row.reason = '后台确认验证通过并更新常用环境';
     row.note = note || '后台手动确认验证通过';
-    if (previousScore < 100) row.breakdown.push(['验证通过', '分数重置为100并更新常用环境', `+${100 - previousScore}`, '100']);
+    if (previousScore < 100) row.breakdown.push(['验证通过', '该次登录有效分数更新为100并写入常用环境', '更新', '100']);
   } else {
     row.reason = '后台确认验证失败，冻结状态保持不变';
     row.note = note || '后台手动确认验证失败';
-    row.breakdown.push(['验证失败', '保留当前分数、扣分条件和冻结状态', '—', row.score]);
+    row.breakdown.push(['验证失败', '保留该次登录评分结果和冻结状态；下次登录重新从100分评分', '—', row.score]);
     delete row.resetFrom;
     delete row.resetTime;
     delete row.resetOperator;
@@ -909,6 +969,10 @@ if ($('#basicConfigMenu')) $('#basicConfigMenu').addEventListener('click', event
 if ($('#accountScoreMenu')) $('#accountScoreMenu').addEventListener('click', () => showAdminFeature('score'));
 if ($('#setRiskTgidBtn')) $('#setRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
 if ($('#editRiskTgidBtn')) $('#editRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
+if ($('#setCommonDaysBtn')) $('#setCommonDaysBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('days'));
+if ($('#editCommonDaysBtn')) $('#editCommonDaysBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('days'));
+if ($('#setCommonCountBtn')) $('#setCommonCountBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('count'));
+if ($('#editCommonCountBtn')) $('#editCommonCountBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('count'));
 if ($('#addConfigBtn')) $('#addConfigBtn').addEventListener('click', openRiskTgidConfigDialog);
 if ($('#toggleRiskTgidBtn')) $('#toggleRiskTgidBtn').addEventListener('click', () => {
   riskTgidConfig.disabled = !riskTgidConfig.disabled;
@@ -917,13 +981,18 @@ if ($('#toggleRiskTgidBtn')) $('#toggleRiskTgidBtn').addEventListener('click', (
 if ($('#configSearchBtn')) $('#configSearchBtn').addEventListener('click', () => {
   const systemKeyword = $('#configSystemFilter').value.trim().toLowerCase();
   const titleKeyword = $('#configTitleFilter').value.trim().toLowerCase();
-  $('[data-config-row]').classList.toggle('hidden', !'risk_score_alert_tgid'.includes(systemKeyword) || !'风险评分提醒tgid'.includes(titleKeyword));
+  $$('[data-config-row]').forEach(row => {
+    const matchesSystem = (row.dataset.configSystem || '').toLowerCase().includes(systemKeyword);
+    const matchesTitle = (row.dataset.configTitle || '').toLowerCase().includes(titleKeyword);
+    row.classList.toggle('hidden', !matchesSystem || !matchesTitle);
+  });
 });
 if ($('#refreshConfigBtn')) $('#refreshConfigBtn').addEventListener('click', () => {
   $('#configSystemFilter').value = '';
   $('#configTitleFilter').value = '';
-  $('[data-config-row]').classList.remove('hidden');
+  $$('[data-config-row]').forEach(row => row.classList.remove('hidden'));
   renderRiskTgidConfigRow();
+  renderCommonEnvironmentConfigRows();
 });
 if ($('#batchVerifyBtn')) $('#batchVerifyBtn').addEventListener('click', () => {
   openBatchVerifyDialog($$('.account-select:checked').map(input => input.dataset.selectUser));
@@ -983,4 +1052,5 @@ if ($('#ruleTableBody')) { syncRulesFromConfig(); renderRules(); }
 if ($('#bandGrid')) renderBands();
 if ($('#pendingTableBody')) { updateRiskQuickCounts(); updateScoreTierSummary(); renderFilteredPending(); }
 if ($('#riskTgidBaseValue')) renderRiskTgidConfigRow();
+if ($('#commonDaysBaseValue')) renderCommonEnvironmentConfigRows();
 if ($('#scoreOrb')) updateScoreUI();
