@@ -695,9 +695,32 @@ function renderFilteredLoginAlerts() {
   }));
 }
 
+function renderBreakdownRule(record, ruleName) {
+  const environment = loginEnvironmentProfile(record);
+  const currentValues = {
+    S01: record.ip,
+    S02: environment.city,
+    S03: record.device,
+    S04: environment.deviceInfo,
+    S05: environment.buildVersion,
+    S06: record.ip,
+    S07: record.device,
+  };
+  const ruleId = ruleName.split(' ')[0];
+  const currentValue = currentValues[ruleId];
+  if (!currentValue) return ruleName;
+  if (ruleName.includes('风险IP')) {
+    return `${ruleName}：<strong class="breakdown-risk-value">${record.ip}</strong>`;
+  }
+  if (ruleName.includes('风险设备')) {
+    return `${ruleName}：<strong class="breakdown-risk-value">${record.device}</strong>`;
+  }
+  return `${ruleName}：<strong class="breakdown-current-value">${currentValue}</strong>`;
+}
+
 function openLoginAlertDetail(alertId) {
   const alert = loginAlertRows.find(item => item.id === alertId);
-  const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('');
+  const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${renderBreakdownRule(alert, item[0])}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('');
   openDialog('登录评分告警明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
@@ -751,7 +774,7 @@ function renderFilteredScoreRecords() {
 function openScoreRecordDetail(recordId) {
   const record = loginScoreRows.find(item => item.id === recordId);
   const breakdownRows = record.breakdown.length
-    ? record.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('')
+    ? record.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${renderBreakdownRule(record, item[0])}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('')
     : '<tr><td colspan="4">本次登录未命中扣分规则</td></tr>';
   openDialog('登录评分明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
