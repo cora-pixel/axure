@@ -400,7 +400,7 @@ main { padding: 20px; }
 .alert-record-status.pending { color: #203646; font-weight: 400; }
 .alert-record-status.failed { color: #d9534f; font-weight: 700; }
 .alert-record-status.closed { color: #3e8e68; font-weight: 700; }
-.login-alert-summary { grid-template-columns: 1fr 1.3fr 1fr .6fr .7fr; }
+.detail-summary.login-alert-summary { grid-template-columns: 1.1fr .6fr 1.8fr .7fr; width: 100%; }
 .risk-profile-cell { line-height: 1.45; white-space: nowrap; }
 .verify-status { font-weight: 700; }
 .verify-status.normal { color: #3e8e68; }
