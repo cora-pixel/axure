@@ -1,31 +1,21 @@
 const rules = [
-  { id: 'R01', category: '环境变化', condition: 'IP不在常用IP中', score: '-10', mode: '单项扣分', desc: '常用设备命中时仍可保持高分', enabled: true },
-  { id: 'R02', category: '环境变化', condition: '有效设备号不在常用设备中', score: '-15', mode: '单项扣分', desc: '设备变化权重大于单纯IP变化', enabled: true },
-  { id: 'R03', category: '环境变化', condition: 'IP不在常用IP，且设备无法证明为常用', score: '-45', mode: '覆盖R01/R02', desc: '包含有效陌生设备及非有效设备号，不重复扣分', enabled: true },
-  { id: 'R04', category: '环境变化', condition: '本次未获取到有效设备号', score: '-5', mode: '单项扣分', desc: '单独不验证，与陌生IP组合时使用R03', enabled: true },
-  { id: 'R05', category: '风险关联', condition: '长期风险IP关联9-20／21-50／51-100／101人以上', score: '-30／-45／-65／-85', mode: '分档取值', desc: '滚动48小时按不同有效用户数统计；与短时同IP多账号只取较高扣分', enabled: true },
-  { id: 'R06', category: '风险关联', condition: '长期风险设备关联9-20／21-50／51-100／101人以上', score: '-30／-45／-65／-85', mode: '分档取值', desc: '仅统计device_valid=1的有效设备；与短时同设备多账号只取较高扣分', enabled: true },
-  { id: 'R07', category: '行为风险', condition: '24小时内切换3-4个陌生IP或有效设备号／5个及以上', score: '-15／-30', mode: '按最高档扣分', desc: 'IP与设备分别去重，本项只取较高扣分', enabled: true },
-  { id: 'R08', category: '高危行为', condition: '2小时内同一有效IP登录3-5／6-8／9个以上不同有效账号', score: '-45／-65／-85', mode: '按最高档扣分', desc: '账号去重；设备号是否有效不影响判断；排除登录IP等于注册IP', enabled: true },
-  { id: 'R09', category: '高危行为', condition: '2小时内同一有效设备登录3-5／6-8／9个以上不同有效账号', score: '-45／-65／-85', mode: '按最高档扣分', desc: '最低档单独命中即低于60分；仅统计有效设备', enabled: true },
-  { id: 'R10', category: '高危行为', condition: '10分钟内同一账号调用登录认证或密码错误5-9／10-19／20次以上', score: '-45／-65／-85', mode: '按最高档扣分', desc: '页面刷新及Token续期不计；成功与失败合计后只命中一个档位', enabled: true },
-  { id: 'R11', category: '行为风险', condition: '沉睡超过90天且IP、设备均变化', score: '-10', mode: '条件扣分', desc: '三个条件必须同时成立，与双陌生环境分别扣分', enabled: true },
-  { id: 'R12', category: '行为风险', condition: '新环境登录后立即进行敏感操作', score: '-15', mode: '条件扣分', desc: '登录与敏感操作使用同一本次分数', enabled: true },
-  { id: 'R13', category: '高危行为', condition: '10分钟内同一IP调用登录接口60-119／120-239／240次以上', score: '-45／-65／-85', mode: '按最高档扣分', desc: '最低档单独命中即低于60分；只统计登录接口', enabled: true },
+  { id: 'S01', category: '常规环境', condition: '当前IP不属于会员常用IP', score: '-5', mode: '命中即扣分', desc: 'IP变化频繁，仅作为轻度风险信号', enabled: true },
+  { id: 'S02', category: '常规环境', condition: '当前IP归属城市不属于会员常用城市', score: '-10', mode: '命中即扣分', desc: '城市与IP分别判断', enabled: true },
+  { id: 'S03', category: '设备环境', condition: '当前设备号不属于会员常用设备号', score: '-25', mode: '命中即扣分', desc: 'H5清除站点数据后设备号可能变化', enabled: true },
+  { id: 'S04', category: '设备环境', condition: '当前设备信息无法匹配会员历史设备信息', score: '-25', mode: '命中即扣分', desc: '设备信息作为设备环境辅助依据', enabled: true },
+  { id: 'S05', category: '版本异常', condition: 'Web号缺失或不是当前最新打包版本', score: '-5', mode: '命中即扣分', desc: 'Web号为前端打包时间，不作为设备身份', enabled: true },
+  { id: 'S06', category: '风险关联', condition: '当前IP命中风险IP名单', score: '-45', mode: '命中即扣分', desc: '关联账号数量仅在风险详情展示，不影响扣分', enabled: true },
+  { id: 'S07', category: '风险关联', condition: '当前设备命中风险设备名单', score: '-45', mode: '命中即扣分', desc: '关联账号数量仅在风险详情展示，不影响扣分', enabled: true },
 ];
 
 const scoringConfig = {
-  r01Score: 10, r02Score: 15, r03Score: 45, r04Score: 5,
-  r05T1: 9, r05T2: 21, r05T3: 51, r05T4: 101,
-  r05S1: 30, r05S2: 45, r05S3: 65, r05S4: 85,
-  r06T1: 9, r06T2: 21, r06T3: 51, r06T4: 101,
-  r06S1: 30, r06S2: 45, r06S3: 65, r06S4: 85,
-  r07Hours: 24, r07T1: 3, r07T2: 5, r07S1: 15, r07S2: 30,
-  r08Hours: 2, r08T1: 3, r08T2: 6, r08T3: 9, r08S1: 45, r08S2: 65, r08S3: 85,
-  r09Hours: 2, r09T1: 3, r09T2: 6, r09T3: 9, r09S1: 45, r09S2: 65, r09S3: 85,
-  r10Minutes: 10, r10T1: 5, r10T2: 10, r10T3: 20, r10S1: 45, r10S2: 65, r10S3: 85,
-  r11Days: 90, r11Score: 10, r12Score: 15,
-  r13Minutes: 10, r13T1: 60, r13T2: 120, r13T3: 240, r13S1: 45, r13S2: 65, r13S3: 85,
+  ipScore: 5,
+  cityScore: 10,
+  deviceIdScore: 25,
+  deviceInfoScore: 25,
+  webVersionScore: 5,
+  riskIpScore: 45,
+  riskDeviceScore: 45,
 };
 
 const riskTgidConfig = {
@@ -39,6 +29,11 @@ const riskTgidConfig = {
 const commonEnvironmentConfig = {
   ip: { days: 30, count: 5, disabled: false },
   device: { days: 30, count: 5, disabled: false },
+};
+
+const riskAssociationConfig = {
+  ip: { days: 30, accounts: 90, disabled: false },
+  device: { days: 30, accounts: 90, disabled: false },
 };
 
 const bands = [
@@ -131,51 +126,55 @@ pendingRows.forEach(row => Object.assign(row, alertStateByMember[row.memberId] |
 }));
 
 const loginAlertRows = [
-  { id: 'LA202611170005', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 09:46', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 0, condition: 'IP不在常用IP中；设备无法证明为常用；长期风险IP关联21-50人；长期风险设备关联51-100人', control: '阻断并冻结', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45'], ['R06 长期风险设备', '48小时关联68个有效用户', '-65']] },
-  { id: 'LA202611170004', memberId: '2826222', user: 'yongson005', time: '2026-11-17 09:18', ip: '202.55.225.254', device: 'Android-Chrome-R8tLp7Qm2Xc9', score: 25, condition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时切换5个以上陌生环境', control: '双项验证', status: '验证失败', note: '运营核实为异常登录，未更新常用环境', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30']] },
-  { id: 'LA202611170003', memberId: '2826202', user: 'cora888@as', time: '2026-11-17 08:52', ip: '47.76.91.34', device: '未获取', score: 55, condition: 'IP不在常用IP中；本次未获取到有效设备号', control: '单项验证', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋无有效设备号', '-45']] },
-  { id: 'LA202611170002', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 08:20', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 55, condition: 'IP不在常用IP中；设备无法证明为常用', control: '单项验证', status: '待处理', breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45']] },
+  { id: 'LA202611190006', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 15:46', ip: '139.162.60.207', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 10, condition: '命中风险IP；命中风险设备', control: '阻断人工', status: '待处理', breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
+  { id: 'LA202611190005', memberId: '2826222', user: 'yongson005', time: '2026-11-19 15:18', ip: '202.55.225.254', device: 'Android-Chrome-NEW2Xc9', score: 50, condition: '设备号不常用；设备信息不匹配', control: '单项验证', status: '验证失败', note: '用户反馈更换新手机，等待再次核实', breakdown: [['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
+  { id: 'LA202611190004', memberId: '2826202', user: 'cora888@as', time: '2026-11-19 14:52', ip: '47.76.91.34', device: '未获取', score: 30, condition: 'IP、城市、设备号、设备信息均不常用；Web号非最新', control: '双项验证', status: '待处理', breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '未获取设备号', '-25'], ['S04 设备信息', '设备信息不匹配', '-25'], ['S05 Web号', 'Web号非最新', '-5']] },
+  { id: 'LA202611190003', memberId: '2827301', user: 'mika007@as', time: '2026-11-19 14:20', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', score: 55, condition: '命中风险IP', control: '单项验证', status: '待处理', breakdown: [['S06 风险IP', '30天内关联96个账号', '-45']] },
+  { id: 'LA202611190002', memberId: '2861015', user: 'riskdev015@h8', time: '2026-11-19 14:05', ip: '103.27.15.15', device: 'Android-Chrome-RISK15', score: 55, condition: '命中风险设备', control: '单项验证', status: '待处理', breakdown: [['S07 风险设备', '30天内关联94个账号', '-45']] },
+  { id: 'LA202611190001', memberId: '2861014', user: 'travelweb014@h8', time: '2026-11-19 13:50', ip: '203.0.113.14', device: 'Web-H5-RESET14', score: 55, condition: 'IP不常用；城市不常用；设备号不常用；Web号缺失', control: '单项验证', status: '待处理', breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '清除H5数据后设备号变化', '-25'], ['S05 Web号', '未传Web号', '-5']] },
 ];
 
 const loginRiskMarkers = {
-  LA202611170005: { riskIp: true, riskDevice: true },
-  LA202611170004: { riskIp: false, riskDevice: false },
-  LA202611170003: { riskIp: false, riskDevice: false },
-  LA202611170002: { riskIp: false, riskDevice: true },
+  LA202611190006: { riskIp: true, riskDevice: true },
+  LA202611190005: { riskIp: false, riskDevice: false },
+  LA202611190004: { riskIp: false, riskDevice: false },
+  LA202611190003: { riskIp: true, riskDevice: false },
+  LA202611190002: { riskIp: false, riskDevice: true },
+  LA202611190001: { riskIp: false, riskDevice: false },
 };
 loginAlertRows.forEach(row => Object.assign(row, loginRiskMarkers[row.id]));
 
 const loginScoreRows = [
-  { id: 'SR202611170020', memberId: '2861020', user: 'normal020@h8', time: '2026-11-17 14:20', ip: '118.31.22.20', device: 'iOS-Safari-NORMAL20', riskIp: false, riskDevice: false, score: 100, condition: '无扣分条件', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [] },
-  { id: 'SR202611170019', memberId: '2861019', user: 'nodevice019@h8', time: '2026-11-17 14:05', ip: '118.31.22.19', device: '未获取', riskIp: false, riskDevice: false, score: 95, condition: '本次未获取到有效设备号；IP命中常用IP', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R04 设备号缺失', '本次未获取到有效设备号', '-5']] },
-  { id: 'SR202611170018', memberId: '2861018', user: 'ipchange018@h8', time: '2026-11-17 13:50', ip: '47.91.18.18', device: 'Win10-Chrome-NORMAL18', riskIp: false, riskDevice: false, score: 90, condition: 'IP不在常用IP中', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R01 IP变化', '当前IP不在常用IP中', '-10']] },
-  { id: 'SR202611170017', memberId: '2861017', user: 'device017@h8', time: '2026-11-17 13:35', ip: '139.162.17.17', device: 'Android-Chrome-NEW17', riskIp: false, riskDevice: false, score: 85, condition: '有效设备号不在常用设备中', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R02 设备变化', '有效设备号不在常用设备中', '-15']] },
-  { id: 'SR202611170016', memberId: '2827301', user: 'mika007@as', time: '2026-11-17 13:20', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', riskIp: true, riskDevice: false, score: 70, condition: '长期风险IP关联9-20人', control: '预警观察', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R05 长期风险IP', '48小时关联9个有效用户', '-30']] },
-  { id: 'SR202611170015', memberId: '2861015', user: 'riskdev015@h8', time: '2026-11-17 13:05', ip: '103.27.15.15', device: 'Android-Chrome-RISK15', riskIp: false, riskDevice: true, score: 70, condition: '长期风险设备关联9-20人', control: '预警观察', disposition: '无需处置', note: '--', alerted: false, breakdown: [['R06 长期风险设备', '48小时关联12个有效用户', '-30']] },
-  { id: 'SR202611170014', memberId: '2861014', user: 'sameip014@h8', time: '2026-11-17 12:50', ip: '203.0.113.14', device: 'Win10-Chrome-SAMEIP14', riskIp: true, riskDevice: false, score: 55, condition: '2小时内同一IP登录3-5个不同有效账号', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R08 同IP多账号', '2小时内同一IP登录4个有效账号', '-45']] },
-  { id: 'SR202611170013', memberId: '2861013', user: 'sameip013@h8', time: '2026-11-17 12:35', ip: '203.0.113.13', device: 'Win10-Chrome-SAMEIP13', riskIp: true, riskDevice: false, score: 35, condition: '2小时内同一IP登录6-8个不同有效账号', control: '双项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R08 同IP多账号', '2小时内同一IP登录7个有效账号', '-65']] },
-  { id: 'SR202611170012', memberId: '2861012', user: 'sameip012@h8', time: '2026-11-17 12:20', ip: '203.0.113.12', device: 'Win10-Chrome-SAMEIP12', riskIp: true, riskDevice: false, score: 15, condition: '2小时内同一IP登录9个以上不同有效账号', control: '阻断人工', disposition: '验证通过', note: '人工核验为本人登录，告警已关闭', alerted: true, breakdown: [['R08 同IP多账号', '2小时内同一IP登录11个有效账号', '-85']] },
-  { id: 'SR202611170011', memberId: '2861011', user: 'samedev011@h8', time: '2026-11-17 12:05', ip: '103.27.11.11', device: 'Win10-Chrome-SAMEDEVICE11', riskIp: false, riskDevice: true, score: 55, condition: '2小时内同一设备登录3-5个不同有效账号', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R09 同设备多账号', '2小时内同一设备登录5个有效账号', '-45']] },
-  { id: 'SR202611170010', memberId: '2861010', user: 'samedev010@h8', time: '2026-11-17 11:50', ip: '103.27.10.10', device: 'Win10-Chrome-SAMEDEVICE10', riskIp: false, riskDevice: true, score: 35, condition: '2小时内同一设备登录6-8个不同有效账号', control: '双项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R09 同设备多账号', '2小时内同一设备登录8个有效账号', '-65']] },
-  { id: 'SR202611170009', memberId: '2861009', user: 'samedev009@h8', time: '2026-11-17 11:35', ip: '103.27.9.9', device: 'Win10-Chrome-SAMEDEVICE09', riskIp: false, riskDevice: true, score: 15, condition: '2小时内同一设备登录9个以上不同有效账号', control: '阻断人工', disposition: '验证通过', note: '人工核验通过，告警已关闭', alerted: true, breakdown: [['R09 同设备多账号', '2小时内同一设备登录12个有效账号', '-85']] },
-  { id: 'SR202611170008', memberId: '2861008', user: 'highfreq008@h8', time: '2026-11-17 11:20', ip: '198.51.100.8', device: 'Android-Chrome-HIGHFREQ08', riskIp: false, riskDevice: false, score: 55, condition: '10分钟内同一账号登录认证或密码错误5-9次', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R10 账号高频登录', '10分钟内登录认证或密码错误8次', '-45']] },
-  { id: 'SR202611170007', memberId: '2861007', user: 'highfreq007@h8', time: '2026-11-17 11:05', ip: '198.51.100.7', device: 'Android-Chrome-HIGHFREQ07', riskIp: false, riskDevice: false, score: 35, condition: '10分钟内同一账号登录认证或密码错误10-19次', control: '双项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['R10 账号高频登录', '10分钟内登录认证或密码错误16次', '-65']] },
-  { id: 'SR202611170006', memberId: '2861006', user: 'apiattack006@h8', time: '2026-11-17 10:50', ip: '198.51.100.6', device: '未获取', riskIp: true, riskDevice: false, score: 15, condition: '10分钟内同一IP调用登录接口240次以上', control: '阻断人工', disposition: '验证通过', note: '人工核验通过，来源IP已纳入风险观察', alerted: true, breakdown: [['R13 登录接口高频', '10分钟内同一IP调用登录接口286次', '-85']] },
-  { id: 'SR202611170005', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 09:46', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 0, condition: 'IP不在常用IP中；设备无法证明为常用；长期风险IP关联21-50人；长期风险设备关联51-100人', control: '阻断并冻结', disposition: '待验证', note: '--', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45'], ['R06 长期风险设备', '48小时关联68个有效用户', '-65']] },
-  { id: 'SR202611170004', memberId: '2826222', user: 'yongson005', time: '2026-11-17 09:18', ip: '202.55.225.254', device: 'Android-Chrome-R8tLp7Qm2Xc9', riskIp: false, riskDevice: false, score: 25, condition: 'IP不在常用IP中；有效设备号不在常用设备中；24小时切换5个以上陌生环境', control: '双项验证', disposition: '验证失败', note: '运营核实为异常登录，未更新常用环境', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R07 频繁更换环境', '24小时切换5个以上陌生环境', '-30']] },
-  { id: 'SR202611170003', memberId: '2826202', user: 'cora888@as', time: '2026-11-17 08:52', ip: '47.76.91.34', device: '未获取', riskIp: false, riskDevice: false, score: 55, condition: 'IP不在常用IP中；本次未获取到有效设备号', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋无有效设备号', '-45']] },
-  { id: 'SR202611170002', memberId: '2795074', user: 'hxm001@as', time: '2026-11-17 08:20', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: false, riskDevice: true, score: 55, condition: 'IP不在常用IP中；设备无法证明为常用', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45']] },
-  { id: 'SR202611170001', memberId: '2827144', user: 'evan001@h8', time: '2026-11-17 08:05', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', riskIp: true, riskDevice: false, score: 10, condition: 'IP与设备均不在常用环境；长期风险IP关联21-50人', control: '阻断人工', disposition: '验证通过', note: '用户验证通过，已更新本次IP和设备为常用环境', alerted: true, breakdown: [['R03 组合规则', '陌生IP＋有效陌生设备', '-45'], ['R05 长期风险IP', '48小时关联27个有效用户', '-45']] },
+  { id: 'SR202611190020', memberId: '2861020', user: 'normal020@h8', time: '2026-11-19 16:20', ip: '118.31.22.20', device: 'iOS-Safari-NORMAL20', riskIp: false, riskDevice: false, score: 100, condition: '无扣分条件', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [] },
+  { id: 'SR202611190019', memberId: '2861019', user: 'ipchange019@h8', time: '2026-11-19 16:05', ip: '118.31.22.19', device: 'iOS-Safari-NORMAL19', riskIp: false, riskDevice: false, score: 95, condition: 'IP不常用', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['S01 IP', '当前IP不属于常用IP', '-5']] },
+  { id: 'SR202611190018', memberId: '2861018', user: 'citychange018@h8', time: '2026-11-19 15:50', ip: '47.91.18.18', device: 'Win10-Chrome-NORMAL18', riskIp: false, riskDevice: false, score: 90, condition: '城市不常用', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['S02 城市', 'IP归属城市不属于常用城市', '-10']] },
+  { id: 'SR202611190017', memberId: '2861017', user: 'webold017@h8', time: '2026-11-19 15:35', ip: '139.162.17.17', device: 'Android-Chrome-NORMAL17', riskIp: false, riskDevice: false, score: 95, condition: 'Web号不是最新版本', control: '正常记录', disposition: '无需处置', note: '建议刷新登录页获取最新版本', alerted: false, breakdown: [['S05 Web号', 'Web号不是当前最新打包版本', '-5']] },
+  { id: 'SR202611190016', memberId: '2861016', user: 'h5clear016@h8', time: '2026-11-19 15:20', ip: '118.31.22.16', device: 'Web-H5-RESET16', riskIp: false, riskDevice: false, score: 70, condition: 'IP不常用；清除H5数据后设备号变化', control: '正常记录', disposition: '无需处置', note: '同城且设备信息匹配，Web号为最新', alerted: false, breakdown: [['S01 IP', '当前IP不属于常用IP', '-5'], ['S03 设备号', '清除H5数据后设备号变化', '-25']] },
+  { id: 'SR202611190015', memberId: '2861115', user: 'travel015@h8', time: '2026-11-19 15:05', ip: '203.0.113.15', device: 'Web-H5-RESET15', riskIp: false, riskDevice: false, score: 60, condition: 'IP不常用；城市不常用；清除H5数据后设备号变化', control: '预警观察', disposition: '无需处置', note: '出差场景；设备信息匹配且Web号为最新', alerted: false, breakdown: [['S01 IP', '当前IP不属于常用IP', '-5'], ['S02 城市', 'IP归属城市不属于常用城市', '-10'], ['S03 设备号', '清除H5数据后设备号变化', '-25']] },
+  { id: 'SR202611190014', memberId: '2861014', user: 'newdevice014@h8', time: '2026-11-19 14:50', ip: '118.31.22.14', device: 'Android-Chrome-NEW14', riskIp: false, riskDevice: false, score: 50, condition: '设备号不常用；设备信息不匹配', control: '单项验证', disposition: '验证通过', note: '核验为本人更换新手机', alerted: true, breakdown: [['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
+  { id: 'SR202611190013', memberId: '2861013', user: 'unknown013@h8', time: '2026-11-19 14:35', ip: '203.0.113.13', device: '未获取', riskIp: false, riskDevice: false, score: 30, condition: 'IP、城市、设备号、设备信息均不常用；Web号缺失', control: '双项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '未获取有效设备号', '-25'], ['S04 设备信息', '设备信息无法匹配', '-25'], ['S05 Web号', 'Web号缺失', '-5']] },
+  { id: 'SR202611190012', memberId: '2827301', user: 'mika007@as', time: '2026-11-19 14:20', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', riskIp: true, riskDevice: false, score: 55, condition: '命中风险IP', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S06 风险IP', '30天内关联96个账号', '-45']] },
+  { id: 'SR202611190011', memberId: '2861015', user: 'riskdev015@h8', time: '2026-11-19 14:05', ip: '103.27.15.15', device: 'Android-Chrome-RISK15', riskIp: false, riskDevice: true, score: 55, condition: '命中风险设备', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S07 风险设备', '30天内关联94个账号', '-45']] },
+  { id: 'SR202611190010', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 13:50', ip: '139.162.60.207', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 10, condition: '命中风险IP；命中风险设备', control: '阻断人工', disposition: '验证失败', note: '核验为异常登录，保留告警', alerted: true, breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
+  { id: 'SR202611190009', memberId: '2861009', user: 'riskcity009@h8', time: '2026-11-19 13:35', ip: '139.162.60.207', device: 'iOS-Safari-NORMAL09', riskIp: true, riskDevice: false, score: 45, condition: '命中风险IP；城市不常用', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S02 城市', 'IP归属城市不属于常用城市', '-10']] },
+  { id: 'SR202611190008', memberId: '2861008', user: 'newweb008@h8', time: '2026-11-19 13:20', ip: '118.31.22.8', device: 'Android-Chrome-NEW08', riskIp: false, riskDevice: false, score: 45, condition: '设备号不常用；设备信息不匹配；Web号非最新', control: '单项验证', disposition: '验证失败', note: '验证失败，未更新常用设备', alerted: true, breakdown: [['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25'], ['S05 Web号', 'Web号非最新', '-5']] },
+  { id: 'SR202611190007', memberId: '2861007', user: 'risknew007@h8', time: '2026-11-19 13:05', ip: '45.76.188.92', device: 'Android-Chrome-NEW07', riskIp: true, riskDevice: false, score: 5, condition: '命中风险IP；设备号不常用；设备信息不匹配', control: '阻断人工', disposition: '待验证', note: '--', alerted: true, breakdown: [['S06 风险IP', '30天内关联96个账号', '-45'], ['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
+  { id: 'SR202611190006', memberId: '2861006', user: 'riskdevcity006@h8', time: '2026-11-19 12:50', ip: '198.51.100.6', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: false, riskDevice: true, score: 45, condition: '命中风险设备；城市不常用', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['S07 风险设备', '30天内关联118个账号', '-45'], ['S02 城市', 'IP归属城市不属于常用城市', '-10']] },
+  { id: 'SR202611190005', memberId: '2827144', user: 'evan001@h8', time: '2026-11-19 12:35', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', riskIp: false, riskDevice: false, score: 100, condition: '无扣分条件', control: '正常记录', disposition: '验证通过', note: '上次告警验证通过，本次环境已纳入常用', alerted: false, breakdown: [] },
+  { id: 'SR202611190004', memberId: '2861004', user: 'travelweb004@h8', time: '2026-11-19 12:20', ip: '203.0.113.4', device: 'Web-H5-RESET04', riskIp: false, riskDevice: false, score: 55, condition: 'IP不常用；城市不常用；设备号不常用；Web号缺失', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '清除H5数据后设备号变化', '-25'], ['S05 Web号', '未传Web号', '-5']] },
+  { id: 'SR202611190003', memberId: '2861003', user: 'ipdevice003@h8', time: '2026-11-19 12:05', ip: '203.0.113.3', device: 'Web-H5-RESET03', riskIp: false, riskDevice: false, score: 70, condition: 'IP不常用；设备号不常用', control: '正常记录', disposition: '无需处置', note: '同城且设备信息匹配', alerted: false, breakdown: [['S01 IP', 'IP不常用', '-5'], ['S03 设备号', '设备号不常用', '-25']] },
+  { id: 'SR202611190002', memberId: '2861002', user: 'deviceinfo002@h8', time: '2026-11-19 11:50', ip: '118.31.22.2', device: 'Win10-Chrome-DEVICE02', riskIp: false, riskDevice: false, score: 75, condition: '设备信息不匹配', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
+  { id: 'SR202611190001', memberId: '2861001', user: 'city001@h8', time: '2026-11-19 11:35', ip: '118.31.22.1', device: 'Android-Chrome-NORMAL01', riskIp: false, riskDevice: false, score: 90, condition: '城市不常用', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['S02 城市', 'IP归属城市不属于常用城市', '-10']] },
 ];
 
 const riskIpRows = [
-  { value: '139.162.60.207', accounts: 27, healthy: 25, alerts: 2, logins: 186, tier: '21-50', first: '2026-11-15 08:12', last: '2026-11-17 10:26', members: [['2827144', 'evan001@h8', 10, '告警'], ['2862301', 'healthy301@h8', 100, '健康'], ['2862302', 'healthy302@h8', 90, '健康']] },
-  { value: '45.76.188.92', accounts: 9, healthy: 7, alerts: 2, logins: 74, tier: '9-20', first: '2026-11-16 03:40', last: '2026-11-17 10:05', members: [['2827301', 'mika007@as', 70, '健康'], ['2795074', 'hxm001@as', 0, '告警'], ['2862401', 'healthy401@as', 100, '健康']] },
+  { value: '139.162.60.207', accounts: 126, healthy: 123, alerts: 3, logins: 486, tier: '达到30天90账号门槛', first: '2026-10-22 08:12', last: '2026-11-19 13:35', members: [['2861009', 'riskcity009@h8', 45, '告警'], ['2827144', 'evan001@h8', 100, '健康'], ['2862302', 'healthy302@h8', 90, '健康']] },
+  { value: '45.76.188.92', accounts: 96, healthy: 93, alerts: 3, logins: 274, tier: '达到30天90账号门槛', first: '2026-10-28 03:40', last: '2026-11-19 14:20', members: [['2861007', 'risknew007@h8', 5, '告警'], ['2827301', 'mika007@as', 55, '告警'], ['2862401', 'healthy401@as', 100, '健康']] },
 ];
 
 const riskDeviceRows = [
-  { value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 68, healthy: 66, alerts: 2, logins: 312, tier: '51-100', first: '2026-11-14 22:18', last: '2026-11-17 09:46', members: [['2795074', 'hxm001@as', 0, '告警'], ['2826222', 'yongson005', 25, '告警'], ['2862501', 'healthy501@as', 100, '健康']] },
-  { value: 'Android-Chrome-RISK21Demo7', accounts: 22, healthy: 20, alerts: 2, logins: 115, tier: '21-50', first: '2026-11-15 14:20', last: '2026-11-17 08:52', members: [['2826202', 'cora888@as', 55, '告警'], ['2862601', 'healthy601@as', 90, '健康'], ['2862602', 'healthy602@as', 100, '健康']] },
+  { value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 118, healthy: 115, alerts: 3, logins: 412, tier: '达到30天90账号门槛', first: '2026-10-23 22:18', last: '2026-11-19 15:46', members: [['2795074', 'hxm001@as', 10, '告警'], ['2861006', 'riskdevcity006@h8', 45, '告警'], ['2862501', 'healthy501@as', 100, '健康']] },
+  { value: 'Android-Chrome-RISK15', accounts: 94, healthy: 92, alerts: 2, logins: 215, tier: '达到30天90账号门槛', first: '2026-10-30 14:20', last: '2026-11-19 14:05', members: [['2861011', 'riskdev011@h8', 55, '告警'], ['2862601', 'healthy601@as', 90, '健康'], ['2862602', 'healthy602@as', 100, '健康']] },
 ];
 
 const commonEnvironmentByMember = {
@@ -888,40 +887,13 @@ function openRiskListDialog(type) {
 
 function syncRulesFromConfig() {
   const update = (id, values) => Object.assign(rules.find(rule => rule.id === id), values);
-  update('R01', { score: `-${scoringConfig.r01Score}` });
-  update('R02', { score: `-${scoringConfig.r02Score}` });
-  update('R03', { score: `-${scoringConfig.r03Score}` });
-  update('R04', { score: `-${scoringConfig.r04Score}` });
-  update('R05', {
-    condition: `长期风险IP关联${scoringConfig.r05T1}-${scoringConfig.r05T2 - 1}／${scoringConfig.r05T2}-${scoringConfig.r05T3 - 1}／${scoringConfig.r05T3}-${scoringConfig.r05T4 - 1}／${scoringConfig.r05T4}人以上`,
-    score: `-${scoringConfig.r05S1}／-${scoringConfig.r05S2}／-${scoringConfig.r05S3}／-${scoringConfig.r05S4}`,
-  });
-  update('R06', {
-    condition: `长期风险设备关联${scoringConfig.r06T1}-${scoringConfig.r06T2 - 1}／${scoringConfig.r06T2}-${scoringConfig.r06T3 - 1}／${scoringConfig.r06T3}-${scoringConfig.r06T4 - 1}／${scoringConfig.r06T4}人以上`,
-    score: `-${scoringConfig.r06S1}／-${scoringConfig.r06S2}／-${scoringConfig.r06S3}／-${scoringConfig.r06S4}`,
-  });
-  update('R07', {
-    condition: `${scoringConfig.r07Hours}小时内切换${scoringConfig.r07T1}-${scoringConfig.r07T2 - 1}个陌生IP或有效设备号／${scoringConfig.r07T2}个及以上`,
-    score: `-${scoringConfig.r07S1}／-${scoringConfig.r07S2}`,
-  });
-  update('R08', {
-    condition: `${scoringConfig.r08Hours}小时内同一有效IP登录${scoringConfig.r08T1}-${scoringConfig.r08T2 - 1}／${scoringConfig.r08T2}-${scoringConfig.r08T3 - 1}／${scoringConfig.r08T3}个以上不同有效账号`,
-    score: `-${scoringConfig.r08S1}／-${scoringConfig.r08S2}／-${scoringConfig.r08S3}`,
-  });
-  update('R09', {
-    condition: `${scoringConfig.r09Hours}小时内同一有效设备登录${scoringConfig.r09T1}-${scoringConfig.r09T2 - 1}／${scoringConfig.r09T2}-${scoringConfig.r09T3 - 1}／${scoringConfig.r09T3}个以上不同有效账号`,
-    score: `-${scoringConfig.r09S1}／-${scoringConfig.r09S2}／-${scoringConfig.r09S3}`,
-  });
-  update('R10', {
-    condition: `${scoringConfig.r10Minutes}分钟内同一账号调用登录认证或密码错误${scoringConfig.r10T1}-${scoringConfig.r10T2 - 1}／${scoringConfig.r10T2}-${scoringConfig.r10T3 - 1}／${scoringConfig.r10T3}次以上`,
-    score: `-${scoringConfig.r10S1}／-${scoringConfig.r10S2}／-${scoringConfig.r10S3}`,
-  });
-  update('R11', { condition: `沉睡超过${scoringConfig.r11Days}天且IP、设备均变化`, score: `-${scoringConfig.r11Score}` });
-  update('R12', { score: `-${scoringConfig.r12Score}` });
-  update('R13', {
-    condition: `${scoringConfig.r13Minutes}分钟内同一IP调用登录接口${scoringConfig.r13T1}-${scoringConfig.r13T2 - 1}／${scoringConfig.r13T2}-${scoringConfig.r13T3 - 1}／${scoringConfig.r13T3}次以上`,
-    score: `-${scoringConfig.r13S1}／-${scoringConfig.r13S2}／-${scoringConfig.r13S3}`,
-  });
+  update('S01', { score: `-${scoringConfig.ipScore}` });
+  update('S02', { score: `-${scoringConfig.cityScore}` });
+  update('S03', { score: `-${scoringConfig.deviceIdScore}` });
+  update('S04', { score: `-${scoringConfig.deviceInfoScore}` });
+  update('S05', { score: `-${scoringConfig.webVersionScore}` });
+  update('S06', { score: `-${scoringConfig.riskIpScore}` });
+  update('S07', { score: `-${scoringConfig.riskDeviceScore}` });
 }
 
 function configNumber(key, label = '', suffix = '') {
@@ -931,21 +903,15 @@ function configNumber(key, label = '', suffix = '') {
 function openScoringSettingsDialog() {
   const row = (id, title, condition, score) => `<tr><td><strong>${id}</strong><span>${title}</span></td><td><div class="config-fields">${condition}</div></td><td><div class="config-fields">${score}</div></td></tr>`;
   openDialog('规则设置', `
-    <p class="config-help">配置触发门槛和扣分值。所有数字均填写正整数，扣分值无需输入负号。</p>
+    <p class="config-help">配置固定扣分值。每次登录从100分开始，命中哪项就扣哪项；扣分值无需输入负号。</p>
     <div class="config-table-wrap"><table class="config-table"><thead><tr><th>规则</th><th>触发条件</th><th>扣分值</th></tr></thead><tbody>
-      ${row('R01', '陌生IP', 'IP不在常用IP中', configNumber('r01Score'))}
-      ${row('R02', '陌生设备', '有效设备号不在常用设备中', configNumber('r02Score'))}
-      ${row('R03', '双陌生组合', 'IP陌生且设备无法证明为常用', configNumber('r03Score'))}
-      ${row('R04', '设备号缺失', '本次未获取到有效设备号', configNumber('r04Score'))}
-      ${row('R05', '长期风险IP', `${configNumber('r05T1', '第1档≥', '人')}${configNumber('r05T2', '第2档≥', '人')}${configNumber('r05T3', '第3档≥', '人')}${configNumber('r05T4', '第4档≥', '人')}`, `${configNumber('r05S1', '第1档')}${configNumber('r05S2', '第2档')}${configNumber('r05S3', '第3档')}${configNumber('r05S4', '第4档')}`)}
-      ${row('R06', '长期风险设备', `${configNumber('r06T1', '第1档≥', '人')}${configNumber('r06T2', '第2档≥', '人')}${configNumber('r06T3', '第3档≥', '人')}${configNumber('r06T4', '第4档≥', '人')}`, `${configNumber('r06S1', '第1档')}${configNumber('r06S2', '第2档')}${configNumber('r06S3', '第3档')}${configNumber('r06S4', '第4档')}`)}
-      ${row('R07', '环境切换', `${configNumber('r07Hours', '统计', '小时')}${configNumber('r07T1', '第1档≥', '个')}${configNumber('r07T2', '第2档≥', '个')}`, `${configNumber('r07S1', '第1档')}${configNumber('r07S2', '第2档')}`)}
-      ${row('R08', '同IP多账号', `${configNumber('r08Hours', '统计', '小时')}${configNumber('r08T1', '第1档≥', '人')}${configNumber('r08T2', '第2档≥', '人')}${configNumber('r08T3', '第3档≥', '人')}`, `${configNumber('r08S1', '第1档')}${configNumber('r08S2', '第2档')}${configNumber('r08S3', '第3档')}`)}
-      ${row('R09', '同设备多账号', `${configNumber('r09Hours', '统计', '小时')}${configNumber('r09T1', '第1档≥', '人')}${configNumber('r09T2', '第2档≥', '人')}${configNumber('r09T3', '第3档≥', '人')}`, `${configNumber('r09S1', '第1档')}${configNumber('r09S2', '第2档')}${configNumber('r09S3', '第3档')}`)}
-      ${row('R10', '账号高频登录', `${configNumber('r10Minutes', '统计', '分钟')}${configNumber('r10T1', '第1档≥', '次')}${configNumber('r10T2', '第2档≥', '次')}${configNumber('r10T3', '第3档≥', '次')}`, `${configNumber('r10S1', '第1档')}${configNumber('r10S2', '第2档')}${configNumber('r10S3', '第3档')}`)}
-      ${row('R11', '沉睡账号', configNumber('r11Days', '沉睡超过', '天'), configNumber('r11Score'))}
-      ${row('R12', '敏感操作', '新环境登录后立即进行敏感操作', configNumber('r12Score'))}
-      ${row('R13', '登录接口高频', `${configNumber('r13Minutes', '统计', '分钟')}${configNumber('r13T1', '第1档≥', '次')}${configNumber('r13T2', '第2档≥', '次')}${configNumber('r13T3', '第3档≥', '次')}`, `${configNumber('r13S1', '第1档')}${configNumber('r13S2', '第2档')}${configNumber('r13S3', '第3档')}`)}
+      ${row('S01', 'IP不常用', '当前IP不属于会员常用IP', configNumber('ipScore'))}
+      ${row('S02', '城市不常用', '当前IP归属城市不属于会员常用城市', configNumber('cityScore'))}
+      ${row('S03', '设备号不常用', '当前设备号不属于会员常用设备号', configNumber('deviceIdScore'))}
+      ${row('S04', '设备信息不匹配', '当前设备信息无法匹配历史设备信息', configNumber('deviceInfoScore'))}
+      ${row('S05', 'Web号异常', 'Web号缺失或不是当前最新打包版本', configNumber('webVersionScore'))}
+      ${row('S06', '命中风险IP', '当前IP存在于风险IP名单', configNumber('riskIpScore'))}
+      ${row('S07', '命中风险设备', '当前设备存在于风险设备名单', configNumber('riskDeviceScore'))}
     </tbody></table></div>
     <p class="config-error" id="configError" aria-live="polite"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-scoring>保存设置</button></div>
@@ -956,17 +922,8 @@ function openScoringSettingsDialog() {
     const values = {};
     $$('[data-config-key]').forEach(input => { values[input.dataset.configKey] = Number(input.value); });
     const invalidNumber = Object.values(values).some(value => !Number.isInteger(value) || value < 1);
-    const ascending = [
-      ['r05T1', 'r05T2', 'r05T3', 'r05T4'], ['r05S1', 'r05S2', 'r05S3', 'r05S4'],
-      ['r06T1', 'r06T2', 'r06T3', 'r06T4'], ['r06S1', 'r06S2', 'r06S3', 'r06S4'],
-      ['r07T1', 'r07T2'], ['r07S1', 'r07S2'],
-      ['r08T1', 'r08T2', 'r08T3'], ['r08S1', 'r08S2', 'r08S3'],
-      ['r09T1', 'r09T2', 'r09T3'], ['r09S1', 'r09S2', 'r09S3'],
-      ['r10T1', 'r10T2', 'r10T3'], ['r10S1', 'r10S2', 'r10S3'],
-      ['r13T1', 'r13T2', 'r13T3'], ['r13S1', 'r13S2', 'r13S3'],
-    ].every(keys => keys.every((key, index) => index === 0 || values[key] > values[keys[index - 1]]));
-    if (invalidNumber || !ascending) {
-      $('#configError').textContent = invalidNumber ? '请填写大于0的整数。' : '同一规则的分档门槛必须从低到高填写。';
+    if (invalidNumber) {
+      $('#configError').textContent = '请填写大于0的整数。';
       return;
     }
     Object.assign(scoringConfig, values);
@@ -1109,6 +1066,69 @@ function openCommonEnvironmentConfigDialog(type) {
     }
     commonEnvironmentConfig[type] = { ...commonEnvironmentConfig[type], days, count };
     renderCommonEnvironmentConfigRows();
+    closeDialog();
+  });
+}
+
+function renderRiskAssociationConfigRows() {
+  ['ip', 'device'].forEach(type => {
+    const isIp = type === 'ip';
+    const prefix = isIp ? 'riskIpRule' : 'riskDeviceRule';
+    const config = riskAssociationConfig[type];
+    const value = `${config.days},${config.accounts}`;
+    if ($(`#${prefix}BaseValue`)) $(`#${prefix}BaseValue`).textContent = value;
+    if ($(`#${prefix}DefaultValue`)) $(`#${prefix}DefaultValue`).textContent = value;
+    const status = $(`#${prefix}Status`);
+    const toggle = $(`#toggle${isIp ? 'RiskIp' : 'RiskDevice'}RuleBtn`);
+    if (status) {
+      status.textContent = config.disabled ? '禁用' : '启用';
+      status.className = config.disabled ? 'status-disabled' : 'status-enabled';
+    }
+    if (toggle) toggle.textContent = config.disabled ? '设为启用' : '设为禁用';
+  });
+}
+
+function openRiskAssociationConfigDialog(type) {
+  const isIp = type === 'ip';
+  const config = riskAssociationConfig[type];
+  const targetLabel = isIp ? 'IP' : '设备号';
+  const title = isIp ? '风险IP判定配置' : '风险设备判定配置';
+  const systemName = isIp ? 'risk_ip_rule' : 'risk_device_rule';
+  const example = `例如30,90表示滚动30天内，至少有90个不同会员ID使用同一有效${targetLabel}成功登录后，将该${targetLabel}加入${isIp ? '风险IP' : '风险设备'}名单。`;
+  openDialog(`设置配置：${title}`, `
+    <div class="config-detail-form">
+      <div class="config-detail-label">配置分组：</div><select><option>风险IP／设备配置</option></select>
+      <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
+      <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
+      <div class="config-detail-label">基础配置：</div><div><input id="riskRuleConfigValue" value="${config.days},${config.accounts}" placeholder="统计天数,关联账号数"><p class="field-help">参数1为统计天数，参数2为去重关联账号数；${example}</p></div>
+      <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
+      <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
+      <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
+      <div class="config-detail-label">配置默认值：</div><input value="${config.days},${config.accounts}" disabled>
+      <div class="config-detail-label">配置类型：</div><select><option>组合值</option></select>
+      <div class="config-detail-label">配置值属性：</div><select><option>整数,整数</option></select>
+      <div class="config-detail-label">配置描述：</div><textarea disabled>${example}</textarea>
+      <div class="config-detail-label">统计口径：</div><textarea disabled>仅统计成功登录；关联账号数按会员ID去重。同一会员在同一${targetLabel}下重复登录多次只计算1个关联账号。</textarea>
+      <div class="config-detail-label">是否禁用：</div><label class="config-disabled-check"><input type="checkbox" id="riskRuleDisabled" ${config.disabled ? 'checked' : ''}>选中禁用</label>
+    </div>
+    <p class="config-error" id="riskRuleConfigError" aria-live="polite"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn" data-save-risk-rule>保存配置</button><button class="admin-btn secondary" data-dialog-cancel>返回列表</button></div>
+  `);
+  $('#adminDialog').classList.add('config-detail-dialog');
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-risk-rule]').addEventListener('click', () => {
+    const value = $('#riskRuleConfigValue').value.trim().replace(/\s+/g, '');
+    if (!/^\d+,\d+$/.test(value)) {
+      $('#riskRuleConfigError').textContent = '请按“统计天数,关联账号数”填写，并使用英文逗号。';
+      return;
+    }
+    const [days, accounts] = value.split(',').map(Number);
+    if (![days, accounts].every(item => Number.isInteger(item) && item > 0)) {
+      $('#riskRuleConfigError').textContent = '统计天数和关联账号数均须为大于0的整数。';
+      return;
+    }
+    riskAssociationConfig[type] = { ...riskAssociationConfig[type], days, accounts, disabled: $('#riskRuleDisabled').checked };
+    renderRiskAssociationConfigRows();
     closeDialog();
   });
 }
@@ -1398,6 +1418,10 @@ if ($('#setCommonIpBtn')) $('#setCommonIpBtn').addEventListener('click', () => o
 if ($('#editCommonIpBtn')) $('#editCommonIpBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('ip'));
 if ($('#setCommonDeviceBtn')) $('#setCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
 if ($('#editCommonDeviceBtn')) $('#editCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
+if ($('#setRiskIpRuleBtn')) $('#setRiskIpRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('ip'));
+if ($('#editRiskIpRuleBtn')) $('#editRiskIpRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('ip'));
+if ($('#setRiskDeviceRuleBtn')) $('#setRiskDeviceRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('device'));
+if ($('#editRiskDeviceRuleBtn')) $('#editRiskDeviceRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('device'));
 if ($('#toggleCommonIpBtn')) $('#toggleCommonIpBtn').addEventListener('click', () => {
   commonEnvironmentConfig.ip.disabled = !commonEnvironmentConfig.ip.disabled;
   renderCommonEnvironmentConfigRows();
@@ -1405,6 +1429,14 @@ if ($('#toggleCommonIpBtn')) $('#toggleCommonIpBtn').addEventListener('click', (
 if ($('#toggleCommonDeviceBtn')) $('#toggleCommonDeviceBtn').addEventListener('click', () => {
   commonEnvironmentConfig.device.disabled = !commonEnvironmentConfig.device.disabled;
   renderCommonEnvironmentConfigRows();
+});
+if ($('#toggleRiskIpRuleBtn')) $('#toggleRiskIpRuleBtn').addEventListener('click', () => {
+  riskAssociationConfig.ip.disabled = !riskAssociationConfig.ip.disabled;
+  renderRiskAssociationConfigRows();
+});
+if ($('#toggleRiskDeviceRuleBtn')) $('#toggleRiskDeviceRuleBtn').addEventListener('click', () => {
+  riskAssociationConfig.device.disabled = !riskAssociationConfig.device.disabled;
+  renderRiskAssociationConfigRows();
 });
 if ($('#addConfigBtn')) $('#addConfigBtn').addEventListener('click', openRiskTgidConfigDialog);
 if ($('#toggleRiskTgidBtn')) $('#toggleRiskTgidBtn').addEventListener('click', () => {
@@ -1426,6 +1458,7 @@ if ($('#refreshConfigBtn')) $('#refreshConfigBtn').addEventListener('click', () 
   $$('[data-config-row]').forEach(row => row.classList.remove('hidden'));
   renderRiskTgidConfigRow();
   renderCommonEnvironmentConfigRows();
+  renderRiskAssociationConfigRows();
 });
 if ($('#batchVerifyBtn')) $('#batchVerifyBtn').addEventListener('click', () => {
   openBatchVerifyDialog($$('.account-select:checked').map(input => input.dataset.selectUser));
@@ -1529,6 +1562,7 @@ if ($('#loginAlertTableBody')) renderLoginAlerts();
 if ($('#riskIpListCount')) $('#riskIpListCount').textContent = riskIpRows.length;
 if ($('#riskDeviceListCount')) $('#riskDeviceListCount').textContent = riskDeviceRows.length;
 if ($('#scoreRecordTableBody')) renderScoreRecords();
+renderRiskAssociationConfigRows();
 if ($('#riskTgidBaseValue')) renderRiskTgidConfigRow();
 if ($('#commonIpBaseValue')) renderCommonEnvironmentConfigRows();
 if ($('#scoreOrb')) updateScoreUI();
