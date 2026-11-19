@@ -484,6 +484,7 @@ main { padding: 20px; }
 .mini-table td { border: 1px solid #deddd0; padding: 8px; font-size: 12px; }
 .breakdown-current-value { color: #27364d; font-weight: 700; }
 .breakdown-risk-value { color: #d63b32; font-weight: 700; }
+.batch-user-count { display: inline-block; margin-top: 6px; color: #d9534f; font-size: 12px; font-weight: 400; }
 .login-score-history { min-width: 1220px; }
 .login-score-history th, .login-score-history td { white-space: nowrap; }
 
