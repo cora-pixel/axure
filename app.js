@@ -182,6 +182,40 @@ function isRiskEntityValue(type, value) {
   return rows.some(item => item.value === value);
 }
 
+function loginEnvironmentProfile(row) {
+  const cityMap = [
+    ['139.162.', '上海市'], ['45.76.', '新加坡'], ['202.55.', '马尼拉市'],
+    ['47.76.', '杭州市'], ['203.0.113.', '深圳市'], ['118.31.', '杭州市'],
+    ['103.27.', '广州市'], ['103.88.', '曼谷市'], ['198.51.100.', '北京市'],
+  ];
+  const city = cityMap.find(item => row.ip.startsWith(item[0]))?.[1] || '未知';
+  const commonCities = row.condition.includes('城市不常用') ? '上海市、杭州市' : city;
+  const deviceInfo = row.device === '未获取'
+    ? '未获取'
+    : row.device.includes('iOS')
+      ? 'iOS 18 / Safari / H5'
+      : row.device.includes('Android')
+        ? 'Android 15 / Chrome 130 / H5'
+        : row.device.includes('Web-H5')
+          ? 'Windows 11 / Chrome 130 / H5'
+          : 'Windows 10 / Chrome 130 / PC';
+  const buildVersion = row.condition.includes('Web号缺失')
+    ? '未获取'
+    : row.condition.includes('Web号非最新') || row.condition.includes('不是最新')
+      ? '2026.11.18.2210（非最新）'
+      : '2026.11.19.1540（最新）';
+  return { city, commonCities, deviceInfo, buildVersion };
+}
+
+function renderLoginEnvironmentRows(row, actionLabel) {
+  const environment = loginEnvironmentProfile(row);
+  return `<tr><td>登录IP</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-detail-value' : ''}">${row.ip}</td><td>登录设备</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-detail-value' : ''}">${row.device}</td></tr>
+    <tr><td>登录城市</td><td>${environment.city}</td><td>常用城市</td><td>${environment.commonCities}</td></tr>
+    <tr><td>设备信息</td><td>${environment.deviceInfo}</td><td>构建版本</td><td>${environment.buildVersion}</td></tr>
+    <tr><td>${actionLabel}</td><td>${row.control}</td><td>扣分判断条件</td><td>${row.condition}</td></tr>
+    <tr><td>备注</td><td colspan="3">${row.note || '--'}</td></tr>`;
+}
+
 const commonEnvironmentByMember = {
   '2795074': {
     ips: [['139.162.87.78', '72', '2026-11-15 20:18', '阈值命中'], ['47.76.91.34', '53', '2026-11-12 09:42', '阈值命中']],
@@ -666,7 +700,7 @@ function openLoginAlertDetail(alertId) {
   const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('');
   openDialog('登录评分告警明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
-    <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody><tr><td>登录IP</td><td class="${isRiskEntityValue('ip', alert.ip) ? 'risk-detail-value' : ''}">${alert.ip}</td><td>登录设备</td><td class="device-value ${isRiskEntityValue('device', alert.device) ? 'risk-detail-value' : ''}">${alert.device}</td></tr><tr><td>控制结果</td><td>${alert.control}</td><td>扣分判断条件</td><td>${alert.condition}</td></tr><tr><td>备注</td><td colspan="3">${alert.note || '--'}</td></tr></tbody></table></div>
+    <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(alert)}
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-alert-verify="${alert.id}">手动验证</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
@@ -721,7 +755,7 @@ function openScoreRecordDetail(recordId) {
     : '<tr><td colspan="4">本次登录未命中扣分规则</td></tr>';
   openDialog('登录评分明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
-    <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody><tr><td>登录IP</td><td class="${isRiskEntityValue('ip', record.ip) ? 'risk-detail-value' : ''}">${record.ip}</td><td>登录设备</td><td class="device-value ${isRiskEntityValue('device', record.device) ? 'risk-detail-value' : ''}">${record.device}</td></tr><tr><td>建议动作</td><td>${record.control}</td><td>扣分判断条件</td><td>${record.condition}</td></tr><tr><td>备注</td><td colspan="3">${record.note || '--'}</td></tr></tbody></table></div>
+    <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(record, '建议动作')}</tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(record)}
     <div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
