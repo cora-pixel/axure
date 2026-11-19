@@ -127,6 +127,7 @@ pendingRows.forEach(row => Object.assign(row, alertStateByMember[row.memberId] |
 
 const loginAlertRows = [
   { id: 'LA202611190006', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 15:46', ip: '139.162.60.207', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 10, condition: '命中风险IP；命中风险设备', control: '手动冻结', status: '待处理', breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
+  { id: 'LA202611190021', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 15:40', ip: '45.76.188.92', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 10, condition: '命中风险IP；命中风险设备', control: '手动冻结', status: '验证失败', note: '同一会员再次触发风险登录，保留告警', breakdown: [['S06 风险IP', '30天内关联96个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
   { id: 'LA202611190005', memberId: '2826222', user: 'yongson005', time: '2026-11-19 15:18', ip: '202.55.225.254', device: 'Android-Chrome-NEW2Xc9', score: 50, condition: '设备号不常用；设备信息不匹配', control: '单项验证', status: '验证失败', note: '用户反馈更换新手机，等待再次核实', breakdown: [['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
   { id: 'LA202611190004', memberId: '2826202', user: 'cora888@as', time: '2026-11-19 14:52', ip: '47.76.91.34', device: '未获取', score: 30, condition: 'IP、城市、设备号、设备信息均不常用；Web号非最新', control: '双项验证', status: '待处理', breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '未获取设备号', '-25'], ['S04 设备信息', '设备信息不匹配', '-25'], ['S05 Web号', 'Web号非最新', '-5']] },
   { id: 'LA202611190003', memberId: '2827301', user: 'mika007@as', time: '2026-11-19 14:20', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', score: 55, condition: '命中风险IP', control: '单项验证', status: '待处理', breakdown: [['S06 风险IP', '30天内关联96个账号', '-45']] },
@@ -164,7 +165,7 @@ const loginScoreRows = [
   { id: 'SR202611190004', memberId: '2861004', user: 'travelweb004@h8', time: '2026-11-19 12:20', ip: '203.0.113.4', device: 'Web-H5-RESET04', riskIp: false, riskDevice: false, score: 55, condition: 'IP不常用；城市不常用；设备号不常用；Web号缺失', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '清除H5数据后设备号变化', '-25'], ['S05 Web号', '未传Web号', '-5']] },
   { id: 'SR202611190003', memberId: '2861003', user: 'ipdevice003@h8', time: '2026-11-19 12:05', ip: '203.0.113.3', device: 'Web-H5-RESET03', riskIp: false, riskDevice: false, score: 70, condition: 'IP不常用；设备号不常用', control: '正常记录', disposition: '无需处置', note: '同城且设备信息匹配', alerted: false, breakdown: [['S01 IP', 'IP不常用', '-5'], ['S03 设备号', '设备号不常用', '-25']] },
   { id: 'SR202611190002', memberId: '2861002', user: 'deviceinfo002@h8', time: '2026-11-19 11:50', ip: '118.31.22.2', device: 'Win10-Chrome-DEVICE02', riskIp: false, riskDevice: false, score: 75, condition: '设备信息不匹配', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
-  { id: 'SR202611190001', memberId: '2861001', user: 'city001@h8', time: '2026-11-19 11:35', ip: '118.31.22.1', device: 'Android-Chrome-NORMAL01', riskIp: false, riskDevice: false, score: 90, condition: '城市不常用', control: '正常记录', disposition: '无需处置', note: '--', alerted: false, breakdown: [['S02 城市', 'IP归属城市不属于常用城市', '-10']] },
+  { id: 'SR202611190021', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 15:40', ip: '45.76.188.92', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 10, condition: '命中风险IP；命中风险设备', control: '手动冻结', disposition: '验证失败', note: '同一会员再次触发风险登录，保留告警', alerted: true, breakdown: [['S06 风险IP', '30天内关联96个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
 ];
 
 const riskIpRows = [
@@ -852,9 +853,10 @@ function openScoreRecordBatchVerifyDialog(recordIds) {
     $('[data-dialog-cancel]').addEventListener('click', closeDialog);
     return;
   }
+  const users = [...new Set(records.map(item => item.user))];
   openDialog('批量验证', `
-    <div class="admin-form"><label>已选记录</label><textarea disabled>${records.map(item => `${item.user}／${formatLoginTime(item.time)}`).join('\n')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchScoreResult" value="验证通过">验证通过</label><label><input type="radio" name="batchScoreResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchScoreNote" placeholder="请输入本次批量验证说明"></textarea></div>
-    <p class="field-help">验证失败的记录进入或继续保留在告警表；验证通过的记录从告警表移除。共选择${records.length}条。</p><p class="config-error" id="batchScoreError"></p>
+    <div class="admin-form"><label>会员账号</label><textarea disabled>${users.join(',')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchScoreResult" value="验证通过">验证通过</label><label><input type="radio" name="batchScoreResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchScoreNote" placeholder="请输入本次批量验证说明"></textarea></div>
+    <p class="field-help">同一会员账号只展示一次；本次共选择${records.length}条记录，涉及${users.length}个会员账号。验证失败的记录进入或继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchScoreError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-score>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-batch-score]').addEventListener('click', () => {
@@ -890,9 +892,10 @@ function openLoginAlertBatchVerifyDialog(alertIds) {
     $('[data-dialog-cancel]').addEventListener('click', closeDialog);
     return;
   }
+  const users = [...new Set(alerts.map(item => item.user))];
   openDialog('批量验证', `
-    <div class="admin-form"><label>已选记录</label><textarea disabled>${alerts.map(item => `${item.user}／${formatLoginTime(item.time)}`).join('\n')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
-    <p class="field-help">验证失败的记录继续保留在告警表；验证通过的记录从告警表移除。共选择${alerts.length}条。</p><p class="config-error" id="batchAlertError"></p>
+    <div class="admin-form"><label>会员账号</label><textarea disabled>${users.join(',')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
+    <p class="field-help">同一会员账号只展示一次；本次共选择${alerts.length}条告警，涉及${users.length}个会员账号。验证失败的记录继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchAlertError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-alert>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-batch-alert]').addEventListener('click', () => {
