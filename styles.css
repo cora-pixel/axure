@@ -484,7 +484,9 @@ main { padding: 20px; }
 .mini-table td { border: 1px solid #deddd0; padding: 8px; font-size: 12px; }
 .breakdown-current-value { color: #27364d; font-weight: 700; }
 .breakdown-risk-value { color: #d63b32; font-weight: 700; }
-.batch-user-count { display: inline-block; margin-top: 6px; color: #d9534f; font-size: 12px; font-weight: 400; }
+.batch-user-field { display: grid; grid-template-columns: minmax(0, 1fr) 90px; align-items: center; gap: 12px; }
+.batch-user-field textarea { min-width: 0; }
+.batch-user-count { color: #d9534f; font-size: 12px; font-weight: 400; text-align: center; white-space: nowrap; }
 .login-score-history { min-width: 1220px; }
 .login-score-history th, .login-score-history td { white-space: nowrap; }
 

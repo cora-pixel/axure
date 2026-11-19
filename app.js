@@ -855,7 +855,7 @@ function openScoreRecordBatchVerifyDialog(recordIds) {
   }
   const users = [...new Set(records.map(item => item.user))];
   openDialog('批量验证', `
-    <div class="admin-form"><label>会员账号<br><strong class="batch-user-count">共${users.length}个用户</strong></label><textarea disabled>${users.join(',')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchScoreResult" value="验证通过">验证通过</label><label><input type="radio" name="batchScoreResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchScoreNote" placeholder="请输入本次批量验证说明"></textarea></div>
+    <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchScoreResult" value="验证通过">验证通过</label><label><input type="radio" name="batchScoreResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchScoreNote" placeholder="请输入本次批量验证说明"></textarea></div>
     <p class="field-help">同一会员账号只展示一次；本次共选择${records.length}条记录，涉及${users.length}个会员账号。验证失败的记录进入或继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchScoreError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-score>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
@@ -894,7 +894,7 @@ function openLoginAlertBatchVerifyDialog(alertIds) {
   }
   const users = [...new Set(alerts.map(item => item.user))];
   openDialog('批量验证', `
-    <div class="admin-form"><label>会员账号<br><strong class="batch-user-count">共${users.length}个用户</strong></label><textarea disabled>${users.join(',')}</textarea><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
+    <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
     <p class="field-help">同一会员账号只展示一次；本次共选择${alerts.length}条告警，涉及${users.length}个会员账号。验证失败的记录继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchAlertError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-alert>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
