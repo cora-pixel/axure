@@ -41,12 +41,12 @@ const bands = [
   { range: '60至79', action: '预警观察', className: 'watch', detail: '不打扰用户；后台保留该次登录评分并继续观察后续登录。' },
   { range: '40至59', action: '单项验证', className: 'single', detail: '从可用方式中任选1项；成功后更新常用环境并恢复100分。' },
   { range: '20至39', action: '双项验证', className: 'double', detail: '完成2种不同验证；可用方式不足2项时转人工。' },
-  { range: '0至19', action: '阻断或人工', className: 'block', detail: '停止后续操作；进入待验证名单并引导联系客服。' },
+  { range: '0至19', action: '手动冻结', className: 'block', detail: '进入待验证名单，由运营核实后手动冻结。' },
 ];
 
 const pendingRows = [
   {
-    memberId: '2795074', user: 'hxm001@as', score: 0, action: '阻断人工', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；长期风险设备关联51-100人（设备号：Win10-Chrome-RISK51Hxm8K2p）', reason: '陌生IP＋有效陌生设备；命中长期风险设备51至100人', ip: '103.88.14.26', currentDeviceId: 'Win10-Chrome-RISK51Hxm8K2p', device: '有效陌生设备', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统', riskIps: [{ value: '45.76.188.92', accounts: 9 }], riskDevices: [{ value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 68 }],
+    memberId: '2795074', user: 'hxm001@as', score: 0, action: '手动冻结', scoreCondition: 'IP不在常用IP中；设备无法证明为常用；长期风险设备关联51-100人（设备号：Win10-Chrome-RISK51Hxm8K2p）', reason: '陌生IP＋有效陌生设备；命中长期风险设备51至100人', ip: '103.88.14.26', currentDeviceId: 'Win10-Chrome-RISK51Hxm8K2p', device: '有效陌生设备', status: '验证失败', freezeStatus: '冻结', source: '系统评分', time: '2026-11-17 09:46', note: '高风险设备关联，已引导联系客服', operator: '系统', riskIps: [{ value: '45.76.188.92', accounts: 9 }], riskDevices: [{ value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 68 }],
     breakdown: [['评分基准', '本次登录从100分开始评分', '100', '100'], ['R03 组合规则', '陌生IP：103.88.14.26；有效陌生设备：Win10-Chrome-RISK51Hxm8K2p', '-45', '55'], ['R06 长期风险设备', '设备号Win10-Chrome-RISK51Hxm8K2p在48小时关联68个有效用户', '-65', '0']],
   },
   {
@@ -74,7 +74,7 @@ const alertStateByMember = {
     alertStatus: '待处理',
     alertOpenedAt: '2026-11-17 08:20',
     riskEvents: [
-      { time: '2026-11-17 09:46', type: '低分告警更新', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', rule: 'R03 -45；R06 -65', loginScore: 0, alertScore: 0, result: '阻断并冻结' },
+      { time: '2026-11-17 09:46', type: '低分告警更新', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', rule: 'R03 -45；R06 -65', loginScore: 0, alertScore: 0, result: '手动冻结' },
       { time: '2026-11-17 08:20', type: '低分告警生成', ip: '103.88.14.26', device: 'Win10-Chrome-RISK51Hxm8K2p', rule: 'R03 -45', loginScore: 55, alertScore: 55, result: '单项验证' },
     ],
   },
@@ -103,7 +103,7 @@ const alertStateByMember = {
     alertOpenedAt: '2026-11-17 08:20',
     riskEvents: [
       { time: '2026-11-17 10:26', type: '告警关闭', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', rule: '验证通过，更新常用环境', loginScore: 10, alertScore: 100, result: '恢复正常' },
-      { time: '2026-11-17 08:20', type: '低分告警生成', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', rule: 'R03 -45；R05 -45', loginScore: 10, alertScore: 10, result: '阻断人工' },
+      { time: '2026-11-17 08:20', type: '低分告警生成', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', rule: 'R03 -45；R05 -45', loginScore: 10, alertScore: 10, result: '手动冻结' },
     ],
   },
   '2827301': {
@@ -126,7 +126,7 @@ pendingRows.forEach(row => Object.assign(row, alertStateByMember[row.memberId] |
 }));
 
 const loginAlertRows = [
-  { id: 'LA202611190006', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 15:46', ip: '139.162.60.207', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 10, condition: '命中风险IP；命中风险设备', control: '阻断人工', status: '待处理', breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
+  { id: 'LA202611190006', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 15:46', ip: '139.162.60.207', device: 'Win10-Chrome-RISK51Hxm8K2p', score: 10, condition: '命中风险IP；命中风险设备', control: '手动冻结', status: '待处理', breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
   { id: 'LA202611190005', memberId: '2826222', user: 'yongson005', time: '2026-11-19 15:18', ip: '202.55.225.254', device: 'Android-Chrome-NEW2Xc9', score: 50, condition: '设备号不常用；设备信息不匹配', control: '单项验证', status: '验证失败', note: '用户反馈更换新手机，等待再次核实', breakdown: [['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
   { id: 'LA202611190004', memberId: '2826202', user: 'cora888@as', time: '2026-11-19 14:52', ip: '47.76.91.34', device: '未获取', score: 30, condition: 'IP、城市、设备号、设备信息均不常用；Web号非最新', control: '双项验证', status: '待处理', breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '未获取设备号', '-25'], ['S04 设备信息', '设备信息不匹配', '-25'], ['S05 Web号', 'Web号非最新', '-5']] },
   { id: 'LA202611190003', memberId: '2827301', user: 'mika007@as', time: '2026-11-19 14:20', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', score: 55, condition: '命中风险IP', control: '单项验证', status: '待处理', breakdown: [['S06 风险IP', '30天内关联96个账号', '-45']] },
@@ -155,10 +155,10 @@ const loginScoreRows = [
   { id: 'SR202611190013', memberId: '2861013', user: 'unknown013@h8', time: '2026-11-19 14:35', ip: '203.0.113.13', device: '未获取', riskIp: false, riskDevice: false, score: 30, condition: 'IP、城市、设备号、设备信息均不常用；Web号缺失', control: '双项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '未获取有效设备号', '-25'], ['S04 设备信息', '设备信息无法匹配', '-25'], ['S05 Web号', 'Web号缺失', '-5']] },
   { id: 'SR202611190012', memberId: '2827301', user: 'mika007@as', time: '2026-11-19 14:20', ip: '45.76.188.92', device: 'Android-Chrome-L2mQ8vP7sN4', riskIp: true, riskDevice: false, score: 55, condition: '命中风险IP', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S06 风险IP', '30天内关联96个账号', '-45']] },
   { id: 'SR202611190011', memberId: '2861015', user: 'riskdev015@h8', time: '2026-11-19 14:05', ip: '103.27.15.15', device: 'Android-Chrome-RISK15', riskIp: false, riskDevice: true, score: 55, condition: '命中风险设备', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S07 风险设备', '30天内关联94个账号', '-45']] },
-  { id: 'SR202611190010', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 13:50', ip: '139.162.60.207', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 10, condition: '命中风险IP；命中风险设备', control: '阻断人工', disposition: '验证失败', note: '核验为异常登录，保留告警', alerted: true, breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
+  { id: 'SR202611190010', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 13:50', ip: '139.162.60.207', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 10, condition: '命中风险IP；命中风险设备', control: '手动冻结', disposition: '验证失败', note: '核验为异常登录，保留告警', alerted: true, breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
   { id: 'SR202611190009', memberId: '2861009', user: 'riskcity009@h8', time: '2026-11-19 13:35', ip: '139.162.60.207', device: 'iOS-Safari-NORMAL09', riskIp: true, riskDevice: false, score: 45, condition: '命中风险IP；城市不常用', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['S06 风险IP', '30天内关联126个账号', '-45'], ['S02 城市', 'IP归属城市不属于常用城市', '-10']] },
   { id: 'SR202611190008', memberId: '2861008', user: 'newweb008@h8', time: '2026-11-19 13:20', ip: '118.31.22.8', device: 'Android-Chrome-NEW08', riskIp: false, riskDevice: false, score: 45, condition: '设备号不常用；设备信息不匹配；Web号非最新', control: '单项验证', disposition: '验证失败', note: '验证失败，未更新常用设备', alerted: true, breakdown: [['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25'], ['S05 Web号', 'Web号非最新', '-5']] },
-  { id: 'SR202611190007', memberId: '2861007', user: 'risknew007@h8', time: '2026-11-19 13:05', ip: '45.76.188.92', device: 'Android-Chrome-NEW07', riskIp: true, riskDevice: false, score: 5, condition: '命中风险IP；设备号不常用；设备信息不匹配', control: '阻断人工', disposition: '待验证', note: '--', alerted: true, breakdown: [['S06 风险IP', '30天内关联96个账号', '-45'], ['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
+  { id: 'SR202611190007', memberId: '2861007', user: 'risknew007@h8', time: '2026-11-19 13:05', ip: '45.76.188.92', device: 'Android-Chrome-NEW07', riskIp: true, riskDevice: false, score: 5, condition: '命中风险IP；设备号不常用；设备信息不匹配', control: '手动冻结', disposition: '待验证', note: '--', alerted: true, breakdown: [['S06 风险IP', '30天内关联96个账号', '-45'], ['S03 设备号', '设备号不属于常用设备', '-25'], ['S04 设备信息', '设备信息无法匹配历史设备', '-25']] },
   { id: 'SR202611190006', memberId: '2861006', user: 'riskdevcity006@h8', time: '2026-11-19 12:50', ip: '198.51.100.6', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: false, riskDevice: true, score: 45, condition: '命中风险设备；城市不常用', control: '单项验证', disposition: '验证通过', note: '身份核验通过，告警已关闭', alerted: true, breakdown: [['S07 风险设备', '30天内关联118个账号', '-45'], ['S02 城市', 'IP归属城市不属于常用城市', '-10']] },
   { id: 'SR202611190005', memberId: '2827144', user: 'evan001@h8', time: '2026-11-19 12:35', ip: '139.162.60.207', device: 'Win10-Chrome-95T0XYr9BIOdkdF4a29J', riskIp: false, riskDevice: false, score: 100, condition: '无扣分条件', control: '正常记录', disposition: '验证通过', note: '上次告警验证通过，本次环境已纳入常用', alerted: false, breakdown: [] },
   { id: 'SR202611190004', memberId: '2861004', user: 'travelweb004@h8', time: '2026-11-19 12:20', ip: '203.0.113.4', device: 'Web-H5-RESET04', riskIp: false, riskDevice: false, score: 55, condition: 'IP不常用；城市不常用；设备号不常用；Web号缺失', control: '单项验证', disposition: '待验证', note: '--', alerted: true, breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10'], ['S03 设备号', '清除H5数据后设备号变化', '-25'], ['S05 Web号', '未传Web号', '-5']] },
@@ -272,7 +272,7 @@ function actionForScore(score) {
   if (score >= 60) return '预警观察';
   if (score >= 40) return '单项验证';
   if (score >= 20) return '双项验证';
-  return '阻断或人工';
+  return '手动冻结';
 }
 
 function formatLoginTime(value) {
@@ -465,7 +465,7 @@ function confirmVerification() {
     state.attempts -= 1;
     if (state.attempts <= 0) {
       renderManualBlock('验证次数已达上限');
-      setFrontState('阻断或人工', '验证失败次数已达到上限');
+      setFrontState('手动冻结', '验证失败次数已达到上限');
       return;
     }
     renderVerifyInput('您输入的信息与原记录不一致，请重新输入');
@@ -516,7 +516,7 @@ function renderManualBlock(reason) {
     <div class="modal-actions"><button class="primary wide" data-service>联系客服</button></div>
   `));
   $('[data-service]').addEventListener('click', () => showToast('已打开客服入口（原型演示）'));
-  setFrontState('阻断或人工', reason);
+  setFrontState('手动冻结', reason);
 }
 
 function updateScoreUI() {
