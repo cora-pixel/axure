@@ -365,7 +365,7 @@ main { padding: 20px; }
 .login-alert-filter label:first-child { gap: 0; }
 .login-alert-filter label:first-child select { width: 100px; }
 .login-alert-filter label:first-child input { width: 210px; }
-.login-alert-table { min-width: 1980px; }
+.login-alert-table { min-width: 2070px; }
 .login-alert-table th:nth-child(1) { width: 44px; }
 .login-alert-table th:nth-child(2) { width: 82px; }
 .login-alert-table th:nth-child(3) { width: 120px; }
@@ -377,10 +377,11 @@ main { padding: 20px; }
 .login-alert-table th:nth-child(9) { width: 100px; }
 .login-alert-table th:nth-child(10) { width: 240px; }
 .login-alert-table th:nth-child(11) { width: 90px; }
-.login-alert-table th:nth-child(12) { width: 145px; }
+.login-alert-table th:nth-child(12) { width: 90px; }
+.login-alert-table th:nth-child(13) { width: 145px; }
 .login-alert-table th:not(:nth-child(8)):not(:nth-child(10)), .login-alert-table td:not(:nth-child(8)):not(:nth-child(10)) { text-align: center; }
 .login-alert-table td:last-child { white-space: nowrap; }
-.score-record-table { min-width: 2044px; }
+.score-record-table { min-width: 2134px; }
 .score-record-table th:nth-child(1) { width: 44px; }
 .score-record-table th:nth-child(2) { width: 82px; }
 .score-record-table th:nth-child(3) { width: 120px; }
@@ -391,10 +392,14 @@ main { padding: 20px; }
 .score-record-table th:nth-child(8) { width: 360px; }
 .score-record-table th:nth-child(9) { width: 100px; }
 .score-record-table th:nth-child(10) { width: 100px; }
-.score-record-table th:nth-child(11) { width: 260px; }
-.score-record-table th:nth-child(12) { width: 90px; }
-.score-record-table th:not(:nth-child(8)):not(:nth-child(11)), .score-record-table td:not(:nth-child(8)):not(:nth-child(11)) { text-align: center; }
+.score-record-table th:nth-child(11) { width: 90px; }
+.score-record-table th:nth-child(12) { width: 260px; }
+.score-record-table th:nth-child(13) { width: 90px; }
+.score-record-table th:not(:nth-child(8)):not(:nth-child(12)), .score-record-table td:not(:nth-child(8)):not(:nth-child(12)) { text-align: center; }
 .score-record-table .record-note { line-height: 1.5; }
+.account-status { font-weight: 700; }
+.account-status.normal { color: #3e8e68; }
+.account-status.frozen { color: #d9534f; }
 .risk-login-value { color: #d43f3a; font-weight: 700; background: #fff1ef; }
 .risk-detail-value { color: #d43f3a; font-weight: 700; }
 .record-alert-flag.yes { color: #d9534f; font-weight: 700; }

@@ -36,7 +36,7 @@ const riskAssociationConfig = {
   device: { days: 30, accounts: 90, disabled: false },
 };
 
-const frozenMemberIds = new Set();
+const frozenMemberIds = new Set(['2795074']);
 
 const bands = [
   { range: '80至100', action: '正常放行', className: 'healthy', detail: '正常登录，不弹出验证；后台记录环境与分数。' },
@@ -653,11 +653,20 @@ function renderFilteredPending() {
   ));
 }
 
+function memberAccountStatus(memberId) {
+  return frozenMemberIds.has(memberId) ? '冻结' : '正常';
+}
+
+function renderAccountStatus(memberId) {
+  const status = memberAccountStatus(memberId);
+  return `<span class="account-status ${status === '冻结' ? 'frozen' : 'normal'}">${status}</span>`;
+}
+
 function renderLoginAlerts(rows = loginAlertRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#loginAlertTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
-  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = '<tr><td colspan="12" class="empty-table-cell">暂无数据</td></tr>';
+    <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
+  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = '<tr><td colspan="13" class="empty-table-cell">暂无数据</td></tr>';
   $('#loginAlertTotal').textContent = sortedRows.length;
   const alertCount = loginAlertRows.length;
   if ($('#loginAlertTabBadge')) {
@@ -690,11 +699,13 @@ function renderFilteredLoginAlerts() {
   const keyword = $('#loginAlertKeyword').value.trim().toLowerCase();
   const tier = $('#loginAlertScoreTier').value;
   const status = $('#loginAlertStatus').value;
+  const accountStatus = $('#loginAlertAccountStatus').value;
   renderLoginAlerts(loginAlertRows.filter(row => {
     const searchable = { memberId: row.memberId, user: row.user, ip: row.ip, device: row.device }[type].toLowerCase();
     return (!keyword || searchable.includes(keyword)) &&
       (tier === 'all' || matchesScoreTier(row.score, tier)) &&
-      (status === 'all' || row.status === status);
+      (status === 'all' || row.status === status) &&
+      (accountStatus === 'all' || memberAccountStatus(row.memberId) === accountStatus);
   }));
 }
 
@@ -725,7 +736,7 @@ function openLoginAlertDetail(alertId) {
   const alert = loginAlertRows.find(item => item.id === alertId);
   const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${renderBreakdownRule(alert, item[0])}</td><td>${item[1]}</td><td>${item[2]}</td></tr>`).join('');
   openDialog('登录评分告警明细', `
-    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>处置状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
+    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>验证状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(alert)}
@@ -738,8 +749,8 @@ function openLoginAlertDetail(alertId) {
 function renderScoreRecords(rows = loginScoreRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
   $('#scoreRecordTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<input type="checkbox" class="score-record-select" data-record-id="${row.id}" aria-label="选择${row.user}的评分记录">` : ''}</td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
-  if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = '<tr><td colspan="12" class="empty-table-cell">暂无数据</td></tr>';
+    <tr><td>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<input type="checkbox" class="score-record-select" data-record-id="${row.id}" aria-label="选择${row.user}的评分记录">` : ''}</td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td>${renderAccountStatus(row.memberId)}</td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
+  if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = '<tr><td colspan="13" class="empty-table-cell">暂无数据</td></tr>';
   $('#scoreRecordTotal').textContent = sortedRows.length;
   $$('[data-score-record-detail]').forEach(button => button.addEventListener('click', () => openScoreRecordDetail(button.dataset.scoreRecordDetail)));
   $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openScoreRecordVerifyDialog(button.dataset.scoreRecordVerify)));
@@ -763,6 +774,7 @@ function renderFilteredScoreRecords() {
   const keyword = $('#scoreRecordKeyword').value.trim().toLowerCase();
   const tier = $('#scoreRecordTier').value;
   const status = $('#scoreRecordStatus').value;
+  const accountStatus = $('#scoreRecordAccountStatus').value;
   const loginDate = $('#scoreRecordLoginDate').value;
   renderScoreRecords(loginScoreRows.filter(row => {
     const searchable = { memberId: row.memberId, user: row.user, ip: row.ip, device: row.device }[type].toLowerCase();
@@ -770,6 +782,7 @@ function renderFilteredScoreRecords() {
     return (!keyword || searchable.includes(keyword)) &&
       (tier === 'all' || matchesScoreTier(row.score, tier)) &&
       (status === 'all' || displayStatus === status) &&
+      (accountStatus === 'all' || memberAccountStatus(row.memberId) === accountStatus) &&
       (!loginDate || formatLoginTime(row.time) === loginDate.replace('T', ' '));
   }));
 }
@@ -1630,6 +1643,7 @@ if ($('#loginAlertResetBtn')) $('#loginAlertResetBtn').addEventListener('click',
   $('#loginAlertKeyword').placeholder = '输入会员ID';
   $('#loginAlertScoreTier').value = 'all';
   $('#loginAlertStatus').value = 'all';
+  $('#loginAlertAccountStatus').value = 'all';
   renderLoginAlerts();
 });
 if ($('#scoreRecordSearchType')) $('#scoreRecordSearchType').addEventListener('change', () => {
@@ -1649,6 +1663,7 @@ if ($('#scoreRecordResetBtn')) $('#scoreRecordResetBtn').addEventListener('click
   $('#scoreRecordKeyword').placeholder = '输入会员ID';
   $('#scoreRecordTier').value = 'all';
   $('#scoreRecordStatus').value = 'all';
+  $('#scoreRecordAccountStatus').value = 'all';
   $('#scoreRecordLoginDate').value = '';
   renderScoreRecords();
 });
