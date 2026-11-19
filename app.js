@@ -955,6 +955,43 @@ function openLoginAlertBatchFreezeDialog(alertIds) {
   });
 }
 
+function openLoginAlertBatchUnfreezeDialog(alertIds) {
+  const selectedAlerts = loginAlertRows.filter(item => alertIds.includes(item.id));
+  if (!selectedAlerts.length) {
+    openDialog('批量解冻', '<p class="config-error">请先在告警列表中选择需要解冻的记录。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
+  const alerts = selectedAlerts.filter(item => frozenMemberIds.has(item.memberId));
+  const memberIds = [...new Set(alerts.map(item => item.memberId))];
+  const users = [...new Set(alerts.map(item => item.user))];
+  if (!memberIds.length) {
+    openDialog('批量解冻', '<p class="config-error">所选记录中没有已冻结账号。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
+  openDialog('批量解冻', `
+    <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>解冻原因 <em class="required-mark">*</em></label><textarea id="batchUnfreezeNote" placeholder="请输入本次批量解冻原因"></textarea></div>
+    <p class="field-help">按会员维度解冻；同一会员选中多条告警时只执行一次。本次选择${selectedAlerts.length}条告警，其中涉及${users.length}个已冻结用户。</p><p class="config-error" id="batchUnfreezeError"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-unfreeze>确认解冻</button></div>`);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-batch-unfreeze]').addEventListener('click', () => {
+    const note = $('#batchUnfreezeNote').value.trim();
+    if (!note) { $('#batchUnfreezeError').textContent = '请填写解冻原因。'; return; }
+    memberIds.forEach(memberId => frozenMemberIds.delete(memberId));
+    [...loginAlertRows, ...loginScoreRows].forEach(row => {
+      if (memberIds.includes(row.memberId)) {
+        row.frozen = false;
+        row.unfreezeNote = note;
+      }
+    });
+    closeDialog();
+    renderFilteredLoginAlerts();
+    renderFilteredScoreRecords();
+    showToast(`已解冻${users.length}个用户，同一用户仅执行一次`);
+  });
+}
+
 function renderRiskEntities(type, rows) {
   const body = type === 'ip' ? $('#riskIpTableBody') : $('#riskDeviceTableBody');
   body.innerHTML = rows.map(row => `<tr><td class="device-value">${row.value}</td><td>${row.accounts}</td><td>${row.healthy}</td><td>${row.alerts}</td><td>${row.logins}</td><td>${row.tier.replace('-', '至')}人</td><td>${row.first}</td><td>${row.last}</td><td><button class="table-link" data-risk-entity="${type}" data-risk-value="${row.value}">关联账号</button></td></tr>`).join('');
@@ -1630,6 +1667,7 @@ if ($('#loginAlertSearchType')) $('#loginAlertSearchType').addEventListener('cha
 });
 if ($('#loginAlertSearchBtn')) $('#loginAlertSearchBtn').addEventListener('click', renderFilteredLoginAlerts);
 if ($('#loginAlertBatchVerifyBtn')) $('#loginAlertBatchVerifyBtn').addEventListener('click', () => openLoginAlertBatchVerifyDialog($$('.login-alert-select:checked').map(input => input.dataset.alertId)));
+if ($('#loginAlertBatchUnfreezeBtn')) $('#loginAlertBatchUnfreezeBtn').addEventListener('click', () => openLoginAlertBatchUnfreezeDialog($$('.login-alert-select:checked').map(input => input.dataset.alertId)));
 if ($('#loginAlertBatchFreezeBtn')) $('#loginAlertBatchFreezeBtn').addEventListener('click', () => openLoginAlertBatchFreezeDialog($$('.login-alert-select:checked').map(input => input.dataset.alertId)));
 if ($('#riskIpListBtn')) $('#riskIpListBtn').addEventListener('click', () => openRiskListDialog('ip'));
 if ($('#riskDeviceListBtn')) $('#riskDeviceListBtn').addEventListener('click', () => openRiskListDialog('device'));

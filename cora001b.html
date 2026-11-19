@@ -59,7 +59,7 @@
           <div class="admin-tab-panel active" id="alertsPanel">
             <div class="account-page-head">
               <div><h1>登录评分告警</h1><p>按登录记录展示评分低于60分的数据；验证失败仍保留，验证通过后从本表移除</p></div>
-              <div class="account-head-actions"><button class="admin-btn danger" id="loginAlertBatchFreezeBtn">批量冻结</button><button class="admin-btn" id="loginAlertBatchVerifyBtn">批量验证</button></div>
+              <div class="account-head-actions"><button class="admin-btn secondary" id="loginAlertBatchUnfreezeBtn">批量解冻</button><button class="admin-btn danger" id="loginAlertBatchFreezeBtn">批量冻结</button><button class="admin-btn" id="loginAlertBatchVerifyBtn">批量验证</button></div>
             </div>
             <div class="filter-bar login-alert-filter">
               <label><select id="loginAlertSearchType" aria-label="告警查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option><option value="ip">登录IP</option><option value="device">登录设备</option></select><input id="loginAlertKeyword" placeholder="输入会员ID"></label>
