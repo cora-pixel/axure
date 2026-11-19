@@ -394,6 +394,7 @@ main { padding: 20px; }
 .score-record-table th:not(:nth-child(8)):not(:nth-child(11)), .score-record-table td:not(:nth-child(8)):not(:nth-child(11)) { text-align: center; }
 .score-record-table .record-note { line-height: 1.5; }
 .risk-login-value { color: #d43f3a; font-weight: 700; background: #fff1ef; }
+.risk-detail-value { color: #d43f3a; font-weight: 700; }
 .record-alert-flag.yes { color: #d9534f; font-weight: 700; }
 .record-alert-flag.no { color: #3e8e68; font-weight: 700; }
 .alert-record-status.pending { color: #203646; font-weight: 400; }
