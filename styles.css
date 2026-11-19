@@ -307,6 +307,8 @@ main { padding: 20px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
 .alert-model-note { padding: 8px 12px; color: #2f5c53; background: #edf7f3; border: 1px solid #78aa9c; border-top: 0; font-size: 12px; line-height: 1.5; }
 .account-head-actions { display: flex; align-items: center; gap: 12px; }
+.admin-btn.danger { border-color: #d9a09c; color: #b43a35; background: #f8e7e5; }
+.admin-btn.danger:hover { background: #f2d4d1; }
 .risk-quick-group { display: flex; align-items: center; gap: 8px; }
 .risk-count-quick { min-width: 150px; height: 34px; padding: 0 14px; border: 1px solid rgba(201, 78, 74, .38); color: #b6403d; background: rgba(217, 83, 79, .12); text-align: center; }
 .risk-count-quick strong { font-size: 14px; }

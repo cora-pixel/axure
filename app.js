@@ -36,6 +36,8 @@ const riskAssociationConfig = {
   device: { days: 30, accounts: 90, disabled: false },
 };
 
+const frozenMemberIds = new Set();
+
 const bands = [
   { range: '80至100', action: '正常放行', className: 'healthy', detail: '正常登录，不弹出验证；后台记录环境与分数。' },
   { range: '60至79', action: '预警观察', className: 'watch', detail: '不打扰用户；后台保留该次登录评分并继续观察后续登录。' },
@@ -909,6 +911,37 @@ function openLoginAlertBatchVerifyDialog(alertIds) {
   });
 }
 
+function openLoginAlertBatchFreezeDialog(alertIds) {
+  const alerts = loginAlertRows.filter(item => alertIds.includes(item.id));
+  if (!alerts.length) {
+    openDialog('批量冻结', '<p class="config-error">请先在告警列表中选择需要冻结的记录。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
+  const users = [...new Set(alerts.map(item => item.user))];
+  const memberIds = [...new Set(alerts.map(item => item.memberId))];
+  openDialog('批量冻结', `
+    <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>冻结原因 <em class="required-mark">*</em></label><textarea id="batchFreezeNote" placeholder="请输入本次批量冻结原因"></textarea></div>
+    <p class="field-help">按会员维度冻结；同一会员选中多条告警时只执行一次。本次共选择${alerts.length}条告警，涉及${users.length}个用户。</p><p class="config-error" id="batchFreezeError"></p>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn danger" data-save-batch-freeze>确认冻结</button></div>`);
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  $('[data-save-batch-freeze]').addEventListener('click', () => {
+    const note = $('#batchFreezeNote').value.trim();
+    if (!note) { $('#batchFreezeError').textContent = '请填写冻结原因。'; return; }
+    memberIds.forEach(memberId => frozenMemberIds.add(memberId));
+    [...loginAlertRows, ...loginScoreRows].forEach(row => {
+      if (frozenMemberIds.has(row.memberId)) {
+        row.frozen = true;
+        row.freezeNote = note;
+      }
+    });
+    closeDialog();
+    renderFilteredLoginAlerts();
+    renderFilteredScoreRecords();
+    showToast(`已冻结${users.length}个用户，同一用户仅执行一次`);
+  });
+}
+
 function renderRiskEntities(type, rows) {
   const body = type === 'ip' ? $('#riskIpTableBody') : $('#riskDeviceTableBody');
   body.innerHTML = rows.map(row => `<tr><td class="device-value">${row.value}</td><td>${row.accounts}</td><td>${row.healthy}</td><td>${row.alerts}</td><td>${row.logins}</td><td>${row.tier.replace('-', '至')}人</td><td>${row.first}</td><td>${row.last}</td><td><button class="table-link" data-risk-entity="${type}" data-risk-value="${row.value}">关联账号</button></td></tr>`).join('');
@@ -1584,6 +1617,7 @@ if ($('#loginAlertSearchType')) $('#loginAlertSearchType').addEventListener('cha
 });
 if ($('#loginAlertSearchBtn')) $('#loginAlertSearchBtn').addEventListener('click', renderFilteredLoginAlerts);
 if ($('#loginAlertBatchVerifyBtn')) $('#loginAlertBatchVerifyBtn').addEventListener('click', () => openLoginAlertBatchVerifyDialog($$('.login-alert-select:checked').map(input => input.dataset.alertId)));
+if ($('#loginAlertBatchFreezeBtn')) $('#loginAlertBatchFreezeBtn').addEventListener('click', () => openLoginAlertBatchFreezeDialog($$('.login-alert-select:checked').map(input => input.dataset.alertId)));
 if ($('#riskIpListBtn')) $('#riskIpListBtn').addEventListener('click', () => openRiskListDialog('ip'));
 if ($('#riskDeviceListBtn')) $('#riskDeviceListBtn').addEventListener('click', () => openRiskListDialog('device'));
 if ($('#selectAllLoginAlerts')) $('#selectAllLoginAlerts').addEventListener('change', event => {
