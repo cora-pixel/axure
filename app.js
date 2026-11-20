@@ -1116,7 +1116,8 @@ function openRiskEntityDetail(type, value) {
 
 function openRiskListDialog(type) {
   const isIp = type === 'ip';
-  const rows = [...(isIp ? riskIpRows : riskDeviceRows)].sort((a, b) => b.accounts - a.accounts || b.logins - a.logins);
+  const rows = [...(isIp ? riskIpRows : riskDeviceRows)].sort((a, b) =>
+    Number(a.whitelisted) - Number(b.whitelisted) || b.accounts - a.accounts || b.logins - a.logins);
   const listRows = rows.map(row => {
     const statusCell = `<td><span class="risk-list-status ${row.whitelisted ? 'whitelisted' : 'active'}">${row.whitelisted ? '已加白' : '风险'}</span></td>`;
     const whitelistAction = `<button class="table-link risk-toggle-action" data-toggle-risk-entity="${row.value}" data-risk-type="${type}">${row.whitelisted ? '标记风险' : '加白'}</button>`;
