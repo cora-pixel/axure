@@ -248,10 +248,10 @@ const commonEnvironmentByMember = {
 
 const commonEnvironmentDisplayByUser = {
   'travelweb014@h8': {
-    ips: ['118.31.22.14'],
-    cities: ['上海市', '杭州市'],
-    devices: ['Web-H5-COMMON14'],
-    deviceInfos: ['Windows 11 / Chrome 130 / H5'],
+    ips: ['118.31.22.14', '139.162.14.14'],
+    cities: ['杭州市', '上海市'],
+    devices: ['Web-H5-COMMON14', 'iOS-Safari-HISTORY14'],
+    deviceInfos: ['Windows 11 / Chrome 130 / H5', 'iOS 18 / Safari / H5'],
   },
 };
 
@@ -283,10 +283,12 @@ function commonEnvironmentForRow(row) {
 
 function openUserCommonEnvironmentDialog(row, source) {
   const environment = commonEnvironmentForRow(row);
+  const ipRows = environment.ips.map((ip, index) => `<tr><td>${index + 1}</td><td>${ip}</td><td>${environment.cities[index] || cityForIp(ip)}</td></tr>`).join('');
+  const deviceRows = environment.devices.map((device, index) => `<tr><td>${index + 1}</td><td class="device-value">${device}</td><td>${environment.deviceInfos[index] || deviceInfoForDevice(device)}</td></tr>`).join('');
   openDialog('用户常用环境', `
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
-    <div class="detail-section"><h3>IP维度</h3><table class="mini-table"><thead><tr><th>常用IP</th><th>常用城市</th></tr></thead><tbody><tr><td>${environment.ips.join('、')}</td><td>${environment.cities.join('、')}</td></tr></tbody></table></div>
-    <div class="detail-section"><h3>设备维度</h3><table class="mini-table"><thead><tr><th>常用设备号</th><th>常用设备信息</th></tr></thead><tbody><tr><td class="device-value">${environment.devices.join('、')}</td><td>${environment.deviceInfos.join('、')}</td></tr></tbody></table></div>
+    <div class="detail-section"><h3>IP维度</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用IP</th><th>对应城市</th></tr></thead><tbody>${ipRows}</tbody></table></div>
+    <div class="detail-section"><h3>设备维度</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用设备号</th><th>对应设备信息</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-back-score-detail>返回评分明细</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('[data-back-score-detail]').addEventListener('click', () => {
     if (source === 'alert') openLoginAlertDetail(row.id);
