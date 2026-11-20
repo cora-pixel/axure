@@ -263,7 +263,7 @@ main { padding: 20px; }
 [data-readonly-alerts] .admin-system-shell { grid-template-columns: minmax(0, 1fr); }
 [data-readonly-alerts] .admin-breadcrumb { margin-bottom: 8px; flex-wrap: wrap; }
 [data-alert-monitor] .admin-system-shell { grid-template-columns: 245px minmax(0, 1fr); }
-[data-alert-monitor] .admin-menu-groups li.active { justify-content: space-between; }
+[data-alert-monitor] #accountScoreMenu.active { justify-content: space-between; }
 .admin-menu { color: #183a29; background: #f4f4ea; border-right: 4px solid #405982; }
 .admin-menu-title { height: 42px; display: flex; align-items: center; padding: 0 12px; color: #fff; background: #405982; font-size: 21px; font-weight: 700; }
 .admin-menu-groups, .admin-menu-groups ul { margin: 0; padding: 0; list-style: none; }
@@ -381,10 +381,12 @@ main { padding: 20px; }
 .login-alert-filter .login-time-range em { color: #596a74; font-style: normal; }
 [data-alert-monitor] .login-time-range { display: flex; align-items: center; flex-wrap: wrap; color: #34495c; font-size: 13px; }
 [data-alert-monitor] .admin-page-tab:not(:first-child) { min-width: 0; }
+[data-alert-monitor] .basic-config-actions,
+[data-alert-monitor] .basic-config-filters { flex-wrap: wrap; }
 
 @media (max-width: 760px) {
-  [data-alert-monitor] .admin-system-shell { grid-template-columns: minmax(0, 1fr); }
-  [data-alert-monitor] .admin-menu { display: none; }
+  [data-alert-monitor] .admin-system-shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+  [data-alert-monitor] .admin-menu { border-right: 0; border-bottom: 2px solid #405982; }
   [data-alert-monitor] .admin-page-tab { min-width: 0; padding: 0 8px; flex: 1; }
   [data-alert-monitor] .admin-page-tab:first-child { padding-right: 24px; }
   [data-alert-monitor] .tab-count-badge { right: 3px; }
