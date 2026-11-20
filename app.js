@@ -986,14 +986,15 @@ function openLoginAlertBatchUnfreezeDialog(alertIds) {
   const alerts = selectedAlerts.filter(item => frozenMemberIds.has(item.memberId));
   const memberIds = [...new Set(alerts.map(item => item.memberId))];
   const users = [...new Set(alerts.map(item => item.user))];
+  const excludedUsers = [...new Set(selectedAlerts.filter(item => !frozenMemberIds.has(item.memberId)).map(item => item.user))];
   if (!memberIds.length) {
-    openDialog('批量解冻', '<p class="config-error">所选记录中没有已冻结账号。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    openDialog('批量解冻', '<p class="config-error">所选记录中的账号均为正常状态，无需解冻。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
     $('[data-dialog-cancel]').addEventListener('click', closeDialog);
     return;
   }
   openDialog('批量解冻', `
     <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>解冻原因 <em class="required-mark">*</em></label><textarea id="batchUnfreezeNote" placeholder="请输入本次批量解冻原因"></textarea></div>
-    <p class="field-help">按会员维度解冻；同一会员选中多条告警时只执行一次。本次选择${selectedAlerts.length}条告警，其中涉及${users.length}个已冻结用户。</p><p class="config-error" id="batchUnfreezeError"></p>
+    <p class="field-help">按会员维度解冻；同一会员选中多条告警时只执行一次。本次选择${selectedAlerts.length}条告警，可解冻${users.length}个用户${excludedUsers.length ? `，已自动过滤${excludedUsers.length}个正常状态用户` : ''}。</p><p class="config-error" id="batchUnfreezeError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-unfreeze>确认解冻</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-batch-unfreeze]').addEventListener('click', () => {
