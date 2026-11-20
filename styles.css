@@ -458,6 +458,9 @@ main { padding: 20px; }
 .config-table td { padding: 8px 10px; border: 1px solid #deddd0; color: #24384c; font-size: 12px; vertical-align: middle; }
 .config-table td:first-child strong { display: block; color: #314e75; }
 .config-table td:first-child span { display: block; margin-top: 3px; color: #72808a; }
+.alert-threshold-row td { background: #f5effc; border-top: 2px solid #b998dc; }
+.alert-threshold-row td:first-child,
+.alert-threshold-score { color: #6d3ca2; font-weight: 700; }
 .config-fields { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
 .config-number { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .config-number span { color: #596a74; }

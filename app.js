@@ -586,11 +586,20 @@ function updateScoreUI() {
 
 function renderRules(filter = 'all') {
   const body = $('#ruleTableBody');
-  body.innerHTML = rules.filter(rule => filter === 'all' || rule.category === filter).map(rule => `
+  const ruleRows = rules.filter(rule => filter === 'all' || rule.category === filter).map(rule => `
     <tr>
       <td>${rule.id}</td><td>${rule.condition}</td>
       <td class="score-text score-block">${rule.score}</td><td>${rule.mode}</td><td>${rule.desc}</td>
     </tr>`).join('');
+  const thresholdRow = filter === 'all' ? `
+    <tr class="alert-threshold-row">
+      <td>告警阈值</td>
+      <td>本次登录评分低于设定分数时进入登录评分告警</td>
+      <td class="alert-threshold-score">低于${scoringConfig.alertThreshold}分</td>
+      <td>满足即告警</td>
+      <td>可在“规则设置”中修改，支持1至100分</td>
+    </tr>` : '';
+  body.innerHTML = ruleRows + thresholdRow;
 }
 
 function renderBands() {
