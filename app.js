@@ -862,16 +862,23 @@ function applyScoreRecordVerification(record, result, note) {
 }
 
 function openScoreRecordBatchVerifyDialog(recordIds) {
-  const records = loginScoreRows.filter(item => recordIds.includes(item.id));
-  if (!records.length) {
+  const selectedRecords = loginScoreRows.filter(item => recordIds.includes(item.id));
+  if (!selectedRecords.length) {
     openDialog('批量验证', '<p class="config-error">请先在登录评分总表中勾选需要验证的记录。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
     $('[data-dialog-cancel]').addEventListener('click', closeDialog);
     return;
   }
+  const records = selectedRecords.filter(item => !frozenMemberIds.has(item.memberId));
   const users = [...new Set(records.map(item => item.user))];
+  const excludedUsers = [...new Set(selectedRecords.filter(item => frozenMemberIds.has(item.memberId)).map(item => item.user))];
+  if (!records.length) {
+    openDialog('批量验证', '<p class="config-error">所选记录中的账号均已冻结，请先解冻后再验证。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
   openDialog('批量验证', `
     <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchScoreResult" value="验证通过">验证通过</label><label><input type="radio" name="batchScoreResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchScoreNote" placeholder="请输入本次批量验证说明"></textarea></div>
-    <p class="field-help">同一会员账号只展示一次；本次共选择${records.length}条记录，涉及${users.length}个会员账号。验证失败的记录进入或继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchScoreError"></p>
+    <p class="field-help">同一会员账号只展示一次；本次选择${selectedRecords.length}条记录，可验证${records.length}条，涉及${users.length}个会员账号${excludedUsers.length ? `；已自动过滤${excludedUsers.length}个冻结中的用户` : ''}。验证失败的记录进入或继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchScoreError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-score>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-batch-score]').addEventListener('click', () => {
@@ -901,16 +908,23 @@ function applyLoginAlertVerification(alert, result, note) {
 }
 
 function openLoginAlertBatchVerifyDialog(alertIds) {
-  const alerts = loginAlertRows.filter(item => alertIds.includes(item.id));
-  if (!alerts.length) {
+  const selectedAlerts = loginAlertRows.filter(item => alertIds.includes(item.id));
+  if (!selectedAlerts.length) {
     openDialog('批量验证', '<p class="config-error">请先在告警列表中选择需要验证的记录。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
     $('[data-dialog-cancel]').addEventListener('click', closeDialog);
     return;
   }
+  const alerts = selectedAlerts.filter(item => !frozenMemberIds.has(item.memberId));
   const users = [...new Set(alerts.map(item => item.user))];
+  const excludedUsers = [...new Set(selectedAlerts.filter(item => frozenMemberIds.has(item.memberId)).map(item => item.user))];
+  if (!alerts.length) {
+    openDialog('批量验证', '<p class="config-error">所选告警中的账号均已冻结，请先解冻后再验证。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
   openDialog('批量验证', `
     <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>验证结果</label><div class="manual-result-options"><label><input type="radio" name="batchAlertResult" value="验证通过">验证通过</label><label><input type="radio" name="batchAlertResult" value="验证失败">验证失败</label></div><label>备注 <em class="required-mark">*</em></label><textarea id="batchAlertNote" placeholder="请输入本次批量验证说明"></textarea></div>
-    <p class="field-help">同一会员账号只展示一次；本次共选择${alerts.length}条告警，涉及${users.length}个会员账号。验证失败的记录继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchAlertError"></p>
+    <p class="field-help">同一会员账号只展示一次；本次选择${selectedAlerts.length}条告警，可验证${alerts.length}条，涉及${users.length}个会员账号${excludedUsers.length ? `；已自动过滤${excludedUsers.length}个冻结中的用户` : ''}。验证失败的记录继续保留在告警表；验证通过的记录从告警表移除。</p><p class="config-error" id="batchAlertError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-batch-alert>确认</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-batch-alert]').addEventListener('click', () => {
@@ -925,17 +939,24 @@ function openLoginAlertBatchVerifyDialog(alertIds) {
 }
 
 function openLoginAlertBatchFreezeDialog(alertIds) {
-  const alerts = loginAlertRows.filter(item => alertIds.includes(item.id));
-  if (!alerts.length) {
+  const selectedAlerts = loginAlertRows.filter(item => alertIds.includes(item.id));
+  if (!selectedAlerts.length) {
     openDialog('批量冻结', '<p class="config-error">请先在告警列表中选择需要冻结的记录。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
     $('[data-dialog-cancel]').addEventListener('click', closeDialog);
     return;
   }
+  const alerts = selectedAlerts.filter(item => !frozenMemberIds.has(item.memberId));
   const users = [...new Set(alerts.map(item => item.user))];
   const memberIds = [...new Set(alerts.map(item => item.memberId))];
+  const excludedUsers = [...new Set(selectedAlerts.filter(item => frozenMemberIds.has(item.memberId)).map(item => item.user))];
+  if (!memberIds.length) {
+    openDialog('批量冻结', '<p class="config-error">所选记录中的账号均已冻结，无需重复操作。</p><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>');
+    $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+    return;
+  }
   openDialog('批量冻结', `
     <div class="admin-form"><label>会员账号</label><div class="batch-user-field"><textarea disabled>${users.join(',')}</textarea><strong class="batch-user-count">共${users.length}个用户</strong></div><label>冻结原因 <em class="required-mark">*</em></label><textarea id="batchFreezeNote" placeholder="请输入本次批量冻结原因"></textarea></div>
-    <p class="field-help">按会员维度冻结；同一会员选中多条告警时只执行一次。本次共选择${alerts.length}条告警，涉及${users.length}个用户。</p><p class="config-error" id="batchFreezeError"></p>
+    <p class="field-help">按会员维度冻结；同一会员选中多条告警时只执行一次。本次选择${selectedAlerts.length}条告警，可冻结${users.length}个用户${excludedUsers.length ? `，已自动过滤${excludedUsers.length}个冻结中的用户` : ''}。</p><p class="config-error" id="batchFreezeError"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn danger" data-save-batch-freeze>确认冻结</button></div>`);
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-batch-freeze]').addEventListener('click', () => {
