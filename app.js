@@ -185,23 +185,27 @@ function isRiskEntityValue(type, value) {
   return rows.some(item => item.value === value);
 }
 
-function loginEnvironmentProfile(row) {
+function cityForIp(ip) {
   const cityMap = [
     ['139.162.', '上海市'], ['45.76.', '新加坡'], ['202.55.', '马尼拉市'],
     ['47.76.', '杭州市'], ['203.0.113.', '深圳市'], ['118.31.', '杭州市'],
     ['103.27.', '广州市'], ['103.88.', '曼谷市'], ['198.51.100.', '北京市'],
   ];
-  const city = cityMap.find(item => row.ip.startsWith(item[0]))?.[1] || '未知';
+  return cityMap.find(item => ip.startsWith(item[0]))?.[1] || '未知';
+}
+
+function deviceInfoForDevice(device) {
+  if (!device || device === '未获取') return '未获取';
+  if (device.includes('iOS')) return 'iOS 18 / Safari / H5';
+  if (device.includes('Android')) return 'Android 15 / Chrome 130 / H5';
+  if (device.includes('Web-H5')) return 'Windows 11 / Chrome 130 / H5';
+  return 'Windows 10 / Chrome 130 / PC';
+}
+
+function loginEnvironmentProfile(row) {
+  const city = cityForIp(row.ip);
   const commonCities = row.condition.includes('城市不常用') ? '上海市、杭州市' : city;
-  const deviceInfo = row.device === '未获取'
-    ? '未获取'
-    : row.device.includes('iOS')
-      ? 'iOS 18 / Safari / H5'
-      : row.device.includes('Android')
-        ? 'Android 15 / Chrome 130 / H5'
-        : row.device.includes('Web-H5')
-          ? 'Windows 11 / Chrome 130 / H5'
-          : 'Windows 10 / Chrome 130 / PC';
+  const deviceInfo = deviceInfoForDevice(row.device);
   const buildVersion = row.condition.includes('Web号缺失')
     ? '未获取'
     : row.condition.includes('Web号非最新') || row.condition.includes('不是最新')
@@ -241,6 +245,42 @@ const commonEnvironmentByMember = {
     devices: [['Win10-Chrome-95T0XYr9BIOdkdF4a29J', '23', '2026-11-17 10:26', '验证通过']],
   },
 };
+
+const commonEnvironmentDisplayByUser = {
+  'travelweb014@h8': {
+    ips: ['118.31.22.14'],
+    cities: ['上海市', '杭州市'],
+    devices: ['Web-H5-COMMON14'],
+    deviceInfos: ['Windows 11 / Chrome 130 / H5'],
+  },
+};
+
+function fallbackCommonDevice(row) {
+  const suffix = row.memberId.slice(-2);
+  if (row.device.includes('iOS')) return `iOS-Safari-COMMON${suffix}`;
+  if (row.device.includes('Android')) return `Android-Chrome-COMMON${suffix}`;
+  if (row.device.includes('Web-H5') || row.device === '未获取') return `Web-H5-COMMON${suffix}`;
+  return `Win10-Chrome-COMMON${suffix}`;
+}
+
+function renderCommonEnvironmentRows(row) {
+  const configured = commonEnvironmentDisplayByUser[row.user];
+  const stored = commonEnvironmentByMember[row.memberId] || { ips: [], devices: [] };
+  const current = loginEnvironmentProfile(row);
+  const ipIsUncommon = row.condition.includes('IP不常用') || row.riskIp;
+  const deviceIsUncommon = row.condition.includes('设备号不常用') || row.condition.includes('设备信息不匹配') || row.riskDevice || row.device === '未获取';
+  const fallbackIp = `118.31.22.${Math.max(1, Number(row.memberId.slice(-2)) || 18)}`;
+  const ips = configured?.ips || stored.ips.map(item => item[0]) || [];
+  const displayIps = ips.length ? ips : [ipIsUncommon ? fallbackIp : row.ip];
+  const cities = configured?.cities || [...new Set(displayIps.map(cityForIp).filter(city => city !== '未知'))];
+  const displayCities = cities.length ? cities : current.commonCities.split('、');
+  const devices = configured?.devices || stored.devices.map(item => item[0]) || [];
+  const displayDevices = devices.length ? devices : [deviceIsUncommon ? fallbackCommonDevice(row) : row.device];
+  const deviceInfos = configured?.deviceInfos || [...new Set(displayDevices.map(deviceInfoForDevice).filter(info => info !== '未获取'))];
+  const displayDeviceInfos = deviceInfos.length ? deviceInfos : ['暂无常用设备信息'];
+  return `<tr><td>常用IP</td><td>${displayIps.join('、')}</td><td>常用城市</td><td>${displayCities.join('、')}</td></tr>
+    <tr><td>常用设备号</td><td class="device-value">${displayDevices.join('、')}</td><td>常用设备信息</td><td>${displayDeviceInfos.join('、')}</td></tr>`;
+}
 
 const methodMeta = {
   phone: { name: '手机验证', sub: '+86 137****8374', placeholder: '请输入6位验证码', expected: '863921', hint: '验证码已发送至 +86 137****8374' },
@@ -743,6 +783,7 @@ function openLoginAlertDetail(alertId) {
   openDialog('登录评分告警明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>验证状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
+    <div class="detail-section"><h3>用户常用环境</h3><table class="mini-table"><tbody>${renderCommonEnvironmentRows(alert)}</tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(alert)}
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-alert-verify="${alert.id}">手动验证</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
@@ -800,6 +841,7 @@ function openScoreRecordDetail(recordId) {
   openDialog('登录评分明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(record, '建议动作')}</tbody></table></div>
+    <div class="detail-section"><h3>用户常用环境</h3><table class="mini-table"><tbody>${renderCommonEnvironmentRows(record)}</tbody></table></div>
     <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(record)}
     <div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
