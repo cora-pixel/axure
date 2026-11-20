@@ -16,18 +16,17 @@
           <div class="admin-breadcrumb"><strong>后台管理</strong> - 用户管理 - <span>用户登录评分告警报表</span></div>
           <div class="admin-tab-panel active" id="alertsPanel">
             <div class="account-page-head">
-              <div><h1>登录评分告警</h1><p>按登录记录展示评分低于60分的数据；验证失败仍保留，验证通过后从本表移除</p></div>
+              <div><h1>登录评分告警</h1><p>按登录记录展示评分低于60分的告警</p></div>
             </div>
             <div class="filter-bar login-alert-filter">
               <label><select id="loginAlertSearchType" aria-label="告警查询字段"><option value="memberId">会员ID</option><option value="user">会员账号</option><option value="ip">登录IP</option><option value="device">登录设备</option></select><input id="loginAlertKeyword" placeholder="输入会员ID"></label>
               <label><span>分数档位</span><select id="loginAlertScoreTier"><option value="all">60分以下</option><option value="40-59">40至59分</option><option value="20-39">20至39分</option><option value="0-19">0至19分</option></select></label>
-              <label><span>验证状态</span><select id="loginAlertStatus"><option value="all">全部</option><option value="待处理">待处理</option><option value="验证失败">验证失败</option></select></label>
               <label><span>账号状态</span><select id="loginAlertAccountStatus"><option value="all">全部</option><option value="正常">正常</option><option value="冻结">冻结</option></select></label>
               <button class="admin-btn secondary" id="loginAlertSearchBtn">查询</button><button class="link-btn" id="loginAlertResetBtn">重置</button>
             </div>
             <div class="table-wrap">
               <table class="admin-table login-alert-table">
-                <thead><tr><th>会员ID</th><th>会员账号</th><th>登录时间</th><th>登录IP</th><th>登录设备</th><th>本次评分</th><th>扣分判断条件</th><th>建议动作</th><th>备注</th><th>验证状态</th><th>账号状态</th><th>查看</th></tr></thead>
+                <thead><tr><th>会员ID</th><th>会员账号</th><th>登录时间</th><th>登录IP</th><th>登录设备</th><th>本次评分</th><th>扣分判断条件</th><th>账号状态</th><th>查看</th></tr></thead>
                 <tbody id="loginAlertTableBody"></tbody>
               </table>
             </div>

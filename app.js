@@ -220,8 +220,10 @@ function renderLoginEnvironmentRows(row, actionLabel) {
   return `<tr><td>登录IP</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-detail-value' : ''}">${row.ip}</td><td>登录设备</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-detail-value' : ''}">${row.device}</td></tr>
     <tr><td>登录城市</td><td>${environment.city}</td><td>常用城市</td><td>${environment.commonCities}</td></tr>
     <tr><td>设备信息</td><td>${environment.deviceInfo}</td><td>构建版本</td><td>${environment.buildVersion}</td></tr>
-    <tr><td>${actionLabel}</td><td>${row.control}</td><td>扣分判断条件</td><td>${row.condition}</td></tr>
-    <tr><td>备注</td><td colspan="3">${row.note || '--'}</td></tr>`;
+    ${readOnlyAlerts
+      ? `<tr><td>扣分判断条件</td><td colspan="3">${row.condition}</td></tr>`
+      : `<tr><td>${actionLabel}</td><td>${row.control}</td><td>扣分判断条件</td><td>${row.condition}</td></tr>
+    <tr><td>备注</td><td colspan="3">${row.note || '--'}</td></tr>`}`;
 }
 
 const commonEnvironmentByMember = {
@@ -355,9 +357,9 @@ function appendScoreVerificationRecord(row, result, note) {
 function renderScoreVerificationSection(row) {
   const records = getScoreVerificationRecords(row);
   const rows = records.length
-    ? records.map(item => `<tr><td>${item.time}</td><td><span class="alert-record-status ${item.result === '验证失败' ? 'failed' : 'closed'}">${item.result}</span></td><td>${item.note || '--'}</td><td>${item.operator}</td></tr>`).join('')
-    : '<tr><td colspan="4">暂无验证记录</td></tr>';
-  return `<div class="detail-section"><h3>本次评分验证记录</h3><table class="mini-table"><thead><tr><th>验证时间</th><th>验证结果</th><th>备注</th><th>操作人</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    ? records.map(item => `<tr><td>${item.time}</td><td><span class="alert-record-status ${item.result === '验证失败' ? 'failed' : 'closed'}">${item.result}</span></td>${readOnlyAlerts ? '' : `<td>${item.note || '--'}</td>`}<td>${item.operator}</td></tr>`).join('')
+    : `<tr><td colspan="${readOnlyAlerts ? 3 : 4}">暂无验证记录</td></tr>`;
+  return `<div class="detail-section"><h3>本次评分验证记录</h3><table class="mini-table"><thead><tr><th>验证时间</th><th>验证结果</th>${readOnlyAlerts ? '' : '<th>备注</th>'}<th>操作人</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function setFrontState(title, detail) {
@@ -734,9 +736,10 @@ function renderLoginAlerts(rows = loginAlertRows) {
   $('#loginAlertTableBody').innerHTML = sortedRows.map(row => {
     const selectCell = readOnlyAlerts ? '' : `<td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td>`;
     const verifyButton = readOnlyAlerts ? '' : `<button class="table-link" data-login-alert-verify="${row.id}">手动验证</button>`;
-    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
+    const operationCells = readOnlyAlerts ? '' : `<td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td>`;
+    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${operationCells}<td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
   }).join('');
-  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 12 : 13}" class="empty-table-cell">暂无数据</td></tr>`;
+  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 9 : 13}" class="empty-table-cell">暂无数据</td></tr>`;
   $('#loginAlertTotal').textContent = sortedRows.length;
   const alertCount = loginAlertRows.length;
   if ($('#loginAlertTabBadge')) {
@@ -768,7 +771,7 @@ function renderFilteredLoginAlerts() {
   const type = $('#loginAlertSearchType').value;
   const keyword = $('#loginAlertKeyword').value.trim().toLowerCase();
   const tier = $('#loginAlertScoreTier').value;
-  const status = $('#loginAlertStatus').value;
+  const status = $('#loginAlertStatus')?.value ?? 'all';
   const accountStatus = $('#loginAlertAccountStatus').value;
   renderLoginAlerts(loginAlertRows.filter(row => {
     const searchable = { memberId: row.memberId, user: row.user, ip: row.ip, device: row.device }[type].toLowerCase();
@@ -810,9 +813,10 @@ function renderBreakdownCondition(ruleName, fallback) {
 function openLoginAlertDetail(alertId) {
   const alert = loginAlertRows.find(item => item.id === alertId);
   const verifyButton = readOnlyAlerts ? '' : `<button class="admin-btn secondary" data-alert-verify="${alert.id}">手动验证</button>`;
+  const verificationStatus = readOnlyAlerts ? '' : `<div><span>验证状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div>`;
   const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${renderBreakdownRule(alert, item[0])}</td><td>${renderBreakdownCondition(item[0], item[1])}</td><td>${item[2]}</td></tr>`).join('');
   openDialog('登录评分告警明细', `
-    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>验证状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
+    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div>${verificationStatus}</div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
     <div class="detail-section"><div class="detail-section-head"><h3>本次评分明细</h3><button class="table-link" data-view-user-common>查看用户常用环境</button></div><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(alert)}
@@ -1803,7 +1807,7 @@ if ($('#loginAlertResetBtn')) $('#loginAlertResetBtn').addEventListener('click',
   $('#loginAlertKeyword').value = '';
   $('#loginAlertKeyword').placeholder = '输入会员ID';
   $('#loginAlertScoreTier').value = 'all';
-  $('#loginAlertStatus').value = 'all';
+  if ($('#loginAlertStatus')) $('#loginAlertStatus').value = 'all';
   $('#loginAlertAccountStatus').value = 'all';
   renderLoginAlerts();
 });
