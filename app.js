@@ -263,7 +263,7 @@ function fallbackCommonDevice(row) {
   return `Win10-Chrome-COMMON${suffix}`;
 }
 
-function renderCommonEnvironmentRows(row) {
+function commonEnvironmentForRow(row) {
   const configured = commonEnvironmentDisplayByUser[row.user];
   const stored = commonEnvironmentByMember[row.memberId] || { ips: [], devices: [] };
   const current = loginEnvironmentProfile(row);
@@ -278,8 +278,21 @@ function renderCommonEnvironmentRows(row) {
   const displayDevices = devices.length ? devices : [deviceIsUncommon ? fallbackCommonDevice(row) : row.device];
   const deviceInfos = configured?.deviceInfos || [...new Set(displayDevices.map(deviceInfoForDevice).filter(info => info !== '未获取'))];
   const displayDeviceInfos = deviceInfos.length ? deviceInfos : ['暂无常用设备信息'];
-  return `<tr><td>常用IP</td><td>${displayIps.join('、')}</td><td>常用城市</td><td>${displayCities.join('、')}</td></tr>
-    <tr><td>常用设备号</td><td class="device-value">${displayDevices.join('、')}</td><td>常用设备信息</td><td>${displayDeviceInfos.join('、')}</td></tr>`;
+  return { ips: displayIps, cities: displayCities, devices: displayDevices, deviceInfos: displayDeviceInfos };
+}
+
+function openUserCommonEnvironmentDialog(row, source) {
+  const environment = commonEnvironmentForRow(row);
+  openDialog('用户常用环境', `
+    <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
+    <div class="detail-section"><h3>IP维度</h3><table class="mini-table"><thead><tr><th>常用IP</th><th>常用城市</th></tr></thead><tbody><tr><td>${environment.ips.join('、')}</td><td>${environment.cities.join('、')}</td></tr></tbody></table></div>
+    <div class="detail-section"><h3>设备维度</h3><table class="mini-table"><thead><tr><th>常用设备号</th><th>常用设备信息</th></tr></thead><tbody><tr><td class="device-value">${environment.devices.join('、')}</td><td>${environment.deviceInfos.join('、')}</td></tr></tbody></table></div>
+    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-back-score-detail>返回评分明细</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  $('[data-back-score-detail]').addEventListener('click', () => {
+    if (source === 'alert') openLoginAlertDetail(row.id);
+    else openScoreRecordDetail(row.id);
+  });
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
 const methodMeta = {
@@ -783,11 +796,11 @@ function openLoginAlertDetail(alertId) {
   openDialog('登录评分告警明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>验证状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
-    <div class="detail-section"><h3>用户常用环境</h3><table class="mini-table"><tbody>${renderCommonEnvironmentRows(alert)}</tbody></table></div>
-    <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
+    <div class="detail-section"><div class="detail-section-head"><h3>本次评分明细</h3><button class="table-link" data-view-user-common>查看用户常用环境</button></div><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(alert)}
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-alert-verify="${alert.id}">手动验证</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('#adminDialog').classList.add('score-detail-dialog');
+  $('[data-view-user-common]').addEventListener('click', () => openUserCommonEnvironmentDialog(alert, 'alert'));
   $('[data-alert-verify]').addEventListener('click', () => openLoginAlertVerifyDialog(alert.id));
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
@@ -841,11 +854,11 @@ function openScoreRecordDetail(recordId) {
   openDialog('登录评分明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(record, '建议动作')}</tbody></table></div>
-    <div class="detail-section"><h3>用户常用环境</h3><table class="mini-table"><tbody>${renderCommonEnvironmentRows(record)}</tbody></table></div>
-    <div class="detail-section"><h3>本次评分明细</h3><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
+    <div class="detail-section"><div class="detail-section-head"><h3>本次评分明细</h3><button class="table-link" data-view-user-common>查看用户常用环境</button></div><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(record)}
     <div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('#adminDialog').classList.add('score-detail-dialog');
+  $('[data-view-user-common]').addEventListener('click', () => openUserCommonEnvironmentDialog(record, 'score'));
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
