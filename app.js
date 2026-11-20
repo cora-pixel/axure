@@ -317,6 +317,7 @@ const state = {
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+const readOnlyAlerts = document.body.hasAttribute('data-readonly-alerts');
 
 function scoreClass(score) {
   if (score >= 80) return 'score-healthy';
@@ -730,9 +731,12 @@ function renderAccountStatus(memberId) {
 
 function renderLoginAlerts(rows = loginAlertRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
-  $('#loginAlertTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button><button class="table-link" data-login-alert-verify="${row.id}">手动验证</button></td></tr>`).join('');
-  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = '<tr><td colspan="13" class="empty-table-cell">暂无数据</td></tr>';
+  $('#loginAlertTableBody').innerHTML = sortedRows.map(row => {
+    const selectCell = readOnlyAlerts ? '' : `<td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td>`;
+    const verifyButton = readOnlyAlerts ? '' : `<button class="table-link" data-login-alert-verify="${row.id}">手动验证</button>`;
+    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td><td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
+  }).join('');
+  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 12 : 13}" class="empty-table-cell">暂无数据</td></tr>`;
   $('#loginAlertTotal').textContent = sortedRows.length;
   const alertCount = loginAlertRows.length;
   if ($('#loginAlertTabBadge')) {
@@ -805,16 +809,17 @@ function renderBreakdownCondition(ruleName, fallback) {
 
 function openLoginAlertDetail(alertId) {
   const alert = loginAlertRows.find(item => item.id === alertId);
+  const verifyButton = readOnlyAlerts ? '' : `<button class="admin-btn secondary" data-alert-verify="${alert.id}">手动验证</button>`;
   const breakdownRows = alert.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${renderBreakdownRule(alert, item[0])}</td><td>${renderBreakdownCondition(item[0], item[1])}</td><td>${item[2]}</td></tr>`).join('');
   openDialog('登录评分告警明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div><div><span>验证状态</span><strong class="alert-record-status ${alert.status === '验证失败' ? 'failed' : alert.status === '验证通过' ? 'closed' : 'pending'}">${alert.status}</strong></div></div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
     <div class="detail-section"><div class="detail-section-head"><h3>本次评分明细</h3><button class="table-link" data-view-user-common>查看用户常用环境</button></div><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
     ${renderScoreVerificationSection(alert)}
-    <div class="admin-dialog-actions"><button class="admin-btn secondary" data-alert-verify="${alert.id}">手动验证</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+    <div class="admin-dialog-actions">${verifyButton}<button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('#adminDialog').classList.add('score-detail-dialog');
   $('[data-view-user-common]').addEventListener('click', () => openUserCommonEnvironmentDialog(alert, 'alert'));
-  $('[data-alert-verify]').addEventListener('click', () => openLoginAlertVerifyDialog(alert.id));
+  if (!readOnlyAlerts) $('[data-alert-verify]').addEventListener('click', () => openLoginAlertVerifyDialog(alert.id));
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
