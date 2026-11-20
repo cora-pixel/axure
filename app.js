@@ -16,6 +16,7 @@ const scoringConfig = {
   webVersionScore: 5,
   riskIpScore: 45,
   riskDeviceScore: 45,
+  alertThreshold: 60,
 };
 
 const riskTgidConfig = {
@@ -1135,7 +1136,7 @@ function configNumber(key, label = '', suffix = '') {
 function openScoringSettingsDialog() {
   const row = (id, title, condition, score) => `<tr><td><strong>${id}</strong><span>${title}</span></td><td><div class="config-fields">${condition}</div></td><td><div class="config-fields">${score}</div></td></tr>`;
   openDialog('规则设置', `
-    <p class="config-help">配置固定扣分值。每次登录从100分开始，命中哪项就扣哪项；扣分值无需输入负号。</p>
+    <p class="config-help">配置固定扣分值和告警阈值。每次登录从100分开始，命中哪项就扣哪项；扣分值无需输入负号。</p>
     <div class="config-table-wrap"><table class="config-table"><thead><tr><th>规则</th><th>触发条件</th><th>扣分值</th></tr></thead><tbody>
       ${row('S01', 'IP不常用', '当前IP不属于会员常用IP', configNumber('ipScore'))}
       ${row('S02', '城市不常用', '当前IP归属城市不属于会员常用城市', configNumber('cityScore'))}
@@ -1144,6 +1145,7 @@ function openScoringSettingsDialog() {
       ${row('S05', 'Web号异常', 'Web号缺失或不是当前最新打包版本', configNumber('webVersionScore'))}
       ${row('S06', '命中风险IP', '当前IP存在于风险IP名单', configNumber('riskIpScore'))}
       ${row('S07', '命中风险设备', '当前设备存在于风险设备名单', configNumber('riskDeviceScore'))}
+      ${row('告警阈值', '进入告警', '本次登录评分低于设定分数时进入登录评分告警', configNumber('alertThreshold', '低于', '分'))}
     </tbody></table></div>
     <p class="config-error" id="configError" aria-live="polite"></p>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-dialog-cancel>取消</button><button class="admin-btn" data-save-scoring>保存设置</button></div>
@@ -1154,8 +1156,8 @@ function openScoringSettingsDialog() {
     const values = {};
     $$('[data-config-key]').forEach(input => { values[input.dataset.configKey] = Number(input.value); });
     const invalidNumber = Object.values(values).some(value => !Number.isInteger(value) || value < 1);
-    if (invalidNumber) {
-      $('#configError').textContent = '请填写大于0的整数。';
+    if (invalidNumber || values.alertThreshold > 100) {
+      $('#configError').textContent = '扣分值需填写大于0的整数；告警阈值需填写1至100的整数。';
       return;
     }
     Object.assign(scoringConfig, values);
