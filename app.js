@@ -172,8 +172,8 @@ const loginScoreRows = [
 ];
 
 const riskIpRows = [
-  { value: '139.162.60.207', accounts: 126, healthy: 123, alerts: 3, logins: 486, tier: '达到30天90账号门槛', first: '2026-10-22 08:12', last: '2026-11-19 13:35', members: [['2861009', 'riskcity009@h8', 45, '告警'], ['2827144', 'evan001@h8', 100, '健康'], ['2862302', 'healthy302@h8', 90, '健康']] },
-  { value: '45.76.188.92', accounts: 96, healthy: 93, alerts: 3, logins: 274, tier: '达到30天90账号门槛', first: '2026-10-28 03:40', last: '2026-11-19 14:20', members: [['2861007', 'risknew007@h8', 5, '告警'], ['2827301', 'mika007@as', 55, '告警'], ['2862401', 'healthy401@as', 100, '健康']] },
+  { value: '139.162.60.207', accounts: 126, healthy: 123, alerts: 3, logins: 486, tier: '达到30天90账号门槛', first: '2026-10-22 08:12', last: '2026-11-19 13:35', whitelisted: false, members: [['2861009', 'riskcity009@h8', 45, '告警'], ['2827144', 'evan001@h8', 100, '健康'], ['2862302', 'healthy302@h8', 90, '健康']] },
+  { value: '45.76.188.92', accounts: 96, healthy: 93, alerts: 3, logins: 274, tier: '达到30天90账号门槛', first: '2026-10-28 03:40', last: '2026-11-19 14:20', whitelisted: false, members: [['2861007', 'risknew007@h8', 5, '告警'], ['2827301', 'mika007@as', 55, '告警'], ['2862401', 'healthy401@as', 100, '健康']] },
 ];
 
 const riskDeviceRows = [
@@ -183,7 +183,7 @@ const riskDeviceRows = [
 
 function isRiskEntityValue(type, value) {
   const rows = type === 'ip' ? riskIpRows : riskDeviceRows;
-  return rows.some(item => item.value === value);
+  return rows.some(item => item.value === value && (type !== 'ip' || !item.whitelisted));
 }
 
 function cityForIp(ip) {
@@ -366,6 +366,7 @@ function setFrontState(title, detail) {
 
 function showToast(message) {
   const toast = $('#toast');
+  if (!toast) return;
   toast.textContent = message;
   toast.classList.remove('hidden');
   window.clearTimeout(showToast.timer);
@@ -1111,8 +1112,14 @@ function openRiskEntityDetail(type, value) {
 function openRiskListDialog(type) {
   const isIp = type === 'ip';
   const rows = [...(isIp ? riskIpRows : riskDeviceRows)].sort((a, b) => b.accounts - a.accounts || b.logins - a.logins);
-  const listRows = rows.map(row => `<tr><td class="${isIp ? '' : 'device-value'}">${row.value}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td><td><button class="table-link" data-view-risk-records="${type}" data-risk-value="${row.value}">查看</button></td></tr>`).join('');
-  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th><th>操作</th></tr></thead><tbody>${listRows}</tbody></table></div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  const listRows = rows.map(row => {
+    const statusCell = isIp ? `<td><span class="risk-list-status ${row.whitelisted ? 'whitelisted' : 'active'}">${row.whitelisted ? '已加白' : '风险'}</span></td>` : '';
+    const whitelistAction = isIp ? `<button class="table-link risk-toggle-action" data-toggle-risk-ip="${row.value}">${row.whitelisted ? '标记风险' : '加白'}</button>` : '';
+    const displayValue = isIp && row.whitelisted ? `${row.value}<span class="risk-whitelist-label">（手动加白）</span>` : row.value;
+    return `<tr><td class="${isIp ? '' : 'device-value'}">${displayValue}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td>${statusCell}<td><button class="table-link" data-view-risk-records="${type}" data-risk-value="${row.value}">查看</button>${whitelistAction}</td></tr>`;
+  }).join('');
+  const statusHeader = isIp ? '<th>状态</th>' : '';
+  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th>${statusHeader}<th>操作</th></tr></thead><tbody>${listRows}</tbody></table>${isIp ? '<p class="detail-help">加白后仍保留在风险IP名单中，但后续登录不再按“命中风险IP”扣分；历史评分记录不回算。</p>' : ''}</div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $$('[data-view-risk-records]').forEach(button => button.addEventListener('click', () => {
     closeDialog();
     $('[data-admin-tab="records"]').click();
@@ -1124,6 +1131,13 @@ function openRiskListDialog(type) {
     $('#scoreRecordLoginDate').value = '';
     renderFilteredScoreRecords();
   }));
+  $$('[data-toggle-risk-ip]').forEach(button => button.onclick = () => {
+    const row = riskIpRows.find(item => item.value === button.dataset.toggleRiskIp);
+    if (!row) return;
+    row.whitelisted = !row.whitelisted;
+    showToast(row.whitelisted ? `已将${row.value}加白，名单记录继续保留` : `已将${row.value}重新标记为风险IP`);
+    openRiskListDialog('ip');
+  });
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
 }
 
