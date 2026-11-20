@@ -1136,16 +1136,17 @@ function openRiskEntityDetail(type, value) {
 
 function openRiskListDialog(type) {
   const isIp = type === 'ip';
+  const canManageRisk = !readOnlyAlerts || alertMonitor;
   const rows = [...(isIp ? riskIpRows : riskDeviceRows)].sort((a, b) =>
     Number(a.whitelisted) - Number(b.whitelisted) || b.accounts - a.accounts || b.logins - a.logins);
   const listRows = rows.map(row => {
     const statusCell = `<td><span class="risk-list-status ${row.whitelisted ? 'whitelisted' : 'active'}">${row.whitelisted ? '已加白' : '风险'}</span></td>`;
-    const whitelistAction = readOnlyAlerts ? '' : `<button class="table-link risk-toggle-action" data-toggle-risk-entity="${row.value}" data-risk-type="${type}">${row.whitelisted ? '标记风险' : '加白'}</button>`;
+    const whitelistAction = canManageRisk ? `<button class="table-link risk-toggle-action" data-toggle-risk-entity="${row.value}" data-risk-type="${type}">${row.whitelisted ? '标记风险' : '加白'}</button>` : '';
     const displayValue = row.whitelisted ? `${row.value}<span class="risk-whitelist-label">（手动加白）</span>` : row.value;
     return `<tr><td class="${isIp ? '' : 'device-value'}">${displayValue}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td>${statusCell}<td><button class="table-link" data-view-risk-records="${type}" data-risk-value="${row.value}">查看</button>${whitelistAction}</td></tr>`;
   }).join('');
-  const whitelistHelp = readOnlyAlerts ? '' : `<p class="detail-help">加白后仍保留在${isIp ? '风险IP' : '风险设备'}名单中，但后续登录不再按“命中${isIp ? '风险IP' : '风险设备'}”扣分；历史评分记录不回算。</p>`;
-  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table risk-list-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th><th>状态</th><th>${readOnlyAlerts ? '查看' : '操作'}</th></tr></thead><tbody>${listRows}</tbody></table>${whitelistHelp}</div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  const whitelistHelp = canManageRisk ? `<p class="detail-help">加白后仍保留在${isIp ? '风险IP' : '风险设备'}名单中，但后续登录不再按“命中${isIp ? '风险IP' : '风险设备'}”扣分；历史评分记录不回算。</p>` : '';
+  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table risk-list-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th><th>状态</th><th>${canManageRisk ? '操作' : '查看'}</th></tr></thead><tbody>${listRows}</tbody></table>${whitelistHelp}</div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $$('[data-view-risk-records]').forEach(button => button.addEventListener('click', () => {
     closeDialog();
     $('[data-admin-tab="records"]').click();
