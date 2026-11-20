@@ -19,7 +19,6 @@ const scoringConfig = {
   alertThreshold: 60,
 };
 
-const loginScoreScopeKey = 'cora001b.loginScoreScope';
 let loginScoreScope = { mode: 'agent', agentLineIds: [] };
 
 const riskTgidConfig = {
@@ -323,6 +322,8 @@ const state = {
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const readOnlyAlerts = document.body.hasAttribute('data-readonly-alerts');
+const alertMonitor = document.body.hasAttribute('data-alert-monitor');
+const loginScoreScopeKey = alertMonitor ? 'cora001b-monitor.loginScoreScope' : 'cora001b.loginScoreScope';
 
 function scoreClass(score) {
   if (score >= 80) return 'score-healthy';
@@ -604,7 +605,7 @@ function renderRules(filter = 'all') {
       <td>本次登录评分低于设定分数时进入登录评分告警</td>
       <td class="alert-threshold-score">低于${scoringConfig.alertThreshold}分</td>
       <td>满足即告警</td>
-      <td>可在“规则设置”中修改，支持1至100分</td>
+      <td>${alertMonitor ? '历史补算和新登录评分均按实际配置判断是否告警' : '可在“规则设置”中修改，支持1至100分'}</td>
     </tr>` : '';
   body.innerHTML = ruleRows + thresholdRow;
 }
@@ -822,7 +823,7 @@ function openLoginAlertDetail(alertId) {
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${alert.memberId}／${alert.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(alert.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(alert.score)}">${alert.score}</strong></div>${verificationStatus}</div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(alert, '控制结果')}</tbody></table></div>
     <div class="detail-section"><div class="detail-section-head"><h3>本次评分明细</h3><button class="table-link" data-view-user-common>查看用户常用环境</button></div><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
-    ${renderScoreVerificationSection(alert)}
+    ${alertMonitor ? '' : renderScoreVerificationSection(alert)}
     <div class="admin-dialog-actions">${verifyButton}<button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('#adminDialog').classList.add('score-detail-dialog');
   $('[data-view-user-common]').addEventListener('click', () => openUserCommonEnvironmentDialog(alert, 'alert'));
@@ -832,9 +833,15 @@ function openLoginAlertDetail(alertId) {
 
 function renderScoreRecords(rows = loginScoreRows) {
   const sortedRows = [...rows].sort((a, b) => b.time.localeCompare(a.time));
-  $('#scoreRecordTableBody').innerHTML = sortedRows.map(row => `
-    <tr><td>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<input type="checkbox" class="score-record-select" data-record-id="${row.id}" aria-label="选择${row.user}的评分记录">` : ''}</td><td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td><td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td><td>${renderAccountStatus(row.memberId)}</td><td class="record-note">${row.note || '--'}</td><td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${['待验证', '验证失败', '验证通过'].includes(row.disposition) ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : ''}</td></tr>`).join('');
-  if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = '<tr><td colspan="12" class="empty-table-cell">暂无数据</td></tr>';
+  $('#scoreRecordTableBody').innerHTML = sortedRows.map(row => {
+    const canVerify = !readOnlyAlerts && ['待验证', '验证失败', '验证通过'].includes(row.disposition);
+    const selectCell = readOnlyAlerts ? '' : `<td>${canVerify ? `<input type="checkbox" class="score-record-select" data-record-id="${row.id}" aria-label="选择${row.user}的评分记录">` : ''}</td>`;
+    const statusCell = readOnlyAlerts ? '' : `<td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td>`;
+    const noteCell = readOnlyAlerts ? '' : `<td class="record-note">${row.note || '--'}</td>`;
+    const verifyButton = canVerify ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : '';
+    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${statusCell}<td>${renderAccountStatus(row.memberId)}</td>${noteCell}<td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
+  }).join('');
+  if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 9 : 12}" class="empty-table-cell">暂无数据</td></tr>`;
   $('#scoreRecordTotal').textContent = sortedRows.length;
   $$('[data-score-record-detail]').forEach(button => button.addEventListener('click', () => openScoreRecordDetail(button.dataset.scoreRecordDetail)));
   $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openScoreRecordVerifyDialog(button.dataset.scoreRecordVerify)));
@@ -857,7 +864,7 @@ function renderFilteredScoreRecords() {
   const type = $('#scoreRecordSearchType').value;
   const keyword = $('#scoreRecordKeyword').value.trim().toLowerCase();
   const tier = $('#scoreRecordTier').value;
-  const status = $('#scoreRecordStatus').value;
+  const status = $('#scoreRecordStatus')?.value ?? 'all';
   const accountStatus = $('#scoreRecordAccountStatus').value;
   const loginStart = $('#scoreRecordLoginStart').value;
   const loginEnd = $('#scoreRecordLoginEnd').value;
@@ -878,14 +885,15 @@ function renderFilteredScoreRecords() {
 
 function openScoreRecordDetail(recordId) {
   const record = loginScoreRows.find(item => item.id === recordId);
+  const verificationStatus = readOnlyAlerts ? '' : `<div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div>`;
   const breakdownRows = record.breakdown.length
     ? record.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${renderBreakdownRule(record, item[0])}</td><td>${renderBreakdownCondition(item[0], item[1])}</td><td>${item[2]}</td></tr>`).join('')
     : '<tr><td colspan="4">本次登录未命中扣分规则</td></tr>';
   openDialog('登录评分明细', `
-    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div><div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div></div>
+    <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div>${verificationStatus}</div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(record, '建议动作')}</tbody></table></div>
     <div class="detail-section"><div class="detail-section-head"><h3>本次评分明细</h3><button class="table-link" data-view-user-common>查看用户常用环境</button></div><table class="mini-table"><thead><tr><th>顺序</th><th>规则</th><th>命中内容</th><th>扣分</th></tr></thead><tbody>${breakdownRows}</tbody></table></div>
-    ${renderScoreVerificationSection(record)}
+    ${alertMonitor ? '' : renderScoreVerificationSection(record)}
     <div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('#adminDialog').classList.add('score-detail-dialog');
   $('[data-view-user-common]').addEventListener('click', () => openUserCommonEnvironmentDialog(record, 'score'));
@@ -1132,11 +1140,12 @@ function openRiskListDialog(type) {
     Number(a.whitelisted) - Number(b.whitelisted) || b.accounts - a.accounts || b.logins - a.logins);
   const listRows = rows.map(row => {
     const statusCell = `<td><span class="risk-list-status ${row.whitelisted ? 'whitelisted' : 'active'}">${row.whitelisted ? '已加白' : '风险'}</span></td>`;
-    const whitelistAction = `<button class="table-link risk-toggle-action" data-toggle-risk-entity="${row.value}" data-risk-type="${type}">${row.whitelisted ? '标记风险' : '加白'}</button>`;
+    const whitelistAction = readOnlyAlerts ? '' : `<button class="table-link risk-toggle-action" data-toggle-risk-entity="${row.value}" data-risk-type="${type}">${row.whitelisted ? '标记风险' : '加白'}</button>`;
     const displayValue = row.whitelisted ? `${row.value}<span class="risk-whitelist-label">（手动加白）</span>` : row.value;
     return `<tr><td class="${isIp ? '' : 'device-value'}">${displayValue}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td>${statusCell}<td><button class="table-link" data-view-risk-records="${type}" data-risk-value="${row.value}">查看</button>${whitelistAction}</td></tr>`;
   }).join('');
-  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table risk-list-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th><th>状态</th><th>操作</th></tr></thead><tbody>${listRows}</tbody></table><p class="detail-help">加白后仍保留在${isIp ? '风险IP' : '风险设备'}名单中，但后续登录不再按“命中${isIp ? '风险IP' : '风险设备'}”扣分；历史评分记录不回算。</p></div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  const whitelistHelp = readOnlyAlerts ? '' : `<p class="detail-help">加白后仍保留在${isIp ? '风险IP' : '风险设备'}名单中，但后续登录不再按“命中${isIp ? '风险IP' : '风险设备'}”扣分；历史评分记录不回算。</p>`;
+  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table risk-list-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th><th>状态</th><th>${readOnlyAlerts ? '查看' : '操作'}</th></tr></thead><tbody>${listRows}</tbody></table>${whitelistHelp}</div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $$('[data-view-risk-records]').forEach(button => button.addEventListener('click', () => {
     closeDialog();
     $('[data-admin-tab="records"]').click();
@@ -1144,7 +1153,8 @@ function openRiskListDialog(type) {
     $('#scoreRecordKeyword').value = button.dataset.riskValue;
     $('#scoreRecordKeyword').placeholder = button.dataset.viewRiskRecords === 'ip' ? '输入登录IP' : '输入登录设备号';
     $('#scoreRecordTier').value = 'all';
-    $('#scoreRecordStatus').value = 'all';
+    if ($('#scoreRecordStatus')) $('#scoreRecordStatus').value = 'all';
+    if (alertMonitor) $('#scoreRecordAccountStatus').value = 'all';
     $('#scoreRecordLoginStart').value = '';
     $('#scoreRecordLoginEnd').value = '';
     renderFilteredScoreRecords();
@@ -1899,7 +1909,7 @@ if ($('#scoreRecordResetBtn')) $('#scoreRecordResetBtn').addEventListener('click
   $('#scoreRecordKeyword').value = '';
   $('#scoreRecordKeyword').placeholder = '输入会员ID';
   $('#scoreRecordTier').value = 'all';
-  $('#scoreRecordStatus').value = 'all';
+  if ($('#scoreRecordStatus')) $('#scoreRecordStatus').value = 'all';
   $('#scoreRecordAccountStatus').value = 'all';
   $('#scoreRecordLoginStart').value = '';
   $('#scoreRecordLoginEnd').value = '';
