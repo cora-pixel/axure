@@ -361,10 +361,14 @@ main { padding: 20px; }
 .account-score-table td:last-child { white-space: nowrap; }
 .account-score-table td:last-child .table-link { padding: 0 2px; }
 .score-condition { line-height: 1.55; overflow-wrap: anywhere; }
+.login-alert-filter { flex-wrap: wrap; }
 .login-alert-filter label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .login-alert-filter label:first-child { gap: 0; }
 .login-alert-filter label:first-child select { width: 100px; }
 .login-alert-filter label:first-child input { width: 210px; }
+.login-alert-filter .login-time-range { gap: 6px; }
+.login-alert-filter .login-time-range input { width: 176px; }
+.login-alert-filter .login-time-range em { color: #596a74; font-style: normal; }
 .login-alert-table { min-width: 2070px; }
 .login-alert-table th:nth-child(1) { width: 44px; }
 .login-alert-table th:nth-child(2) { width: 82px; }

@@ -847,15 +847,20 @@ function renderFilteredScoreRecords() {
   const tier = $('#scoreRecordTier').value;
   const status = $('#scoreRecordStatus').value;
   const accountStatus = $('#scoreRecordAccountStatus').value;
-  const loginDate = $('#scoreRecordLoginDate').value;
+  const loginStart = $('#scoreRecordLoginStart').value;
+  const loginEnd = $('#scoreRecordLoginEnd').value;
+  const loginStartTime = loginStart ? new Date(loginStart).getTime() : null;
+  const loginEndTime = loginEnd ? new Date(loginEnd).getTime() : null;
   renderScoreRecords(loginScoreRows.filter(row => {
     const searchable = { memberId: row.memberId, user: row.user, ip: row.ip, device: row.device }[type].toLowerCase();
     const displayStatus = row.disposition === '无需处置' ? '正常' : row.disposition;
+    const rowLoginTime = new Date(row.time.replace(' ', 'T')).getTime();
     return (!keyword || searchable.includes(keyword)) &&
       (tier === 'all' || matchesScoreTier(row.score, tier)) &&
       (status === 'all' || displayStatus === status) &&
       (accountStatus === 'all' || memberAccountStatus(row.memberId) === accountStatus) &&
-      (!loginDate || formatLoginTime(row.time) === loginDate.replace('T', ' '));
+      (loginStartTime === null || rowLoginTime >= loginStartTime) &&
+      (loginEndTime === null || rowLoginTime <= loginEndTime);
   }));
 }
 
@@ -1127,7 +1132,8 @@ function openRiskListDialog(type) {
     $('#scoreRecordKeyword').placeholder = button.dataset.viewRiskRecords === 'ip' ? '输入登录IP' : '输入登录设备号';
     $('#scoreRecordTier').value = 'all';
     $('#scoreRecordStatus').value = 'all';
-    $('#scoreRecordLoginDate').value = '';
+    $('#scoreRecordLoginStart').value = '';
+    $('#scoreRecordLoginEnd').value = '';
     renderFilteredScoreRecords();
   }));
   $$('[data-toggle-risk-entity]').forEach(button => button.onclick = () => {
@@ -1813,7 +1819,8 @@ if ($('#scoreRecordResetBtn')) $('#scoreRecordResetBtn').addEventListener('click
   $('#scoreRecordTier').value = 'all';
   $('#scoreRecordStatus').value = 'all';
   $('#scoreRecordAccountStatus').value = 'all';
-  $('#scoreRecordLoginDate').value = '';
+  $('#scoreRecordLoginStart').value = '';
+  $('#scoreRecordLoginEnd').value = '';
   renderScoreRecords();
 });
 if ($('#dialogMask')) $('#dialogMask').addEventListener('click', event => { if (event.target === $('#dialogMask')) closeDialog(); });
