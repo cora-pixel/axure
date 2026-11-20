@@ -248,10 +248,10 @@ const commonEnvironmentByMember = {
 
 const commonEnvironmentDisplayByUser = {
   'travelweb014@h8': {
-    ips: ['118.31.22.14', '139.162.14.14'],
-    cities: ['杭州市', '上海市'],
-    devices: ['Web-H5-COMMON14', 'iOS-Safari-HISTORY14'],
-    deviceInfos: ['Windows 11 / Chrome 130 / H5', 'iOS 18 / Safari / H5'],
+    ips: ['118.31.22.14', '118.31.22.114', '118.31.88.14', '139.162.14.14'],
+    cities: ['杭州市', '杭州市', '杭州市', '上海市'],
+    devices: ['Win10-Chrome-PC14', 'Web-H5-COMMON14', 'iOS-Safari-HISTORY14'],
+    deviceInfos: ['Windows 10 / Chrome 130 / PC', 'Windows 11 / Chrome 130 / H5', 'iOS 18 / Safari / H5'],
   },
 };
 
