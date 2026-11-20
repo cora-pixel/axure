@@ -19,6 +19,9 @@ const scoringConfig = {
   alertThreshold: 60,
 };
 
+const loginScoreScopeKey = 'cora001b.loginScoreScope';
+let loginScoreScope = { mode: 'agent', agentLineIds: [] };
+
 const riskTgidConfig = {
   baseValue: '',
   defaultValue: '',
@@ -1208,6 +1211,64 @@ function openScoringSettingsDialog() {
   });
 }
 
+function renderLoginScoreScope() {
+  const { mode, agentLineIds } = loginScoreScope;
+  $('#loginScoreScopeSummary').textContent = mode === 'all'
+    ? '全部用户'
+    : agentLineIds.length ? `指定代理线（${agentLineIds.length}条）` : '指定代理线（未配置，不评分）';
+}
+
+function openLoginScoreScopeDialog() {
+  openDialog('登录评分范围', `
+    <form id="loginScoreScopeForm">
+      <div class="admin-form">
+        <span id="loginScoreScopeLabel">适用用户</span>
+        <div class="manual-result-options" role="group" aria-labelledby="loginScoreScopeLabel">
+          <label><input type="radio" name="loginScoreScope" value="agent" ${loginScoreScope.mode === 'agent' ? 'checked' : ''}>指定代理线</label>
+          <label><input type="radio" name="loginScoreScope" value="all" ${loginScoreScope.mode === 'all' ? 'checked' : ''}>全部用户</label>
+        </div>
+      </div>
+      <div data-login-score-agent-fields>
+        <div class="admin-form"><label for="loginScoreAgentLineIds">代理线 ID</label><textarea id="loginScoreAgentLineIds" placeholder="每行一个，也可用逗号分隔"></textarea></div>
+      </div>
+      <p class="config-help" id="loginScoreScopeImpact"></p>
+      <p class="config-help">仅适用于保存后的新登录。历史记录补算仍按实际评分规则和告警阈值处理。</p>
+      <p class="config-error" id="loginScoreScopeError" aria-live="polite"></p>
+      <div class="admin-dialog-actions"><button type="button" class="admin-btn secondary" data-dialog-cancel>取消</button><button type="submit" class="admin-btn">保存设置</button></div>
+    </form>`);
+  const form = $('#loginScoreScopeForm');
+  const input = $('#loginScoreAgentLineIds');
+  const error = $('#loginScoreScopeError');
+  input.value = loginScoreScope.agentLineIds.join('\n');
+  const updateMode = () => {
+    const allUsers = form.elements.loginScoreScope.value === 'all';
+    $('[data-login-score-agent-fields]').hidden = allUsers;
+    input.disabled = allUsers;
+    $('#loginScoreScopeImpact').textContent = allUsers
+      ? '保存后，所有用户的新登录都会触发评分。'
+      : '仅所填代理线下用户的新登录参与评分；留空时不对任何新登录评分。';
+    error.textContent = '';
+  };
+  updateMode();
+  $$('[name="loginScoreScope"]').forEach(radio => radio.addEventListener('change', updateMode));
+  $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const mode = form.elements.loginScoreScope.value;
+    const agentLineIds = mode === 'agent' ? [...new Set(input.value.split(/[\s,，]+/).filter(Boolean))] : [];
+    const next = { mode, agentLineIds };
+    try {
+      localStorage.setItem(loginScoreScopeKey, JSON.stringify(next));
+    } catch {
+      error.textContent = '当前浏览器无法保存设置，请确认浏览器允许存储网站数据。';
+      return;
+    }
+    loginScoreScope = next;
+    renderLoginScoreScope();
+    closeDialog();
+  });
+}
+
 function renderRiskTgidConfigRow() {
   if (!$('#riskTgidBaseValue')) return;
   $('#riskTgidBaseValue').textContent = riskTgidConfig.baseValue || '—';
@@ -1674,6 +1735,17 @@ if ($('#modalMask')) $('#modalMask').addEventListener('click', event => {
 if ($('#password')) $('#password').addEventListener('keydown', event => { if (event.key === 'Enter') startLoginFlow(); });
 
 if ($('#ruleSettingsBtn')) $('#ruleSettingsBtn').addEventListener('click', openScoringSettingsDialog);
+if ($('#loginScoreScopeBtn')) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(loginScoreScopeKey));
+    if (saved && ['agent', 'all'].includes(saved.mode) && Array.isArray(saved.agentLineIds) &&
+        saved.agentLineIds.every(id => typeof id === 'string')) loginScoreScope = saved;
+  } catch {
+    // Keep scoring limited when no valid configuration can be read.
+  }
+  renderLoginScoreScope();
+  $('#loginScoreScopeBtn').addEventListener('click', openLoginScoreScopeDialog);
+}
 if ($('#editBandsBtn')) $('#editBandsBtn').addEventListener('click', openBandsDialog);
 if ($('#websiteManagementMenu')) $('#websiteManagementMenu').addEventListener('click', event => {
   if (event.target.closest('#basicConfigMenu')) return;

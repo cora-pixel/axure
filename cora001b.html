@@ -73,9 +73,9 @@
           </div>
 
           <div class="admin-tab-panel" id="rulesPanel">
-            <div class="account-page-head">
-              <div><h1>评分规则设置</h1><p>命中哪项就扣哪项；风险项可继续扣至最低0分</p></div>
-              <button class="admin-btn" id="ruleSettingsBtn">规则设置</button>
+            <div class="account-page-head scoring-settings-head">
+              <div><h1>评分规则设置</h1><p>命中哪项就扣哪项；风险项可继续扣至最低0分</p><p>登录评分范围：<strong id="loginScoreScopeSummary">指定代理线（未配置，不评分）</strong></p></div>
+              <div class="account-head-actions"><button class="admin-btn secondary" id="loginScoreScopeBtn">登录评分范围</button><button class="admin-btn" id="ruleSettingsBtn">规则设置</button></div>
             </div>
             <div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>判断条件</th><th>扣分</th><th>累计方式</th><th>说明</th></tr></thead><tbody id="ruleTableBody"></tbody></table></div>
           </div>

@@ -309,6 +309,10 @@ main { padding: 20px; }
 .account-page-head p { margin: 4px 0 0; color: #6c7d84; font-size: 12px; }
 .alert-model-note { padding: 8px 12px; color: #2f5c53; background: #edf7f3; border: 1px solid #78aa9c; border-top: 0; font-size: 12px; line-height: 1.5; }
 .account-head-actions { display: flex; align-items: center; gap: 12px; }
+.scoring-settings-head,
+.scoring-settings-head .account-head-actions { flex-wrap: wrap; gap: 8px 12px; }
+#loginScoreScopeForm .manual-result-options { flex-wrap: wrap; gap: 4px 18px; }
+#loginScoreScopeForm [data-login-score-agent-fields]:not([hidden]) { margin-top: 10px; }
 .admin-btn.danger { border-color: #d9a09c; color: #b43a35; background: #f8e7e5; }
 .admin-btn.danger:hover { background: #f2d4d1; }
 .risk-quick-group { display: flex; align-items: center; gap: 8px; }
