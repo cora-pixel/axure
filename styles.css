@@ -466,6 +466,8 @@ main { padding: 20px; }
 .risk-list-status.whitelisted { color: #4c8a35; }
 .risk-whitelist-label { color: #4c8a35; font-weight: 700; white-space: nowrap; }
 .risk-toggle-action { margin-left: 8px; }
+.risk-list-table th,
+.risk-list-table td { text-align: center; vertical-align: middle; }
 .config-fields { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
 .config-number { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .config-number span { color: #596a74; }
