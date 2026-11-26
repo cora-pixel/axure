@@ -281,6 +281,7 @@ const commonEnvironmentByMember = {
     ips: [['139.162.87.78', '72', '2026-11-15 20:18', '阈值命中'], ['47.76.91.34', '53', '2026-11-12 09:42', '阈值命中']],
     citiesQualifiedByLogins: ['广州市'],
     devices: [['Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW', '32', '2026-11-15 20:18', '阈值命中'], ['iOS-Safari-JRPu3of08JTLzcQXOVB8', '9', '2026-11-08 18:06', '验证通过']],
+    registration: { ip: '139.162.87.78', device: 'Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW' },
   },
   '2826222': {
     ips: [['202.55.225.254', '26', '2026-11-16 22:10', '阈值命中']],
@@ -344,18 +345,20 @@ function commonEnvironmentForRow(row) {
   const deviceInfos = configured?.deviceInfos || [...new Set(displayDevices.map(deviceInfoForDevice).filter(info => info !== '未获取'))];
   const displayDeviceInfos = deviceInfos.length ? deviceInfos : ['暂无常用设备信息'];
   return { ips: displayIps, cities: displayCities, commonCities: [...commonCities].map(([city, source]) => ({ city, source })),
-    devices: displayDevices, deviceInfos: displayDeviceInfos };
+    devices: displayDevices, deviceInfos: displayDeviceInfos, registration: stored.registration };
 }
 
 function openUserCommonEnvironmentDialog(row, source) {
   const environment = commonEnvironmentForRow(row);
+  const registrationTag = (type, value, label) => alertMonitor && environment.registration?.[type] === value
+    ? ` <span class="common-registration-label">${label}</span>` : '';
   const ipRows = environment.ips.map((ip, index) => {
     const { country, city } = ipLocation(ip);
     const locationCells = alertMonitor ? `<td>${country}</td><td>${city}</td>` : `<td>${environment.cities[index] || city}</td>`;
-    return `<tr><td>${index + 1}</td><td>${ip}</td>${locationCells}</tr>`;
+    return `<tr><td>${index + 1}</td><td>${ip}${registrationTag('ip', ip, '注册IP')}</td>${locationCells}</tr>`;
   }).join('');
   const cityRows = environment.commonCities.map(({ city, source }, index) => `<tr><td>${index + 1}</td><td>${city}</td><td>${source}</td></tr>`).join('');
-  const deviceRows = environment.devices.map((device, index) => `<tr><td>${index + 1}</td><td class="device-value">${device}</td><td>${environment.deviceInfos[index] || deviceInfoForDevice(device)}</td></tr>`).join('');
+  const deviceRows = environment.devices.map((device, index) => `<tr><td>${index + 1}</td><td class="device-value">${device}${registrationTag('device', device, '注册设备')}</td><td>${environment.deviceInfos[index] || deviceInfoForDevice(device)}</td></tr>`).join('');
   openDialog('用户常用环境', `
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
     <div class="detail-section"><h3>${alertMonitor ? '常用IP' : 'IP维度'}</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用IP</th>${alertMonitor ? '<th>归属国家／地区</th><th>归属城市</th>' : '<th>对应城市</th>'}</tr></thead><tbody>${ipRows || `<tr><td colspan="${alertMonitor ? 4 : 3}">暂无常用IP</td></tr>`}</tbody></table></div>
