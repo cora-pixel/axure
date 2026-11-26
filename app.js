@@ -222,6 +222,18 @@ if (alertMonitor) {
     loginScoreRows.push({ ...alert, id: `SR-${id}`, alerted: true });
     scoreRecordKeys.add(key);
   }
+  // Correct the old demo snapshots that deducted points for missing devices.
+  for (const row of [...loginAlertRows, ...loginScoreRows]) {
+    if (row.device !== '未获取') continue;
+    const breakdown = row.breakdown.filter(([rule]) => !/^S0[34] /.test(rule));
+    if (breakdown.length === row.breakdown.length) continue;
+    row.breakdown = breakdown;
+    row.score = Math.max(0, 100 + breakdown.reduce((total, [, , deduction]) => total + Number(deduction), 0));
+    row.condition = breakdown.map(([, reason]) => reason).join('；') || '无扣分条件';
+    row.alerted = row.score < scoringConfig.alertThreshold;
+  }
+  const correctedAlerts = loginAlertRows.filter(row => row.device !== '未获取' || row.score < scoringConfig.alertThreshold);
+  loginAlertRows.splice(0, loginAlertRows.length, ...correctedAlerts);
 }
 
 const riskIpRows = [
@@ -280,7 +292,7 @@ function loginEnvironmentProfile(row) {
   const commonCities = alertMonitor
     ? commonEnvironmentForRow(row).commonCities.map(item => item.city).join('、') || '暂无常用城市'
     : row.condition.includes('城市不常用') ? '上海市、杭州市' : city;
-  const deviceInfo = row.deviceInfo ?? deviceInfoForDevice(row.device);
+  const deviceInfo = row.deviceInfo ?? (alertMonitor && row.device === '未获取' ? '未采集' : deviceInfoForDevice(row.device));
   const buildVersion = row.condition.includes('Web号缺失')
     ? '未获取'
     : row.condition.includes('Web号非最新') || row.condition.includes('不是最新')
@@ -301,7 +313,7 @@ function renderLoginEnvironmentRows(row, actionLabel) {
     <tr><td>设备信息</td><td>${environment.deviceInfo}</td><td>构建版本</td><td>${environment.buildVersion}</td></tr>
     ${deviceBaselineRow}
     ${readOnlyAlerts
-      ? `<tr><td>扣分判断条件</td><td colspan="3">${row.condition}</td></tr>`
+      ? `<tr><td>扣分判断条件</td><td colspan="3">${row.condition}</td></tr>${alertMonitor ? `<tr><td>备注</td><td colspan="3">${monitorScoreRemark(row)}</td></tr>` : ''}`
       : `<tr><td>${actionLabel}</td><td>${row.control}</td><td>扣分判断条件</td><td>${row.condition}</td></tr>
     <tr><td>备注</td><td colspan="3">${row.note || '--'}</td></tr>`}`;
 }
@@ -346,6 +358,16 @@ const commonEnvironmentDisplayByUser = {
 };
 
 const commonDeviceScoreCondition = '使用常用设备号';
+
+function monitorScoreRemark(row) {
+  if (row.device === '未获取') return '设备号缺失,设备不扣分';
+  if (row.score === 100 && row.condition === commonDeviceScoreCondition) return '使用常用设备号，直接计100分';
+  return '--';
+}
+
+function monitorScoreRemarkCell(row) {
+  return alertMonitor ? `<td class="score-remark">${monitorScoreRemark(row)}</td>` : '';
+}
 
 function scoreMonitorCommonDevice(row, eligibleDevices) {
   if (row.deviceValid !== true || !row.device || row.riskIp || row.riskDevice || !eligibleDevices.includes(row.device)) return null;
@@ -747,9 +769,9 @@ function monitorRuleDescription(id) {
     case 'S02':
       return `仍可用的常用IP所在城市直接认定。${city.disabled ? '按同城次数补充认定已禁用。' : `其他城市滚动${city.days}天内同城成功登录至少${city.count}次，计数间隔至少24小时；可跨IP、跨端，风险IP登录不计。`}`;
     case 'S03':
-      return `PC、H5、App分开。${device.disabled ? '按登录次数认定已禁用。' : `同端同一有效设备号滚动${device.days}天内成功登录至少${device.count}次，计数间隔至少24小时；普通常用设备满${device.expiryDays}天未有效使用即过期。`}有效注册设备只在注册端认定，不按时间过期；风险设备不算常用。本端没有可用常用设备不扣此项。`;
+      return `PC、H5、App分开。${device.disabled ? '按登录次数认定已禁用。' : `同端同一有效设备号滚动${device.days}天内成功登录至少${device.count}次，计数间隔至少24小时；普通常用设备满${device.expiryDays}天未有效使用即过期。`}有效注册设备只在注册端认定，不按时间过期；风险设备不算常用。本端没有可用常用设备不扣此项；未获取设备号时，设备两项均不扣分。`;
     case 'S04':
-      return '只和同端常用设备的完整设备信息比较，不单独累计次数。无可比常用设备不扣此项；未采集不标记为匹配。';
+      return '只和同端常用设备的完整设备信息比较，不单独累计次数。无可比常用设备、未获取设备号或未采集完整设备信息时，不扣此项，也不记为匹配。';
     case 'S05':
       return '仅检查适用的Web构建版本：未上报或不是当前最新打包版本时扣分。构建版本不用于识别设备。';
     case 'S06': return monitorRiskRuleDescription('ip');
@@ -915,9 +937,9 @@ function renderLoginAlerts(rows = loginAlertRows) {
     const selectCell = readOnlyAlerts ? '' : `<td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td>`;
     const verifyButton = readOnlyAlerts ? '' : `<button class="table-link" data-login-alert-verify="${row.id}">手动验证</button>`;
     const operationCells = readOnlyAlerts ? '' : `<td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td>`;
-    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskLoginDevice(row) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${operationCells}<td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
+    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskLoginDevice(row) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${operationCells}<td>${renderAccountStatus(row.memberId)}</td>${monitorScoreRemarkCell(row)}<td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
   }).join('');
-  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 9 : 13}" class="empty-table-cell">暂无数据</td></tr>`;
+  if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = `<tr><td colspan="${alertMonitor ? 10 : readOnlyAlerts ? 9 : 13}" class="empty-table-cell">暂无数据</td></tr>`;
   $('#loginAlertTotal').textContent = sortedRows.length;
   const alertCount = loginAlertRows.length;
   if ($('#loginAlertTabBadge')) {
@@ -1013,9 +1035,9 @@ function renderScoreRecords(rows = loginScoreRows) {
     const statusCell = readOnlyAlerts ? '' : `<td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td>`;
     const noteCell = readOnlyAlerts ? '' : `<td class="record-note">${row.note || '--'}</td>`;
     const verifyButton = canVerify ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : '';
-    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskLoginDevice(row) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${statusCell}<td>${renderAccountStatus(row.memberId)}</td>${noteCell}<td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
+    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskLoginDevice(row) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${statusCell}<td>${renderAccountStatus(row.memberId)}</td>${noteCell}${monitorScoreRemarkCell(row)}<td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
   }).join('');
-  if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 9 : 12}" class="empty-table-cell">暂无数据</td></tr>`;
+  if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = `<tr><td colspan="${alertMonitor ? 10 : readOnlyAlerts ? 9 : 12}" class="empty-table-cell">暂无数据</td></tr>`;
   $('#scoreRecordTotal').textContent = sortedRows.length;
   $$('[data-score-record-detail]').forEach(button => button.addEventListener('click', () => openScoreRecordDetail(button.dataset.scoreRecordDetail)));
   $$('[data-score-record-verify]').forEach(button => button.addEventListener('click', () => openScoreRecordVerifyDialog(button.dataset.scoreRecordVerify)));

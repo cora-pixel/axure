@@ -423,6 +423,9 @@ main { padding: 20px; }
 [data-readonly-alerts] .login-alert-table th:last-child { width: 90px; }
 [data-readonly-alerts] .login-alert-table :is(th, td):not(:nth-child(7)) { text-align: center; }
 [data-readonly-alerts] .login-alert-table td:nth-child(7) { text-align: left; }
+[data-alert-monitor] .login-alert-table { min-width: 1510px; }
+[data-alert-monitor] .login-alert-table th:nth-child(9) { width: 180px; }
+[data-alert-monitor] .login-alert-table td.score-remark { text-align: left; overflow-wrap: anywhere; }
 .score-record-table { min-width: 2034px; }
 .score-record-table th:nth-child(1) { width: 44px; }
 .score-record-table th:nth-child(2) { width: 82px; }
