@@ -360,7 +360,7 @@ const commonEnvironmentDisplayByUser = {
 const commonDeviceScoreCondition = '使用常用设备号';
 
 function monitorScoreRemark(row) {
-  if (row.device === '未获取') return '设备号缺失,设备不扣分';
+  if (row.device === '未获取') return '设备号缺失,设备号和设备信息不扣分';
   if (row.score === 100 && row.condition === commonDeviceScoreCondition) return '使用常用设备号，直接计100分';
   return '--';
 }
