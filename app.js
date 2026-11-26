@@ -213,6 +213,17 @@ const loginScoreRows = [
   { id: 'SR202611190021', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 15:40', ip: '45.76.188.92', device: 'Win10-Chrome-RISK51Hxm8K2p', riskIp: true, riskDevice: true, score: 10, condition: '命中风险IP；命中风险设备', control: '手动冻结', disposition: '验证失败', note: '同一会员再次触发风险登录，保留告警', alerted: true, breakdown: [['S06 风险IP', '30天内关联96个账号', '-45'], ['S07 风险设备', '30天内关联118个账号', '-45']] },
 ];
 
+if (alertMonitor) {
+  const loginKey = row => JSON.stringify([row.memberId, row.time, row.ip, row.device]);
+  const scoreRecordKeys = new Set(loginScoreRows.map(loginKey));
+  for (const { id, ...alert } of loginAlertRows) {
+    const key = loginKey(alert);
+    if (scoreRecordKeys.has(key)) continue;
+    loginScoreRows.push({ ...alert, id: `SR-${id}`, alerted: true });
+    scoreRecordKeys.add(key);
+  }
+}
+
 const riskIpRows = [
   { value: '139.162.60.207', accounts: 126, healthy: 123, alerts: 3, logins: 486, tier: '达到30天90账号门槛', first: '2026-10-22 08:12', last: '2026-11-19 13:35', whitelisted: false, members: [['2861009', 'riskcity009@h8', 45, '告警'], ['2827144', 'evan001@h8', 100, '健康'], ['2862302', 'healthy302@h8', 90, '健康']] },
   { value: '45.76.188.92', accounts: 96, healthy: 93, alerts: 3, logins: 274, tier: '达到30天90账号门槛', first: '2026-10-28 03:40', last: '2026-11-19 14:20', whitelisted: false, members: [['2861007', 'risknew007@h8', 5, '告警'], ['2827301', 'mika007@as', 55, '告警'], ['2862401', 'healthy401@as', 100, '健康']] },
@@ -222,10 +233,23 @@ const riskDeviceRows = [
   { value: 'Win10-Chrome-RISK51Hxm8K2p', accounts: 118, healthy: 115, alerts: 3, logins: 412, tier: '达到30天90账号门槛', first: '2026-10-23 22:18', last: '2026-11-19 15:46', whitelisted: false, members: [['2795074', 'hxm001@as', 10, '告警'], ['2861006', 'riskdevcity006@h8', 45, '告警'], ['2862501', 'healthy501@as', 100, '健康']] },
   { value: 'Android-Chrome-RISK15', accounts: 94, healthy: 92, alerts: 2, logins: 215, tier: '达到30天90账号门槛', first: '2026-10-30 14:20', last: '2026-11-19 14:05', whitelisted: false, members: [['2861011', 'riskdev011@h8', 55, '告警'], ['2862601', 'healthy601@as', 90, '健康'], ['2862602', 'healthy602@as', 100, '健康']] },
 ];
+if (alertMonitor) {
+  riskDeviceRows[0].channel = 'PC';
+  riskDeviceRows[1].channel = 'H5';
+}
 
-function isRiskEntityValue(type, value) {
+function isRiskEntityValue(type, value, channel) {
   const rows = type === 'ip' ? riskIpRows : riskDeviceRows;
-  return rows.some(item => item.value === value && !item.whitelisted);
+  return rows.some(item => item.value === value && !item.whitelisted &&
+    (!alertMonitor || type === 'ip' || item.channel === channel));
+}
+
+function loginChannel(row) {
+  return row.channel || (row.device && row.device !== '未获取' ? deviceInfoForDevice(row.device).split(' / ').at(-1) : '未获取');
+}
+
+function isRiskLoginDevice(row) {
+  return (!alertMonitor || row.deviceValid !== false) && isRiskEntityValue('device', row.device, loginChannel(row));
 }
 
 const prototypeIpLocations = [
@@ -267,9 +291,15 @@ function loginEnvironmentProfile(row) {
 
 function renderLoginEnvironmentRows(row, actionLabel) {
   const environment = loginEnvironmentProfile(row);
-  return `<tr><td>登录IP</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-detail-value' : ''}">${row.ip}</td><td>登录设备</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-detail-value' : ''}">${row.device}</td></tr>
+  const channelRow = alertMonitor
+    ? `<tr><td>登录渠道</td><td colspan="3">${loginChannel(row)}</td></tr>` : '';
+  const deviceBaselineRow = alertMonitor && row.noCommonDeviceOnChannel
+    ? '<tr><td>设备判断</td><td colspan="3">本端没有可用的常用设备，设备号和设备信息均不扣分。</td></tr>' : '';
+  return `<tr><td>登录IP</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-detail-value' : ''}">${row.ip}</td><td>登录设备</td><td class="device-value ${isRiskLoginDevice(row) ? 'risk-detail-value' : ''}">${row.device}</td></tr>
     <tr><td>登录城市</td><td>${environment.city}</td><td>常用城市</td><td>${environment.commonCities}</td></tr>
+    ${channelRow}
     <tr><td>设备信息</td><td>${environment.deviceInfo}</td><td>构建版本</td><td>${environment.buildVersion}</td></tr>
+    ${deviceBaselineRow}
     ${readOnlyAlerts
       ? `<tr><td>扣分判断条件</td><td colspan="3">${row.condition}</td></tr>`
       : `<tr><td>${actionLabel}</td><td>${row.control}</td><td>扣分判断条件</td><td>${row.condition}</td></tr>
@@ -299,6 +329,10 @@ const commonEnvironmentByMember = {
     ips: [['139.162.60.207', '42', '2026-11-17 10:26', '验证通过']],
     devices: [['Win10-Chrome-95T0XYr9BIOdkdF4a29J', '23', '2026-11-17 10:26', '验证通过']],
   },
+  '2861023': {
+    ips: [['118.31.22.23', '8', '2026-11-18 11:45', '阈值命中']],
+    devices: [['Win10-Chrome-COMMON23', '8', '2026-11-18 11:45', '阈值命中']],
+  },
 };
 
 const commonEnvironmentDisplayByUser = {
@@ -323,11 +357,18 @@ if (alertMonitor) {
   const registeredDevice = commonEnvironmentByMember['2795074'].registration.device;
   const sample = {
     id: 'SR202611190022', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 16:25',
-    ip: '203.0.113.22', device: registeredDevice, deviceInfo: 'Windows 10 / Chrome 130 / H5',
+    ip: '203.0.113.22', device: registeredDevice, channel: 'H5', deviceInfo: 'Windows 10 / Chrome 130 / H5',
     deviceValid: true, riskIp: false, riskDevice: false,
   };
   const result = scoreMonitorCommonDevice(sample, [registeredDevice]);
   if (result) loginScoreRows.push({ ...sample, ...result });
+  loginScoreRows.push({
+    id: 'SR202611190023', memberId: '2861023', user: 'firsth5demo@h8', time: '2026-11-19 16:24',
+    ip: '203.0.113.23', device: 'Web-H5-NEW23', channel: 'H5', noCommonDeviceOnChannel: true,
+    deviceValid: true, riskIp: false, riskDevice: false, score: 85, alerted: false,
+    condition: 'IP不常用；城市不常用',
+    breakdown: [['S01 IP', 'IP不常用', '-5'], ['S02 城市', '城市不常用', '-10']],
+  });
 }
 
 function fallbackCommonDevice(row) {
@@ -345,7 +386,7 @@ function commonEnvironmentForRow(row) {
   const deviceIsUncommon = row.condition.includes('设备号不常用') || row.condition.includes('设备信息不匹配') || row.riskDevice || row.device === '未获取';
   const fallbackIp = `118.31.22.${Math.max(1, Number(row.memberId.slice(-2)) || 18)}`;
   const ips = configured?.ips || stored.ips.filter(item => !alertMonitor || item[3] !== '观察中').map(item => item[0]);
-  const availableIps = ips.length ? ips : [ipIsUncommon ? fallbackIp : row.ip];
+  const availableIps = alertMonitor || ips.length ? ips : [ipIsUncommon ? fallbackIp : row.ip];
   const displayIps = alertMonitor ? availableIps.filter(ip => !isRiskEntityValue('ip', ip)) : availableIps;
   const cities = configured?.cities || [...new Set(displayIps.map(cityForIp).filter(city => city !== '未知'))];
   const displayCities = cities.length ? cities : row.condition.includes('城市不常用') ? ['上海市', '杭州市'] : [cityForIp(row.ip)];
@@ -360,8 +401,10 @@ function commonEnvironmentForRow(row) {
     }
   }
   const devices = configured?.devices || stored.devices.map(item => item[0]) || [];
-  const displayDevices = devices.length ? devices : [deviceIsUncommon ? fallbackCommonDevice(row) : row.device];
-  const deviceInfos = configured?.deviceInfos || [...new Set(displayDevices.map(deviceInfoForDevice).filter(info => info !== '未获取'))];
+  const displayDevices = alertMonitor || devices.length ? devices : [deviceIsUncommon ? fallbackCommonDevice(row) : row.device];
+  const deviceInfos = configured?.deviceInfos || (alertMonitor
+    ? displayDevices.map(deviceInfoForDevice)
+    : [...new Set(displayDevices.map(deviceInfoForDevice).filter(info => info !== '未获取'))]);
   const displayDeviceInfos = deviceInfos.length ? deviceInfos : ['暂无常用设备信息'];
   return { ips: displayIps, cities: displayCities, commonCities: [...commonCities].map(([city, source]) => ({ city, source })),
     devices: displayDevices, deviceInfos: displayDeviceInfos, registration: stored.registration };
@@ -382,7 +425,7 @@ function openUserCommonEnvironmentDialog(row, source) {
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
     <div class="detail-section"><h3>${alertMonitor ? '常用IP' : 'IP维度'}</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用IP</th>${alertMonitor ? '<th>归属国家／地区</th><th>归属城市</th>' : '<th>对应城市</th>'}</tr></thead><tbody>${ipRows || `<tr><td colspan="${alertMonitor ? 4 : 3}">暂无常用IP</td></tr>`}</tbody></table></div>
     ${alertMonitor ? `<div class="detail-section"><h3>常用城市</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用城市</th><th>认定来源</th></tr></thead><tbody>${cityRows || '<tr><td colspan="3">暂无常用城市</td></tr>'}</tbody></table></div>` : ''}
-    <div class="detail-section"><h3>设备维度</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用设备号</th><th>对应设备信息</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
+    <div class="detail-section"><h3>设备维度</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用设备号</th><th>对应设备信息</th></tr></thead><tbody>${deviceRows || '<tr><td colspan="3">暂无常用设备</td></tr>'}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-back-score-detail>返回评分明细</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('[data-back-score-detail]').addEventListener('click', () => {
     if (source === 'alert') openLoginAlertDetail(row.id);
@@ -872,7 +915,7 @@ function renderLoginAlerts(rows = loginAlertRows) {
     const selectCell = readOnlyAlerts ? '' : `<td><input type="checkbox" class="login-alert-select" data-alert-id="${row.id}" aria-label="选择${row.user}的登录告警"></td>`;
     const verifyButton = readOnlyAlerts ? '' : `<button class="table-link" data-login-alert-verify="${row.id}">手动验证</button>`;
     const operationCells = readOnlyAlerts ? '' : `<td>${row.control}</td><td class="record-note">${row.note || '--'}</td><td><span class="alert-record-status ${row.status === '验证失败' ? 'failed' : row.status === '验证通过' ? 'closed' : 'pending'}">${row.status}</span></td>`;
-    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${operationCells}<td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
+    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskLoginDevice(row) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${operationCells}<td>${renderAccountStatus(row.memberId)}</td><td><button class="table-link" data-login-alert-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
   }).join('');
   if (!sortedRows.length) $('#loginAlertTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 9 : 13}" class="empty-table-cell">暂无数据</td></tr>`;
   $('#loginAlertTotal').textContent = sortedRows.length;
@@ -970,7 +1013,7 @@ function renderScoreRecords(rows = loginScoreRows) {
     const statusCell = readOnlyAlerts ? '' : `<td><span class="alert-record-status ${row.disposition === '验证失败' ? 'failed' : row.disposition === '待验证' ? 'pending' : 'closed'}">${row.disposition === '无需处置' ? '正常' : row.disposition}</span></td>`;
     const noteCell = readOnlyAlerts ? '' : `<td class="record-note">${row.note || '--'}</td>`;
     const verifyButton = canVerify ? `<button class="table-link" data-score-record-verify="${row.id}">手动验证</button>` : '';
-    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskEntityValue('device', row.device) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${statusCell}<td>${renderAccountStatus(row.memberId)}</td>${noteCell}<td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
+    return `<tr>${selectCell}<td>${row.memberId}</td><td>${row.user}</td><td>${formatLoginTime(row.time)}</td><td class="${isRiskEntityValue('ip', row.ip) ? 'risk-login-value' : ''}">${row.ip}</td><td class="device-value ${isRiskLoginDevice(row) ? 'risk-login-value' : ''}">${row.device}</td><td class="score-text ${scoreClass(row.score)}">${row.score}</td><td class="score-condition">${row.condition}</td>${statusCell}<td>${renderAccountStatus(row.memberId)}</td>${noteCell}<td><button class="table-link" data-score-record-detail="${row.id}">评分明细</button>${verifyButton}</td></tr>`;
   }).join('');
   if (!sortedRows.length) $('#scoreRecordTableBody').innerHTML = `<tr><td colspan="${readOnlyAlerts ? 9 : 12}" class="empty-table-cell">暂无数据</td></tr>`;
   $('#scoreRecordTotal').textContent = sortedRows.length;
@@ -991,6 +1034,16 @@ function updateScoreRecordSelectionState() {
   $('#selectAllScoreRecords').indeterminate = checked.length > 0 && checked.length < visible.length;
 }
 
+let scoreRecordRiskScope = null;
+
+function setScoreRecordRiskScope(scope) {
+  scoreRecordRiskScope = scope;
+  const label = $('#scoreRecordRiskScope');
+  if (!label) return;
+  label.hidden = !scope?.channel;
+  label.textContent = scope?.channel ? `登录渠道：${scope.channel}` : '';
+}
+
 function renderFilteredScoreRecords() {
   const type = $('#scoreRecordSearchType').value;
   const keyword = $('#scoreRecordKeyword').value.trim().toLowerCase();
@@ -1005,7 +1058,10 @@ function renderFilteredScoreRecords() {
     const searchable = { memberId: row.memberId, user: row.user, ip: row.ip, device: row.device }[type].toLowerCase();
     const displayStatus = row.disposition === '无需处置' ? '正常' : row.disposition;
     const rowLoginTime = new Date(row.time.replace(' ', 'T')).getTime();
-    return (!keyword || searchable.includes(keyword)) &&
+    const matchesKeyword = scoreRecordRiskScope
+      ? searchable === keyword && (!scoreRecordRiskScope.channel || loginChannel(row) === scoreRecordRiskScope.channel)
+      : !keyword || searchable.includes(keyword);
+    return matchesKeyword &&
       (tier === 'all' || matchesScoreTier(row.score, tier)) &&
       (status === 'all' || displayStatus === status) &&
       (accountStatus === 'all' || memberAccountStatus(row.memberId) === accountStatus) &&
@@ -1267,17 +1323,19 @@ function openRiskEntityDetail(type, value) {
 
 function openRiskListDialog(type) {
   const isIp = type === 'ip';
+  const showChannel = alertMonitor && !isIp;
   const canManageRisk = !readOnlyAlerts || alertMonitor;
   const rows = [...(isIp ? riskIpRows : riskDeviceRows)].sort((a, b) =>
     Number(a.whitelisted) - Number(b.whitelisted) || b.accounts - a.accounts || b.logins - a.logins);
   const listRows = rows.map(row => {
     const statusCell = `<td><span class="risk-list-status ${row.whitelisted ? 'whitelisted' : 'active'}">${row.whitelisted ? '已加白' : '风险'}</span></td>`;
-    const whitelistAction = canManageRisk ? `<button class="table-link risk-toggle-action" data-toggle-risk-entity="${row.value}" data-risk-type="${type}">${row.whitelisted ? '标记风险' : '加白'}</button>` : '';
+    const riskChannel = showChannel ? row.channel : '';
+    const whitelistAction = canManageRisk ? `<button class="table-link risk-toggle-action" data-toggle-risk-entity="${row.value}" data-risk-type="${type}" data-risk-channel="${riskChannel}">${row.whitelisted ? '标记风险' : '加白'}</button>` : '';
     const displayValue = row.whitelisted ? `${row.value}<span class="risk-whitelist-label">（手动加白）</span>` : row.value;
-    return `<tr><td class="${isIp ? '' : 'device-value'}">${displayValue}</td><td>${row.accounts}个</td><td>${row.last}</td><td>${row.logins}次</td>${statusCell}<td><button class="table-link" data-view-risk-records="${type}" data-risk-value="${row.value}">查看</button>${whitelistAction}</td></tr>`;
+    return `<tr><td class="${isIp ? '' : 'device-value'}">${displayValue}</td>${showChannel ? `<td>${riskChannel}</td>` : ''}<td>${row.accounts}个</td><td>${alertMonitor ? row.first : row.last}</td><td>${row.logins}次</td>${statusCell}<td><button class="table-link" data-view-risk-records="${type}" data-risk-value="${row.value}" data-risk-channel="${riskChannel}">查看</button>${whitelistAction}</td></tr>`;
   }).join('');
   const whitelistHelp = canManageRisk ? `<p class="detail-help">加白后仍保留在${isIp ? '风险IP' : '风险设备'}名单中，但后续登录不再按“命中${isIp ? '风险IP' : '风险设备'}”扣分；历史评分记录不回算。</p>` : '';
-  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table risk-list-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th><th>关联账号</th><th>风控时间</th><th>登录次数</th><th>状态</th><th>${canManageRisk ? '操作' : '查看'}</th></tr></thead><tbody>${listRows}</tbody></table>${whitelistHelp}</div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
+  openDialog(isIp ? '风险IP名单' : '风险设备名单', `<div class="detail-section"><table class="mini-table risk-list-table"><thead><tr><th>${isIp ? '风险IP' : '风险设备'}</th>${showChannel ? '<th>渠道</th>' : ''}<th>关联账号</th><th>风控时间</th><th>登录次数</th><th>状态</th><th>${canManageRisk ? '操作' : '查看'}</th></tr></thead><tbody>${listRows}</tbody></table>${whitelistHelp}</div><div class="admin-dialog-actions"><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $$('[data-view-risk-records]').forEach(button => button.addEventListener('click', () => {
     closeDialog();
     $('[data-admin-tab="records"]').click();
@@ -1289,16 +1347,22 @@ function openRiskListDialog(type) {
     if (alertMonitor) $('#scoreRecordAccountStatus').value = 'all';
     $('#scoreRecordLoginStart').value = '';
     $('#scoreRecordLoginEnd').value = '';
+    if (alertMonitor) setScoreRecordRiskScope({ channel: button.dataset.riskChannel });
     renderFilteredScoreRecords();
   }));
   $$('[data-toggle-risk-entity]').forEach(button => button.onclick = () => {
     const entityType = button.dataset.riskType;
     const entityRows = entityType === 'ip' ? riskIpRows : riskDeviceRows;
-    const row = entityRows.find(item => item.value === button.dataset.toggleRiskEntity);
+    const row = entityRows.find(item => item.value === button.dataset.toggleRiskEntity &&
+      (!showChannel || item.channel === button.dataset.riskChannel));
     if (!row) return;
     row.whitelisted = !row.whitelisted;
     const entityName = entityType === 'ip' ? '风险IP' : '风险设备';
     showToast(row.whitelisted ? `已将${row.value}加白，名单记录继续保留` : `已将${row.value}重新标记为${entityName}`);
+    if (alertMonitor) {
+      renderFilteredLoginAlerts();
+      renderFilteredScoreRecords();
+    }
     openRiskListDialog(entityType);
   });
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
@@ -2063,10 +2127,12 @@ if ($('#loginAlertResetBtn')) $('#loginAlertResetBtn').addEventListener('click',
   renderLoginAlerts();
 });
 if ($('#scoreRecordSearchType')) $('#scoreRecordSearchType').addEventListener('change', () => {
+  setScoreRecordRiskScope(null);
   const placeholders = { memberId: '输入会员ID', user: '输入会员账号', ip: '输入登录IP', device: '输入登录设备号' };
   $('#scoreRecordKeyword').value = '';
   $('#scoreRecordKeyword').placeholder = placeholders[$('#scoreRecordSearchType').value];
 });
+if (alertMonitor) $('#scoreRecordKeyword')?.addEventListener('input', () => setScoreRecordRiskScope(null));
 if ($('#scoreRecordSearchBtn')) $('#scoreRecordSearchBtn').addEventListener('click', renderFilteredScoreRecords);
 if ($('#scoreRecordBatchVerifyBtn')) $('#scoreRecordBatchVerifyBtn').addEventListener('click', () => openScoreRecordBatchVerifyDialog($$('.score-record-select:checked').map(input => input.dataset.recordId)));
 if ($('#selectAllScoreRecords')) $('#selectAllScoreRecords').addEventListener('change', event => {
@@ -2074,6 +2140,7 @@ if ($('#selectAllScoreRecords')) $('#selectAllScoreRecords').addEventListener('c
   updateScoreRecordSelectionState();
 });
 if ($('#scoreRecordResetBtn')) $('#scoreRecordResetBtn').addEventListener('click', () => {
+  setScoreRecordRiskScope(null);
   $('#scoreRecordSearchType').value = 'memberId';
   $('#scoreRecordKeyword').value = '';
   $('#scoreRecordKeyword').placeholder = '输入会员ID';
