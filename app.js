@@ -40,8 +40,8 @@ const commonConfigDefaults = alertMonitor ? {
   device: { days: 30, count: 5, disabled: false },
 };
 const riskConfigDefaults = {
-  ip: { days: 30, accounts: alertMonitor ? 21 : 90, exitDays: null, disabled: false },
-  device: { days: 30, accounts: alertMonitor ? 6 : 90, exitDays: null, disabled: false },
+  ip: { days: 30, accounts: alertMonitor ? 21 : 90, exitDays: alertMonitor ? 90 : null, disabled: false },
+  device: { days: 30, accounts: alertMonitor ? 6 : 90, exitDays: alertMonitor ? 180 : null, disabled: false },
 };
 const cloneConfig = defaults => Object.fromEntries(Object.entries(defaults).map(([type, rule]) => [type, { ...rule }]));
 const commonEnvironmentConfig = cloneConfig(commonConfigDefaults);
