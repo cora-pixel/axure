@@ -256,7 +256,7 @@ function loginEnvironmentProfile(row) {
   const commonCities = alertMonitor
     ? commonEnvironmentForRow(row).commonCities.map(item => item.city).join('、') || '暂无常用城市'
     : row.condition.includes('城市不常用') ? '上海市、杭州市' : city;
-  const deviceInfo = deviceInfoForDevice(row.device);
+  const deviceInfo = row.deviceInfo ?? deviceInfoForDevice(row.device);
   const buildVersion = row.condition.includes('Web号缺失')
     ? '未获取'
     : row.condition.includes('Web号非最新') || row.condition.includes('不是最新')
@@ -311,6 +311,25 @@ const commonEnvironmentDisplayByUser = {
   },
 };
 
+const commonDeviceScoreCondition = '使用常用设备号';
+
+function scoreMonitorCommonDevice(row, eligibleDevices) {
+  if (row.deviceValid !== true || !row.device || row.riskIp || row.riskDevice || !eligibleDevices.includes(row.device)) return null;
+  return { score: 100, condition: commonDeviceScoreCondition, alerted: false, breakdown: [] };
+}
+
+if (alertMonitor) {
+  // The sample uses the baseline and risk flags at login time.
+  const registeredDevice = commonEnvironmentByMember['2795074'].registration.device;
+  const sample = {
+    id: 'SR202611190022', memberId: '2795074', user: 'hxm001@as', time: '2026-11-19 16:25',
+    ip: '203.0.113.22', device: registeredDevice, deviceInfo: 'Windows 10 / Chrome 130 / H5',
+    deviceValid: true, riskIp: false, riskDevice: false,
+  };
+  const result = scoreMonitorCommonDevice(sample, [registeredDevice]);
+  if (result) loginScoreRows.push({ ...sample, ...result });
+}
+
 function fallbackCommonDevice(row) {
   const suffix = row.memberId.slice(-2);
   if (row.device.includes('iOS')) return `iOS-Safari-COMMON${suffix}`;
@@ -351,7 +370,7 @@ function commonEnvironmentForRow(row) {
 function openUserCommonEnvironmentDialog(row, source) {
   const environment = commonEnvironmentForRow(row);
   const registrationTag = (type, value, label) => alertMonitor && environment.registration?.[type] === value
-    ? ` <span class="common-registration-label">${label}</span>` : '';
+    ? ` <span class="common-registration-label" title="不按时间过期；命中生效风险名单时不算常用">${label}（永久常用）</span>` : '';
   const ipRows = environment.ips.map((ip, index) => {
     const { country, city } = ipLocation(ip);
     const locationCells = alertMonitor ? `<td>${country}</td><td>${city}</td>` : `<td>${environment.cities[index] || city}</td>`;
@@ -703,6 +722,14 @@ function renderRules(filter = 'all') {
       <td>${rule.id}</td><td>${(alertMonitor && monitorRuleConditions[rule.id]) || rule.condition}</td>
       <td class="score-text score-block">${rule.score}</td><td>${rule.mode}</td><td>${alertMonitor ? monitorRuleDescription(rule.id) : rule.desc}</td>
     </tr>`).join('');
+  const commonDeviceRow = alertMonitor && filter === 'all' ? `
+    <tr>
+      <td>常用设备直评</td>
+      <td>本次有效设备号与该会员已生效的常用设备号完全一致，不限端</td>
+      <td class="score-text score-healthy">直接记100分</td>
+      <td>风险项优先</td>
+      <td>未命中生效且未加白的风险IP或风险设备时，不再扣S01至S05；扣分判断条件显示「${commonDeviceScoreCondition}」。常用设备的统计仍分端。</td>
+    </tr>` : '';
   const thresholdRow = filter === 'all' ? `
     <tr class="alert-threshold-row">
       <td>告警阈值</td>
@@ -711,7 +738,7 @@ function renderRules(filter = 'all') {
       <td>满足即告警</td>
       <td>${alertMonitor ? `本次评分严格低于${scoringConfig.alertThreshold}分才告警；等于或高于该分数只进总表。历史补算和新登录均用实际配置，已保存评分不回算。` : '可在“规则设置”中修改，支持1至100分'}</td>
     </tr>` : '';
-  body.innerHTML = ruleRows + thresholdRow;
+  body.innerHTML = commonDeviceRow + ruleRows + thresholdRow;
 }
 
 function renderBands() {
@@ -992,7 +1019,7 @@ function openScoreRecordDetail(recordId) {
   const verificationStatus = readOnlyAlerts ? '' : `<div><span>状态</span><strong class="alert-record-status ${record.disposition === '验证失败' ? 'failed' : record.disposition === '待验证' ? 'pending' : 'closed'}">${record.disposition === '无需处置' ? '正常' : record.disposition}</strong></div>`;
   const breakdownRows = record.breakdown.length
     ? record.breakdown.map((item, index) => `<tr><td>${index + 1}</td><td>${renderBreakdownRule(record, item[0])}</td><td>${renderBreakdownCondition(item[0], item[1])}</td><td>${item[2]}</td></tr>`).join('')
-    : '<tr><td colspan="4">本次登录未命中扣分规则</td></tr>';
+    : `<tr><td colspan="4">${record.condition === commonDeviceScoreCondition ? commonDeviceScoreCondition : '本次登录未命中扣分规则'}</td></tr>`;
   openDialog('登录评分明细', `
     <div class="detail-summary login-alert-summary"><div><span>会员ID／账号</span><strong>${record.memberId}／${record.user}</strong></div><div><span>登录时间</span><strong>${formatLoginTime(record.time)}</strong></div><div><span>本次评分</span><strong class="${scoreClass(record.score)}">${record.score}</strong></div>${verificationStatus}</div>
     <div class="detail-section"><h3>本次登录环境</h3><table class="mini-table"><tbody>${renderLoginEnvironmentRows(record, '建议动作')}</tbody></table></div>
