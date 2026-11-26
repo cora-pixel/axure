@@ -658,12 +658,47 @@ function updateScoreUI() {
   $('#controlAction').textContent = actionForScore(state.score);
 }
 
+const monitorRuleConditions = {
+  S03: '本端有常用设备，且当前有效设备号不匹配',
+  S04: '本端有可比的完整设备信息，且本次采集值不匹配',
+  S06: '当前IP命中生效且未加白的风险IP名单',
+  S07: '当前有效设备号命中同端生效且未加白的风险设备名单',
+};
+
+function monitorRiskRuleDescription(type) {
+  const rule = riskAssociationConfig[type];
+  if (rule.disabled) return '本项自动入名单配置已禁用；评分以登录时生效且未加白的名单为准。';
+  const entity = type === 'ip' ? '同一有效公网IP，不分端' : '同一端的同一有效设备号，PC、H5、App分开';
+  const expiry = rule.exitDays === null ? '过期观察天数待配置。'
+    : `滚动${rule.exitDays}天内的去重账号数少于${rule.accounts}个才过期，等于门槛保留。`;
+  return `滚动${rule.days}天内，${entity}，至少${rule.accounts}个不同会员成功使用即入名单；同一会员只算1个。${expiry}`;
+}
+
+function monitorRuleDescription(id) {
+  const { ip, city, device } = commonEnvironmentConfig;
+  switch (id) {
+    case 'S01':
+      return `${ip.disabled ? '按登录次数认定已禁用。' : `同一会员滚动${ip.days}天内用同一有效IP成功登录至少${ip.count}次，计数间隔至少24小时；普通常用IP满${ip.expiryDays}天未有效使用即过期。`}有效注册IP不按时间过期；风险IP不算常用。`;
+    case 'S02':
+      return `仍可用的常用IP所在城市直接认定。${city.disabled ? '按同城次数补充认定已禁用。' : `其他城市滚动${city.days}天内同城成功登录至少${city.count}次，计数间隔至少24小时；可跨IP、跨端，风险IP登录不计。`}`;
+    case 'S03':
+      return `PC、H5、App分开。${device.disabled ? '按登录次数认定已禁用。' : `同端同一有效设备号滚动${device.days}天内成功登录至少${device.count}次，计数间隔至少24小时；普通常用设备满${device.expiryDays}天未有效使用即过期。`}有效注册设备只在注册端认定，不按时间过期；风险设备不算常用。本端没有可用常用设备不扣此项。`;
+    case 'S04':
+      return '只和同端常用设备的完整设备信息比较，不单独累计次数。无可比常用设备不扣此项；未采集不标记为匹配。';
+    case 'S05':
+      return '仅检查适用的Web构建版本：未上报或不是当前最新打包版本时扣分。构建版本不用于识别设备。';
+    case 'S06': return monitorRiskRuleDescription('ip');
+    case 'S07': return monitorRiskRuleDescription('device');
+    default: return '';
+  }
+}
+
 function renderRules(filter = 'all') {
   const body = $('#ruleTableBody');
   const ruleRows = rules.filter(rule => filter === 'all' || rule.category === filter).map(rule => `
     <tr>
-      <td>${rule.id}</td><td>${rule.condition}</td>
-      <td class="score-text score-block">${rule.score}</td><td>${rule.mode}</td><td>${rule.desc}</td>
+      <td>${rule.id}</td><td>${(alertMonitor && monitorRuleConditions[rule.id]) || rule.condition}</td>
+      <td class="score-text score-block">${rule.score}</td><td>${rule.mode}</td><td>${alertMonitor ? monitorRuleDescription(rule.id) : rule.desc}</td>
     </tr>`).join('');
   const thresholdRow = filter === 'all' ? `
     <tr class="alert-threshold-row">
@@ -671,7 +706,7 @@ function renderRules(filter = 'all') {
       <td>本次登录评分低于设定分数时进入登录评分告警</td>
       <td class="alert-threshold-score">低于${scoringConfig.alertThreshold}分</td>
       <td>满足即告警</td>
-      <td>${alertMonitor ? '历史补算和新登录评分均按实际配置判断是否告警' : '可在“规则设置”中修改，支持1至100分'}</td>
+      <td>${alertMonitor ? `本次评分严格低于${scoringConfig.alertThreshold}分才告警；等于或高于该分数只进总表。历史补算和新登录均用实际配置，已保存评分不回算。` : '可在“规则设置”中修改，支持1至100分'}</td>
     </tr>` : '';
   body.innerHTML = ruleRows + thresholdRow;
 }
@@ -1255,7 +1290,7 @@ function configNumber(key, label = '', suffix = '') {
 }
 
 function openScoringSettingsDialog() {
-  const row = (id, title, condition, score) => `<tr><td><strong>${id}</strong><span>${title}</span></td><td><div class="config-fields">${condition}</div></td><td><div class="config-fields">${score}</div></td></tr>`;
+  const row = (id, title, condition, score) => `<tr><td><strong>${id}</strong><span>${title}</span></td><td><div class="config-fields">${(alertMonitor && monitorRuleConditions[id]) || condition}</div></td><td><div class="config-fields">${score}</div></td></tr>`;
   openDialog('规则设置', `
     <p class="config-help">配置固定扣分值和告警阈值。每次登录从100分开始，命中哪项就扣哪项；扣分值无需输入负号。</p>
     <div class="config-table-wrap"><table class="config-table"><thead><tr><th>规则</th><th>触发条件</th><th>扣分值</th></tr></thead><tbody>
@@ -1427,16 +1462,18 @@ const commonConfigFields = {
   device: { suffix: 'Device', targetLabel: '设备', systemName: 'common_device_rule' },
 };
 
+function commonConfigValue(config) {
+  return [config.days, config.count, config.expiryDays].filter(value => value !== undefined).join(',');
+}
+
 function renderCommonEnvironmentConfigRows() {
   for (const [type, config] of Object.entries(commonEnvironmentConfig)) {
     const { suffix } = commonConfigFields[type];
     const defaults = alertMonitor ? commonConfigDefaults[type] : config;
     const base = $(`#common${suffix}BaseValue`);
     const defaultValue = $(`#common${suffix}DefaultValue`);
-    const expiry = $(`#common${suffix}ExpiryValue`);
-    if (base) base.textContent = `${config.days},${config.count}`;
-    if (defaultValue) defaultValue.textContent = `${defaults.days},${defaults.count}`;
-    if (expiry) expiry.textContent = `过期：${config.expiryDays}天未有效使用`;
+    if (base) base.textContent = commonConfigValue(config);
+    if (defaultValue) defaultValue.textContent = commonConfigValue(defaults);
     const status = $(`#common${suffix}Status`);
     const toggle = $(`#toggleCommon${suffix}Btn`);
     if (status) {
@@ -1453,8 +1490,8 @@ function openCommonEnvironmentConfigDialog(type) {
   const config = commonEnvironmentConfig[type];
   const defaults = alertMonitor ? commonConfigDefaults[type] : config;
   const title = `常用${targetLabel}判定配置`;
-  const valueLabel = isCity ? '统计天数,同城成功登录次数' : `统计天数,${targetLabel}使用次数`;
   const hasExpiry = alertMonitor && !isCity;
+  const valueLabel = isCity ? '统计天数,同城成功登录次数' : `统计天数,${targetLabel}使用次数${hasExpiry ? ',过期天数' : ''}`;
   const description = alertMonitor ? {
     ip: '同一会员在统计窗口内使用同一有效IP成功登录达到配置次数，认定为常用IP。有效注册IP可直接认定，不按时间过期；生效中的风险IP不能算常用。',
     city: '仍可用的常用IP所在城市直接认定。其他城市按同一会员、同一城市累计成功登录次数，可跨IP和渠道。两条途径都不满足时，不再算常用地。',
@@ -1467,14 +1504,13 @@ function openCommonEnvironmentConfigDialog(type) {
       <div class="config-detail-label">配置分组：</div><select><option>${alertMonitor ? '常用环境配置' : '常用IP／设备配置'}</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <label class="config-detail-label" for="commonConfigValue">基础配置：</label><div><input id="commonConfigValue" value="${config.days},${config.count}" placeholder="${valueLabel}"><p class="field-help">${valueLabel}${alertMonitor ? '' : '；例如30,5表示30天内使用达到5次。'}</p></div>
-      ${hasExpiry ? `<label class="config-detail-label" for="commonExpiryDays">普通常用${targetLabel}过期天数：</label><div><input id="commonExpiryDays" type="number" min="1" step="1" value="${config.expiryDays}"><p class="field-help">距最后一次有效使用满此天数即过期，注册环境不受此限制。</p></div>` : ''}
+      <label class="config-detail-label" for="commonConfigValue">基础配置：</label><div><input id="commonConfigValue" value="${commonConfigValue(config)}" placeholder="${valueLabel}"><p class="field-help">${valueLabel}${hasExpiry ? '。第3项从最后一次有效使用起算，注册环境不受此限制。' : alertMonitor ? '' : '；例如30,5表示30天内使用达到5次。'}</p></div>
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
-      <div class="config-detail-label">配置默认值：</div><input value="${defaults.days},${defaults.count}" disabled>
+      <div class="config-detail-label">配置默认值：</div><input value="${commonConfigValue(defaults)}" disabled>
       <div class="config-detail-label">配置类型：</div><select><option>组合值</option></select>
-      <div class="config-detail-label">配置值属性：</div><select><option>整数,整数</option></select>
+      <div class="config-detail-label">配置值属性：</div><select><option>${hasExpiry ? '整数,整数,整数' : '整数,整数'}</option></select>
       <div class="config-detail-label">配置描述：</div><textarea disabled>${description}</textarea>
       <div class="config-detail-label">统计口径：</div><textarea disabled>${criterion}</textarea>
     </div>
@@ -1485,18 +1521,14 @@ function openCommonEnvironmentConfigDialog(type) {
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
   $('[data-save-common-config]').addEventListener('click', () => {
     const value = $('#commonConfigValue').value.trim().replace(/\s+/g, '');
-    if (!/^\d+,\d+$/.test(value)) {
+    if (!(hasExpiry ? /^\d+,\d+,\d+$/ : /^\d+,\d+$/).test(value)) {
       $('#commonConfigError').textContent = `请按“${valueLabel}”填写，并使用英文逗号。`;
       return;
     }
-    const [days, count] = value.split(',').map(Number);
-    if (![days, count].every(isPositiveInteger)) {
-      $('#commonConfigError').textContent = '统计天数和使用次数均须为大于0的整数。';
-      return;
-    }
-    const expiryDays = hasExpiry ? Number($('#commonExpiryDays').value) : undefined;
-    if (hasExpiry && !isPositiveInteger(expiryDays)) {
-      $('#commonConfigError').textContent = '过期天数须为大于0的整数。';
+    const fields = value.split(',').map(Number);
+    const [days, count, expiryDays] = fields;
+    if (!fields.every(isPositiveInteger)) {
+      $('#commonConfigError').textContent = '各项配置值均须为大于0的整数。';
       return;
     }
     commonEnvironmentConfig[type] = { ...config, days, count, ...(hasExpiry ? { expiryDays } : {}) };
@@ -1506,17 +1538,19 @@ function openCommonEnvironmentConfigDialog(type) {
   });
 }
 
+function riskConfigValue(config, unset = '待配置') {
+  const entry = `${config.days},${config.accounts}`;
+  return alertMonitor ? `${entry},${config.exitDays ?? unset}` : entry;
+}
+
 function renderRiskAssociationConfigRows() {
   ['ip', 'device'].forEach(type => {
     const isIp = type === 'ip';
     const prefix = isIp ? 'riskIpRule' : 'riskDeviceRule';
     const config = riskAssociationConfig[type];
     const defaults = alertMonitor ? riskConfigDefaults[type] : config;
-    const value = `${config.days},${config.accounts}`;
-    if ($(`#${prefix}BaseValue`)) $(`#${prefix}BaseValue`).textContent = value;
-    if ($(`#${prefix}DefaultValue`)) $(`#${prefix}DefaultValue`).textContent = `${defaults.days},${defaults.accounts}`;
-    const exit = $(`#${prefix}ExitValue`);
-    if (exit) exit.textContent = config.exitDays === null ? '退出：待配置' : `退出：滚动${config.exitDays}天`;
+    if ($(`#${prefix}BaseValue`)) $(`#${prefix}BaseValue`).textContent = riskConfigValue(config);
+    if ($(`#${prefix}DefaultValue`)) $(`#${prefix}DefaultValue`).textContent = riskConfigValue(defaults);
     const status = $(`#${prefix}Status`);
     const toggle = $(`#toggle${isIp ? 'RiskIp' : 'RiskDevice'}RuleBtn`);
     if (status) {
@@ -1535,6 +1569,8 @@ function openRiskAssociationConfigDialog(type) {
   const systemName = isIp ? 'risk_ip_rule' : 'risk_device_rule';
   const defaults = alertMonitor ? riskConfigDefaults[type] : config;
   const defaultAccounts = alertMonitor ? defaults.accounts : 90;
+  const valueLabel = `入名单统计天数,去重关联账号数${alertMonitor ? ',过期观察天数' : ''}`;
+  const expiryCriterion = '第3项须大于第1项。已入名单项在滚动第3项天数内的去重账号数低于门槛才过期；等于门槛保留。第3项未定可留空。';
   const example = `例如30,${defaultAccounts}表示滚动30天内，至少有${defaultAccounts}个不同会员ID使用同一有效${targetLabel}成功登录后，将该${targetLabel}加入${isIp ? '风险IP' : '风险设备'}名单。`;
   const scope = alertMonitor ? ` ${isIp ? '同一公网IP跨端统计。' : 'PC、H5、App分开统计，Android和iOS同属App；无效设备号不计。'} 达到人数门槛后只影响后续登录，不由单次低分入名单。` : '';
   openDialog(`设置配置：${title}`, `
@@ -1542,14 +1578,13 @@ function openRiskAssociationConfigDialog(type) {
       <div class="config-detail-label">配置分组：</div><select><option>风险IP／设备配置</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <label class="config-detail-label" for="riskRuleConfigValue">${alertMonitor ? '入名单配置：' : '基础配置：'}</label><div><input id="riskRuleConfigValue" value="${config.days},${config.accounts}" placeholder="统计天数,关联账号数"><p class="field-help">滚动统计天数,去重关联账号数；${example}</p></div>
-      ${alertMonitor ? `<label class="config-detail-label" for="riskExitDays">退出观察天数（N）：</label><div><input id="riskExitDays" type="number" min="${config.days + 1}" step="1" value="${config.exitDays ?? ''}" placeholder="待配置"><p class="field-help">须大于入名单统计天数。已入名单项若在滚动N天内的去重账号数低于门槛则过期；等于门槛仍保留。</p></div>` : ''}
+      <label class="config-detail-label" for="riskRuleConfigValue">基础配置：</label><div><input id="riskRuleConfigValue" value="${riskConfigValue(config, '')}" placeholder="${valueLabel}"><p class="field-help">${valueLabel}。${alertMonitor ? expiryCriterion : example}</p></div>
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
-      <div class="config-detail-label">配置默认值：</div><input value="${defaults.days},${defaults.accounts}" disabled>
+      <div class="config-detail-label">配置默认值：</div><input value="${riskConfigValue(defaults)}" disabled>
       <div class="config-detail-label">配置类型：</div><select><option>组合值</option></select>
-      <div class="config-detail-label">配置值属性：</div><select><option>整数,整数</option></select>
+      <div class="config-detail-label">配置值属性：</div><select><option>${alertMonitor ? '整数,整数,整数（可留空）' : '整数,整数'}</option></select>
       <div class="config-detail-label">配置描述：</div><textarea disabled>${example}</textarea>
       <div class="config-detail-label">统计口径：</div><textarea disabled>仅统计成功登录；关联账号数按会员ID去重。同一会员在同一${targetLabel}下重复登录多次只计算1个关联账号。${scope}</textarea>
       <div class="config-detail-label">是否禁用：</div><label class="config-disabled-check"><input type="checkbox" id="riskRuleDisabled" ${config.disabled ? 'checked' : ''}>选中禁用</label>
@@ -1559,14 +1594,10 @@ function openRiskAssociationConfigDialog(type) {
   `);
   $('#adminDialog').classList.add('config-detail-dialog');
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
-  if (alertMonitor) $('#riskRuleConfigValue').addEventListener('input', event => {
-    const days = Number(event.target.value.split(',')[0]);
-    $('#riskExitDays').min = isPositiveInteger(days) ? days + 1 : 1;
-  });
   $('[data-save-risk-rule]').addEventListener('click', () => {
     const value = $('#riskRuleConfigValue').value.trim().replace(/\s+/g, '');
-    if (!/^\d+,\d+$/.test(value)) {
-      $('#riskRuleConfigError').textContent = '请按“统计天数,关联账号数”填写，并使用英文逗号。';
+    if (!(alertMonitor ? /^\d+,\d+(?:,\d*)?$/ : /^\d+,\d+$/).test(value)) {
+      $('#riskRuleConfigError').textContent = `请按“${valueLabel}”填写，并使用英文逗号。`;
       return;
     }
     const [days, accounts] = value.split(',').map(Number);
@@ -1574,10 +1605,10 @@ function openRiskAssociationConfigDialog(type) {
       $('#riskRuleConfigError').textContent = '统计天数和关联账号数均须为大于0的整数。';
       return;
     }
-    const exitInput = alertMonitor ? $('#riskExitDays') : null;
-    const exitDays = exitInput?.value ? Number(exitInput.value) : null;
-    if (exitInput && (exitInput.validity.badInput || (exitDays !== null && (!isPositiveInteger(exitDays) || exitDays <= days)))) {
-      $('#riskRuleConfigError').textContent = '退出观察天数须为大于入名单统计天数的整数，未定可留空。';
+    const exitPart = value.split(',')[2];
+    const exitDays = exitPart ? Number(exitPart) : null;
+    if (exitDays !== null && (!isPositiveInteger(exitDays) || exitDays <= days)) {
+      $('#riskRuleConfigError').textContent = '第3项过期观察天数须大于入名单统计天数，未定可留空。';
       return;
     }
     riskAssociationConfig[type] = { ...config, days, accounts, exitDays, disabled: $('#riskRuleDisabled').checked };
@@ -1593,6 +1624,7 @@ function showAdminFeature(feature) {
   $('#basicConfigFeature').classList.toggle('hidden', !showConfig);
   $('#accountScoreMenu').classList.toggle('active', !showConfig);
   $('#basicConfigMenu').classList.toggle('active', showConfig);
+  if (!showConfig && alertMonitor) renderRules();
 }
 
 function openDialog(title, body) {
