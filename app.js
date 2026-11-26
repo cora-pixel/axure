@@ -247,7 +247,9 @@ function deviceInfoForDevice(device) {
 
 function loginEnvironmentProfile(row) {
   const city = cityForIp(row.ip);
-  const commonCities = row.condition.includes('城市不常用') ? '上海市、杭州市' : city;
+  const commonCities = alertMonitor
+    ? commonEnvironmentForRow(row).commonCities.map(item => item.city).join('、') || '暂无常用城市'
+    : row.condition.includes('城市不常用') ? '上海市、杭州市' : city;
   const deviceInfo = deviceInfoForDevice(row.device);
   const buildVersion = row.condition.includes('Web号缺失')
     ? '未获取'
@@ -271,6 +273,7 @@ function renderLoginEnvironmentRows(row, actionLabel) {
 const commonEnvironmentByMember = {
   '2795074': {
     ips: [['139.162.87.78', '72', '2026-11-15 20:18', '阈值命中'], ['47.76.91.34', '53', '2026-11-12 09:42', '阈值命中']],
+    citiesQualifiedByLogins: ['广州市'],
     devices: [['Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW', '32', '2026-11-15 20:18', '阈值命中'], ['iOS-Safari-JRPu3of08JTLzcQXOVB8', '9', '2026-11-08 18:06', '验证通过']],
   },
   '2826222': {
@@ -295,6 +298,7 @@ const commonEnvironmentDisplayByUser = {
   'travelweb014@h8': {
     ips: ['118.31.22.14', '118.31.22.114', '118.31.88.14', '139.162.14.14'],
     cities: ['杭州市', '杭州市', '杭州市', '上海市'],
+    citiesQualifiedByLogins: ['苏州市'],
     devices: ['Win10-Chrome-PC14', 'Web-H5-COMMON14', 'iOS-Safari-HISTORY14'],
     deviceInfos: ['Windows 10 / Chrome 130 / PC', 'Windows 11 / Chrome 130 / H5', 'iOS 18 / Safari / H5'],
   },
@@ -311,28 +315,41 @@ function fallbackCommonDevice(row) {
 function commonEnvironmentForRow(row) {
   const configured = commonEnvironmentDisplayByUser[row.user];
   const stored = commonEnvironmentByMember[row.memberId] || { ips: [], devices: [] };
-  const current = loginEnvironmentProfile(row);
   const ipIsUncommon = row.condition.includes('IP不常用') || row.riskIp;
   const deviceIsUncommon = row.condition.includes('设备号不常用') || row.condition.includes('设备信息不匹配') || row.riskDevice || row.device === '未获取';
   const fallbackIp = `118.31.22.${Math.max(1, Number(row.memberId.slice(-2)) || 18)}`;
-  const ips = configured?.ips || stored.ips.map(item => item[0]) || [];
-  const displayIps = ips.length ? ips : [ipIsUncommon ? fallbackIp : row.ip];
+  const ips = configured?.ips || stored.ips.filter(item => !alertMonitor || item[3] !== '观察中').map(item => item[0]);
+  const availableIps = ips.length ? ips : [ipIsUncommon ? fallbackIp : row.ip];
+  const displayIps = alertMonitor ? availableIps.filter(ip => !isRiskEntityValue('ip', ip)) : availableIps;
   const cities = configured?.cities || [...new Set(displayIps.map(cityForIp).filter(city => city !== '未知'))];
-  const displayCities = cities.length ? cities : current.commonCities.split('、');
+  const displayCities = cities.length ? cities : row.condition.includes('城市不常用') ? ['上海市', '杭州市'] : [cityForIp(row.ip)];
+  const commonCities = new Map();
+  if (alertMonitor) {
+    for (const ip of displayIps) {
+      const city = cityForIp(ip);
+      if (city !== '未知') commonCities.set(city, '常用IP带出');
+    }
+    for (const city of configured?.citiesQualifiedByLogins || stored.citiesQualifiedByLogins || []) {
+      commonCities.set(city, commonCities.has(city) ? '常用IP带出、同城登录达标' : '同城登录达标');
+    }
+  }
   const devices = configured?.devices || stored.devices.map(item => item[0]) || [];
   const displayDevices = devices.length ? devices : [deviceIsUncommon ? fallbackCommonDevice(row) : row.device];
   const deviceInfos = configured?.deviceInfos || [...new Set(displayDevices.map(deviceInfoForDevice).filter(info => info !== '未获取'))];
   const displayDeviceInfos = deviceInfos.length ? deviceInfos : ['暂无常用设备信息'];
-  return { ips: displayIps, cities: displayCities, devices: displayDevices, deviceInfos: displayDeviceInfos };
+  return { ips: displayIps, cities: displayCities, commonCities: [...commonCities].map(([city, source]) => ({ city, source })),
+    devices: displayDevices, deviceInfos: displayDeviceInfos };
 }
 
 function openUserCommonEnvironmentDialog(row, source) {
   const environment = commonEnvironmentForRow(row);
-  const ipRows = environment.ips.map((ip, index) => `<tr><td>${index + 1}</td><td>${ip}</td><td>${environment.cities[index] || cityForIp(ip)}</td></tr>`).join('');
+  const ipRows = environment.ips.map((ip, index) => `<tr><td>${index + 1}</td><td>${ip}</td>${alertMonitor ? '' : `<td>${environment.cities[index] || cityForIp(ip)}</td>`}</tr>`).join('');
+  const cityRows = environment.commonCities.map(({ city, source }, index) => `<tr><td>${index + 1}</td><td>${city}</td><td>${source}</td></tr>`).join('');
   const deviceRows = environment.devices.map((device, index) => `<tr><td>${index + 1}</td><td class="device-value">${device}</td><td>${environment.deviceInfos[index] || deviceInfoForDevice(device)}</td></tr>`).join('');
   openDialog('用户常用环境', `
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
-    <div class="detail-section"><h3>IP维度</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用IP</th><th>对应城市</th></tr></thead><tbody>${ipRows}</tbody></table></div>
+    <div class="detail-section"><h3>${alertMonitor ? '常用IP' : 'IP维度'}</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用IP</th>${alertMonitor ? '' : '<th>对应城市</th>'}</tr></thead><tbody>${ipRows || '<tr><td colspan="2">暂无常用IP</td></tr>'}</tbody></table></div>
+    ${alertMonitor ? `<div class="detail-section"><h3>常用城市</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用城市</th><th>认定来源</th></tr></thead><tbody>${cityRows || '<tr><td colspan="3">暂无常用城市</td></tr>'}</tbody></table></div>` : ''}
     <div class="detail-section"><h3>设备维度</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用设备号</th><th>对应设备信息</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-back-score-detail>返回评分明细</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
   $('[data-back-score-detail]').addEventListener('click', () => {
