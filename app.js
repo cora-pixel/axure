@@ -29,15 +29,55 @@ const riskTgidConfig = {
   inherited: { h3: true, asia: true, qh: true },
 };
 
-const commonEnvironmentConfig = {
+const alertMonitor = document.body.hasAttribute('data-alert-monitor');
+const monitorConfigKey = 'cora001b-monitor.environmentConfig';
+const commonConfigDefaults = alertMonitor ? {
+  ip: { days: 30, count: 2, expiryDays: 90, disabled: false },
+  city: { days: 90, count: 5, disabled: false },
+  device: { days: 180, count: 2, expiryDays: 180, disabled: false },
+} : {
   ip: { days: 30, count: 5, disabled: false },
   device: { days: 30, count: 5, disabled: false },
 };
-
-const riskAssociationConfig = {
-  ip: { days: 30, accounts: 90, disabled: false },
-  device: { days: 30, accounts: 90, disabled: false },
+const riskConfigDefaults = {
+  ip: { days: 30, accounts: alertMonitor ? 21 : 90, exitDays: null, disabled: false },
+  device: { days: 30, accounts: alertMonitor ? 6 : 90, exitDays: null, disabled: false },
 };
+const cloneConfig = defaults => Object.fromEntries(Object.entries(defaults).map(([type, rule]) => [type, { ...rule }]));
+const commonEnvironmentConfig = cloneConfig(commonConfigDefaults);
+const riskAssociationConfig = cloneConfig(riskConfigDefaults);
+const isPositiveInteger = value => Number.isSafeInteger(value) && value > 0;
+
+if (alertMonitor) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(monitorConfigKey));
+    for (const [type, defaults] of Object.entries(commonConfigDefaults)) {
+      const rule = saved?.common?.[type];
+      if (!rule || ![rule.days, rule.count].every(isPositiveInteger) ||
+          ('expiryDays' in defaults && !isPositiveInteger(rule.expiryDays))) continue;
+      commonEnvironmentConfig[type] = { ...defaults, days: rule.days, count: rule.count, disabled: rule.disabled === true };
+      if ('expiryDays' in defaults) commonEnvironmentConfig[type].expiryDays = rule.expiryDays;
+    }
+    for (const [type, defaults] of Object.entries(riskConfigDefaults)) {
+      const rule = saved?.risk?.[type];
+      if (!rule || ![rule.days, rule.accounts].every(isPositiveInteger) ||
+          (rule.exitDays !== null && (!isPositiveInteger(rule.exitDays) || rule.exitDays <= rule.days))) continue;
+      riskAssociationConfig[type] = { ...defaults, days: rule.days, accounts: rule.accounts,
+        exitDays: rule.exitDays, disabled: rule.disabled === true };
+    }
+  } catch {
+    // Invalid or unavailable storage falls back to the monitor defaults.
+  }
+}
+
+function saveMonitorEnvironmentConfig() {
+  if (!alertMonitor) return;
+  try {
+    localStorage.setItem(monitorConfigKey, JSON.stringify({ common: commonEnvironmentConfig, risk: riskAssociationConfig }));
+  } catch {
+    // Settings are still available for the current preview session.
+  }
+}
 
 const frozenMemberIds = new Set(['2795074']);
 
@@ -322,7 +362,6 @@ const state = {
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const readOnlyAlerts = document.body.hasAttribute('data-readonly-alerts');
-const alertMonitor = document.body.hasAttribute('data-alert-monitor');
 const loginScoreScopeKey = alertMonitor ? 'cora001b-monitor.loginScoreScope' : 'cora001b.loginScoreScope';
 
 function scoreClass(score) {
@@ -1355,45 +1394,62 @@ function openRiskTgidConfigDialog() {
   });
 }
 
+const commonConfigFields = {
+  ip: { suffix: 'Ip', targetLabel: 'IP', systemName: 'common_ip_rule' },
+  city: { suffix: 'City', targetLabel: '地', systemName: 'common_city_rule' },
+  device: { suffix: 'Device', targetLabel: '设备', systemName: 'common_device_rule' },
+};
+
 function renderCommonEnvironmentConfigRows() {
-  const ipValue = `${commonEnvironmentConfig.ip.days},${commonEnvironmentConfig.ip.count}`;
-  const deviceValue = `${commonEnvironmentConfig.device.days},${commonEnvironmentConfig.device.count}`;
-  if ($('#commonIpBaseValue')) $('#commonIpBaseValue').textContent = ipValue;
-  if ($('#commonIpDefaultValue')) $('#commonIpDefaultValue').textContent = ipValue;
-  if ($('#commonDeviceBaseValue')) $('#commonDeviceBaseValue').textContent = deviceValue;
-  if ($('#commonDeviceDefaultValue')) $('#commonDeviceDefaultValue').textContent = deviceValue;
-  [['ip', 'commonIpStatus', 'toggleCommonIpBtn'], ['device', 'commonDeviceStatus', 'toggleCommonDeviceBtn']].forEach(([type, statusId, toggleId]) => {
-    const status = $(`#${statusId}`);
-    const toggle = $(`#${toggleId}`);
+  for (const [type, config] of Object.entries(commonEnvironmentConfig)) {
+    const { suffix } = commonConfigFields[type];
+    const defaults = alertMonitor ? commonConfigDefaults[type] : config;
+    const base = $(`#common${suffix}BaseValue`);
+    const defaultValue = $(`#common${suffix}DefaultValue`);
+    const expiry = $(`#common${suffix}ExpiryValue`);
+    if (base) base.textContent = `${config.days},${config.count}`;
+    if (defaultValue) defaultValue.textContent = `${defaults.days},${defaults.count}`;
+    if (expiry) expiry.textContent = `过期：${config.expiryDays}天未有效使用`;
+    const status = $(`#common${suffix}Status`);
+    const toggle = $(`#toggleCommon${suffix}Btn`);
     if (status) {
-      status.textContent = commonEnvironmentConfig[type].disabled ? '禁用' : '启用';
-      status.className = commonEnvironmentConfig[type].disabled ? 'status-disabled' : 'status-enabled';
+      status.textContent = config.disabled ? '禁用' : '启用';
+      status.className = config.disabled ? 'status-disabled' : 'status-enabled';
     }
-    if (toggle) toggle.textContent = commonEnvironmentConfig[type].disabled ? '设为启用' : '设为禁用';
-  });
+    if (toggle) toggle.textContent = config.disabled ? '设为启用' : '设为禁用';
+  }
 }
 
 function openCommonEnvironmentConfigDialog(type) {
-  const isIp = type === 'ip';
+  const { targetLabel, systemName } = commonConfigFields[type];
+  const isCity = type === 'city';
   const config = commonEnvironmentConfig[type];
-  const title = isIp ? '常用IP判定配置' : '常用设备判定配置';
-  const systemName = isIp ? 'common_ip_rule' : 'common_device_rule';
-  const targetLabel = isIp ? 'IP' : '设备';
-  const description = `配置格式为“统计天数,${targetLabel}使用次数”。例如30,5表示同一账号的同一有效${targetLabel}在30天内成功登录达到5次后，认定为常用${targetLabel}。`;
+  const defaults = alertMonitor ? commonConfigDefaults[type] : config;
+  const title = `常用${targetLabel}判定配置`;
+  const valueLabel = isCity ? '统计天数,同城成功登录次数' : `统计天数,${targetLabel}使用次数`;
+  const hasExpiry = alertMonitor && !isCity;
+  const description = alertMonitor ? {
+    ip: '同一会员在统计窗口内使用同一有效IP成功登录达到配置次数，认定为常用IP。有效注册IP可直接认定，不按时间过期；生效中的风险IP不能算常用。',
+    city: '仍可用的常用IP所在城市直接认定。其他城市按同一会员、同一城市累计成功登录次数，可跨IP和渠道。两条途径都不满足时，不再算常用地。',
+    device: 'PC、H5、App分开统计，Android和iOS同属App。有效注册设备仅归属注册端，不按时间过期；风险设备不能算常用，完整设备信息跟随常用设备。',
+  }[type] : `配置格式为“${valueLabel}”。例如30,5表示同一账号的同一有效${targetLabel}在30天内成功登录达到5次后，认定为常用${targetLabel}。`;
+  const criterion = alertMonitor ? `相邻两次计入的成功登录须间隔至少24小时。页面刷新、Token续期不计；${isCity ? '无效IP、无法识别的城市及风险IP的登录不累计。禁用此配置只停止按同城次数补充认定，不影响常用IP带出的城市。' : `无效${targetLabel}和风险期间的使用不累计。刚达标从下次登录生效。`}`
+    : `只统计成功登录；页面刷新、Token续期和无效${targetLabel}不计次数。同一${targetLabel}按会员ID分别统计。`;
   openDialog(`设置配置：${title}`, `
     <div class="config-detail-form">
-      <div class="config-detail-label">配置分组：</div><select><option>常用IP／设备配置</option></select>
+      <div class="config-detail-label">配置分组：</div><select><option>${alertMonitor ? '常用环境配置' : '常用IP／设备配置'}</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <div class="config-detail-label">基础配置：</div><div><input id="commonConfigValue" value="${config.days},${config.count}" placeholder="统计天数,${targetLabel}使用次数"><p class="field-help">参数1为统计天数，参数2为${targetLabel}使用次数；例如30,5表示30天内使用达到5次。</p></div>
+      <label class="config-detail-label" for="commonConfigValue">基础配置：</label><div><input id="commonConfigValue" value="${config.days},${config.count}" placeholder="${valueLabel}"><p class="field-help">${valueLabel}${alertMonitor ? '' : '；例如30,5表示30天内使用达到5次。'}</p></div>
+      ${hasExpiry ? `<label class="config-detail-label" for="commonExpiryDays">普通常用${targetLabel}过期天数：</label><div><input id="commonExpiryDays" type="number" min="1" step="1" value="${config.expiryDays}"><p class="field-help">距最后一次有效使用满此天数即过期，注册环境不受此限制。</p></div>` : ''}
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
-      <div class="config-detail-label">配置默认值：</div><input value="${config.days},${config.count}" disabled>
+      <div class="config-detail-label">配置默认值：</div><input value="${defaults.days},${defaults.count}" disabled>
       <div class="config-detail-label">配置类型：</div><select><option>组合值</option></select>
       <div class="config-detail-label">配置值属性：</div><select><option>整数,整数</option></select>
       <div class="config-detail-label">配置描述：</div><textarea disabled>${description}</textarea>
-      <div class="config-detail-label">统计口径：</div><textarea disabled>只统计成功登录；页面刷新、Token续期和无效${targetLabel}不计次数。同一${targetLabel}按会员ID分别统计。</textarea>
+      <div class="config-detail-label">统计口径：</div><textarea disabled>${criterion}</textarea>
     </div>
     <p class="config-error" id="commonConfigError" aria-live="polite"></p>
     <div class="admin-dialog-actions"><button class="admin-btn" data-save-common-config>保存配置</button><button class="admin-btn secondary" data-dialog-cancel>返回列表</button></div>
@@ -1403,15 +1459,21 @@ function openCommonEnvironmentConfigDialog(type) {
   $('[data-save-common-config]').addEventListener('click', () => {
     const value = $('#commonConfigValue').value.trim().replace(/\s+/g, '');
     if (!/^\d+,\d+$/.test(value)) {
-      $('#commonConfigError').textContent = `请按“统计天数,${targetLabel}使用次数”填写，并使用英文逗号。`;
+      $('#commonConfigError').textContent = `请按“${valueLabel}”填写，并使用英文逗号。`;
       return;
     }
     const [days, count] = value.split(',').map(Number);
-    if (![days, count].every(item => Number.isInteger(item) && item > 0)) {
+    if (![days, count].every(isPositiveInteger)) {
       $('#commonConfigError').textContent = '统计天数和使用次数均须为大于0的整数。';
       return;
     }
-    commonEnvironmentConfig[type] = { ...commonEnvironmentConfig[type], days, count };
+    const expiryDays = hasExpiry ? Number($('#commonExpiryDays').value) : undefined;
+    if (hasExpiry && !isPositiveInteger(expiryDays)) {
+      $('#commonConfigError').textContent = '过期天数须为大于0的整数。';
+      return;
+    }
+    commonEnvironmentConfig[type] = { ...config, days, count, ...(hasExpiry ? { expiryDays } : {}) };
+    saveMonitorEnvironmentConfig();
     renderCommonEnvironmentConfigRows();
     closeDialog();
   });
@@ -1422,9 +1484,12 @@ function renderRiskAssociationConfigRows() {
     const isIp = type === 'ip';
     const prefix = isIp ? 'riskIpRule' : 'riskDeviceRule';
     const config = riskAssociationConfig[type];
+    const defaults = alertMonitor ? riskConfigDefaults[type] : config;
     const value = `${config.days},${config.accounts}`;
     if ($(`#${prefix}BaseValue`)) $(`#${prefix}BaseValue`).textContent = value;
-    if ($(`#${prefix}DefaultValue`)) $(`#${prefix}DefaultValue`).textContent = value;
+    if ($(`#${prefix}DefaultValue`)) $(`#${prefix}DefaultValue`).textContent = `${defaults.days},${defaults.accounts}`;
+    const exit = $(`#${prefix}ExitValue`);
+    if (exit) exit.textContent = config.exitDays === null ? '退出：待配置' : `退出：滚动${config.exitDays}天`;
     const status = $(`#${prefix}Status`);
     const toggle = $(`#toggle${isIp ? 'RiskIp' : 'RiskDevice'}RuleBtn`);
     if (status) {
@@ -1441,21 +1506,25 @@ function openRiskAssociationConfigDialog(type) {
   const targetLabel = isIp ? 'IP' : '设备号';
   const title = isIp ? '风险IP判定配置' : '风险设备判定配置';
   const systemName = isIp ? 'risk_ip_rule' : 'risk_device_rule';
-  const example = `例如30,90表示滚动30天内，至少有90个不同会员ID使用同一有效${targetLabel}成功登录后，将该${targetLabel}加入${isIp ? '风险IP' : '风险设备'}名单。`;
+  const defaults = alertMonitor ? riskConfigDefaults[type] : config;
+  const defaultAccounts = alertMonitor ? defaults.accounts : 90;
+  const example = `例如30,${defaultAccounts}表示滚动30天内，至少有${defaultAccounts}个不同会员ID使用同一有效${targetLabel}成功登录后，将该${targetLabel}加入${isIp ? '风险IP' : '风险设备'}名单。`;
+  const scope = alertMonitor ? ` ${isIp ? '同一公网IP跨端统计。' : 'PC、H5、App分开统计，Android和iOS同属App；无效设备号不计。'} 达到人数门槛后只影响后续登录，不由单次低分入名单。` : '';
   openDialog(`设置配置：${title}`, `
     <div class="config-detail-form">
       <div class="config-detail-label">配置分组：</div><select><option>风险IP／设备配置</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <div class="config-detail-label">基础配置：</div><div><input id="riskRuleConfigValue" value="${config.days},${config.accounts}" placeholder="统计天数,关联账号数"><p class="field-help">参数1为统计天数，参数2为去重关联账号数；${example}</p></div>
+      <label class="config-detail-label" for="riskRuleConfigValue">${alertMonitor ? '入名单配置：' : '基础配置：'}</label><div><input id="riskRuleConfigValue" value="${config.days},${config.accounts}" placeholder="统计天数,关联账号数"><p class="field-help">滚动统计天数,去重关联账号数；${example}</p></div>
+      ${alertMonitor ? `<label class="config-detail-label" for="riskExitDays">退出观察天数（N）：</label><div><input id="riskExitDays" type="number" min="${config.days + 1}" step="1" value="${config.exitDays ?? ''}" placeholder="待配置"><p class="field-help">须大于入名单统计天数。已入名单项若在滚动N天内的去重账号数低于门槛则过期；等于门槛仍保留。</p></div>` : ''}
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
-      <div class="config-detail-label">配置默认值：</div><input value="${config.days},${config.accounts}" disabled>
+      <div class="config-detail-label">配置默认值：</div><input value="${defaults.days},${defaults.accounts}" disabled>
       <div class="config-detail-label">配置类型：</div><select><option>组合值</option></select>
       <div class="config-detail-label">配置值属性：</div><select><option>整数,整数</option></select>
       <div class="config-detail-label">配置描述：</div><textarea disabled>${example}</textarea>
-      <div class="config-detail-label">统计口径：</div><textarea disabled>仅统计成功登录；关联账号数按会员ID去重。同一会员在同一${targetLabel}下重复登录多次只计算1个关联账号。</textarea>
+      <div class="config-detail-label">统计口径：</div><textarea disabled>仅统计成功登录；关联账号数按会员ID去重。同一会员在同一${targetLabel}下重复登录多次只计算1个关联账号。${scope}</textarea>
       <div class="config-detail-label">是否禁用：</div><label class="config-disabled-check"><input type="checkbox" id="riskRuleDisabled" ${config.disabled ? 'checked' : ''}>选中禁用</label>
     </div>
     <p class="config-error" id="riskRuleConfigError" aria-live="polite"></p>
@@ -1463,6 +1532,10 @@ function openRiskAssociationConfigDialog(type) {
   `);
   $('#adminDialog').classList.add('config-detail-dialog');
   $('[data-dialog-cancel]').addEventListener('click', closeDialog);
+  if (alertMonitor) $('#riskRuleConfigValue').addEventListener('input', event => {
+    const days = Number(event.target.value.split(',')[0]);
+    $('#riskExitDays').min = isPositiveInteger(days) ? days + 1 : 1;
+  });
   $('[data-save-risk-rule]').addEventListener('click', () => {
     const value = $('#riskRuleConfigValue').value.trim().replace(/\s+/g, '');
     if (!/^\d+,\d+$/.test(value)) {
@@ -1470,11 +1543,18 @@ function openRiskAssociationConfigDialog(type) {
       return;
     }
     const [days, accounts] = value.split(',').map(Number);
-    if (![days, accounts].every(item => Number.isInteger(item) && item > 0)) {
+    if (![days, accounts].every(isPositiveInteger)) {
       $('#riskRuleConfigError').textContent = '统计天数和关联账号数均须为大于0的整数。';
       return;
     }
-    riskAssociationConfig[type] = { ...riskAssociationConfig[type], days, accounts, disabled: $('#riskRuleDisabled').checked };
+    const exitInput = alertMonitor ? $('#riskExitDays') : null;
+    const exitDays = exitInput?.value ? Number(exitInput.value) : null;
+    if (exitInput && (exitInput.validity.badInput || (exitDays !== null && (!isPositiveInteger(exitDays) || exitDays <= days)))) {
+      $('#riskRuleConfigError').textContent = '退出观察天数须为大于入名单统计天数的整数，未定可留空。';
+      return;
+    }
+    riskAssociationConfig[type] = { ...config, days, accounts, exitDays, disabled: $('#riskRuleDisabled').checked };
+    saveMonitorEnvironmentConfig();
     renderRiskAssociationConfigRows();
     closeDialog();
   });
@@ -1772,28 +1852,27 @@ if ($('#basicConfigMenu')) $('#basicConfigMenu').addEventListener('click', event
 if ($('#accountScoreMenu')) $('#accountScoreMenu').addEventListener('click', () => showAdminFeature('score'));
 if ($('#setRiskTgidBtn')) $('#setRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
 if ($('#editRiskTgidBtn')) $('#editRiskTgidBtn').addEventListener('click', openRiskTgidConfigDialog);
-if ($('#setCommonIpBtn')) $('#setCommonIpBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('ip'));
-if ($('#editCommonIpBtn')) $('#editCommonIpBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('ip'));
-if ($('#setCommonDeviceBtn')) $('#setCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
-if ($('#editCommonDeviceBtn')) $('#editCommonDeviceBtn').addEventListener('click', () => openCommonEnvironmentConfigDialog('device'));
+for (const [type, { suffix }] of Object.entries(commonConfigFields)) {
+  $(`#setCommon${suffix}Btn`)?.addEventListener('click', () => openCommonEnvironmentConfigDialog(type));
+  $(`#editCommon${suffix}Btn`)?.addEventListener('click', () => openCommonEnvironmentConfigDialog(type));
+  $(`#toggleCommon${suffix}Btn`)?.addEventListener('click', () => {
+    commonEnvironmentConfig[type].disabled = !commonEnvironmentConfig[type].disabled;
+    saveMonitorEnvironmentConfig();
+    renderCommonEnvironmentConfigRows();
+  });
+}
 if ($('#setRiskIpRuleBtn')) $('#setRiskIpRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('ip'));
 if ($('#editRiskIpRuleBtn')) $('#editRiskIpRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('ip'));
 if ($('#setRiskDeviceRuleBtn')) $('#setRiskDeviceRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('device'));
 if ($('#editRiskDeviceRuleBtn')) $('#editRiskDeviceRuleBtn').addEventListener('click', () => openRiskAssociationConfigDialog('device'));
-if ($('#toggleCommonIpBtn')) $('#toggleCommonIpBtn').addEventListener('click', () => {
-  commonEnvironmentConfig.ip.disabled = !commonEnvironmentConfig.ip.disabled;
-  renderCommonEnvironmentConfigRows();
-});
-if ($('#toggleCommonDeviceBtn')) $('#toggleCommonDeviceBtn').addEventListener('click', () => {
-  commonEnvironmentConfig.device.disabled = !commonEnvironmentConfig.device.disabled;
-  renderCommonEnvironmentConfigRows();
-});
 if ($('#toggleRiskIpRuleBtn')) $('#toggleRiskIpRuleBtn').addEventListener('click', () => {
   riskAssociationConfig.ip.disabled = !riskAssociationConfig.ip.disabled;
+  saveMonitorEnvironmentConfig();
   renderRiskAssociationConfigRows();
 });
 if ($('#toggleRiskDeviceRuleBtn')) $('#toggleRiskDeviceRuleBtn').addEventListener('click', () => {
   riskAssociationConfig.device.disabled = !riskAssociationConfig.device.disabled;
+  saveMonitorEnvironmentConfig();
   renderRiskAssociationConfigRows();
 });
 if ($('#addConfigBtn')) $('#addConfigBtn').addEventListener('click', openRiskTgidConfigDialog);

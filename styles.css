@@ -340,6 +340,7 @@ main { padding: 20px; }
 .config-list-table th:nth-child(10) { width: 260px; }
 .config-list-table th, .config-list-table td { text-align: center; }
 .config-list-table td:nth-child(4), .config-list-table td:nth-child(8) { overflow-wrap: anywhere; }
+.config-value-meta { display: block; margin-top: 3px; color: #526671; font-size: 11px; line-height: 1.4; }
 .inherit-text { color: #4c8a35; font-weight: 700; }
 .status-disabled { color: #d9534f; }
 .account-score-table { min-width: 1880px; }
