@@ -228,13 +228,19 @@ function isRiskEntityValue(type, value) {
   return rows.some(item => item.value === value && !item.whitelisted);
 }
 
+const prototypeIpLocations = [
+  ['139.162.', '中国', '上海市'], ['45.76.', '新加坡', '新加坡'], ['202.55.', '菲律宾', '马尼拉市'],
+  ['47.76.', '中国', '杭州市'], ['203.0.113.', '中国', '深圳市'], ['118.31.', '中国', '杭州市'],
+  ['103.27.', '中国', '广州市'], ['103.88.', '泰国', '曼谷市'], ['198.51.100.', '中国', '北京市'],
+];
+
+function ipLocation(ip) {
+  const [, country = '未知', city = '未知'] = prototypeIpLocations.find(([prefix]) => ip.startsWith(prefix)) || [];
+  return { country, city };
+}
+
 function cityForIp(ip) {
-  const cityMap = [
-    ['139.162.', '上海市'], ['45.76.', '新加坡'], ['202.55.', '马尼拉市'],
-    ['47.76.', '杭州市'], ['203.0.113.', '深圳市'], ['118.31.', '杭州市'],
-    ['103.27.', '广州市'], ['103.88.', '曼谷市'], ['198.51.100.', '北京市'],
-  ];
-  return cityMap.find(item => ip.startsWith(item[0]))?.[1] || '未知';
+  return ipLocation(ip).city;
 }
 
 function deviceInfoForDevice(device) {
@@ -343,12 +349,16 @@ function commonEnvironmentForRow(row) {
 
 function openUserCommonEnvironmentDialog(row, source) {
   const environment = commonEnvironmentForRow(row);
-  const ipRows = environment.ips.map((ip, index) => `<tr><td>${index + 1}</td><td>${ip}</td>${alertMonitor ? '' : `<td>${environment.cities[index] || cityForIp(ip)}</td>`}</tr>`).join('');
+  const ipRows = environment.ips.map((ip, index) => {
+    const { country, city } = ipLocation(ip);
+    const locationCells = alertMonitor ? `<td>${country}</td><td>${city}</td>` : `<td>${environment.cities[index] || city}</td>`;
+    return `<tr><td>${index + 1}</td><td>${ip}</td>${locationCells}</tr>`;
+  }).join('');
   const cityRows = environment.commonCities.map(({ city, source }, index) => `<tr><td>${index + 1}</td><td>${city}</td><td>${source}</td></tr>`).join('');
   const deviceRows = environment.devices.map((device, index) => `<tr><td>${index + 1}</td><td class="device-value">${device}</td><td>${environment.deviceInfos[index] || deviceInfoForDevice(device)}</td></tr>`).join('');
   openDialog('用户常用环境', `
     <div class="environment-account"><span>会员ID／账号</span><strong>${row.memberId}／${row.user}</strong></div>
-    <div class="detail-section"><h3>${alertMonitor ? '常用IP' : 'IP维度'}</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用IP</th>${alertMonitor ? '' : '<th>对应城市</th>'}</tr></thead><tbody>${ipRows || '<tr><td colspan="2">暂无常用IP</td></tr>'}</tbody></table></div>
+    <div class="detail-section"><h3>${alertMonitor ? '常用IP' : 'IP维度'}</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用IP</th>${alertMonitor ? '<th>归属国家／地区</th><th>归属城市</th>' : '<th>对应城市</th>'}</tr></thead><tbody>${ipRows || `<tr><td colspan="${alertMonitor ? 4 : 3}">暂无常用IP</td></tr>`}</tbody></table></div>
     ${alertMonitor ? `<div class="detail-section"><h3>常用城市</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用城市</th><th>认定来源</th></tr></thead><tbody>${cityRows || '<tr><td colspan="3">暂无常用城市</td></tr>'}</tbody></table></div>` : ''}
     <div class="detail-section"><h3>设备维度</h3><table class="mini-table"><thead><tr><th>序号</th><th>常用设备号</th><th>对应设备信息</th></tr></thead><tbody>${deviceRows}</tbody></table></div>
     <div class="admin-dialog-actions"><button class="admin-btn secondary" data-back-score-detail>返回评分明细</button><button class="admin-btn" data-dialog-cancel>关闭</button></div>`);
