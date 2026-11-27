@@ -33,7 +33,7 @@ const alertMonitor = document.body.hasAttribute('data-alert-monitor');
 const monitorConfigKey = 'cora001b-monitor.environmentConfig';
 const commonConfigDefaults = alertMonitor ? {
   ip: { days: 30, count: 2, expiryDays: 90, disabled: false },
-  city: { days: 90, count: 5, disabled: false },
+  city: { days: 90, count: 5, expiryDays: 180, disabled: false },
   device: { days: 180, count: 2, expiryDays: 180, disabled: false },
 } : {
   ip: { days: 30, count: 5, disabled: false },
@@ -53,10 +53,11 @@ if (alertMonitor) {
     const saved = JSON.parse(localStorage.getItem(monitorConfigKey));
     for (const [type, defaults] of Object.entries(commonConfigDefaults)) {
       const rule = saved?.common?.[type];
+      const expiryDays = type === 'city' && rule?.expiryDays === undefined ? defaults.expiryDays : rule?.expiryDays;
       if (!rule || ![rule.days, rule.count].every(isPositiveInteger) ||
-          ('expiryDays' in defaults && !isPositiveInteger(rule.expiryDays))) continue;
+          ('expiryDays' in defaults && !isPositiveInteger(expiryDays))) continue;
       commonEnvironmentConfig[type] = { ...defaults, days: rule.days, count: rule.count, disabled: rule.disabled === true };
-      if ('expiryDays' in defaults) commonEnvironmentConfig[type].expiryDays = rule.expiryDays;
+      if ('expiryDays' in defaults) commonEnvironmentConfig[type].expiryDays = expiryDays;
     }
     for (const [type, defaults] of Object.entries(riskConfigDefaults)) {
       const rule = saved?.risk?.[type];
@@ -321,7 +322,7 @@ function renderLoginEnvironmentRows(row, actionLabel) {
 const commonEnvironmentByMember = {
   '2795074': {
     ips: [['139.162.87.78', '72', '2026-11-15 20:18', '阈值命中'], ['47.76.91.34', '53', '2026-11-12 09:42', '阈值命中']],
-    citiesQualifiedByLogins: ['广州市'],
+    citiesQualifiedByLogins: [['广州市', '2026-11-12T20:10:00+08:00']],
     devices: [['Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW', '32', '2026-11-15 20:18', '阈值命中'], ['iOS-Safari-JRPu3of08JTLzcQXOVB8', '9', '2026-11-08 18:06', '验证通过']],
     registration: { ip: '139.162.87.78', device: 'Win10-Chrome-xpMhmJ2mV5SVx2NRNZUW' },
   },
@@ -351,7 +352,7 @@ const commonEnvironmentDisplayByUser = {
   'travelweb014@h8': {
     ips: ['118.31.22.14', '118.31.22.114', '118.31.88.14', '139.162.14.14'],
     cities: ['杭州市', '杭州市', '杭州市', '上海市'],
-    citiesQualifiedByLogins: ['苏州市'],
+    citiesQualifiedByLogins: [['苏州市', '2026-11-14T16:20:00+08:00']],
     devices: ['Win10-Chrome-PC14', 'Web-H5-COMMON14', 'iOS-Safari-HISTORY14'],
     deviceInfos: ['Windows 10 / Chrome 130 / PC', 'Windows 11 / Chrome 130 / H5', 'iOS 18 / Safari / H5'],
   },
@@ -401,6 +402,8 @@ function fallbackCommonDevice(row) {
   return `Win10-Chrome-COMMON${suffix}`;
 }
 
+const monitorEnvironmentSnapshotTime = Date.parse('2026-11-19T16:25:00+08:00');
+
 function commonEnvironmentForRow(row) {
   const configured = commonEnvironmentDisplayByUser[row.user];
   const stored = commonEnvironmentByMember[row.memberId] || { ips: [], devices: [] };
@@ -418,7 +421,9 @@ function commonEnvironmentForRow(row) {
       const city = cityForIp(ip);
       if (city !== '未知') commonCities.set(city, '常用IP带出');
     }
-    for (const city of configured?.citiesQualifiedByLogins || stored.citiesQualifiedByLogins || []) {
+    const expiryMs = commonEnvironmentConfig.city.expiryDays * 86400000;
+    for (const [city, lastUsed] of configured?.citiesQualifiedByLogins || stored.citiesQualifiedByLogins || []) {
+      if (monitorEnvironmentSnapshotTime - Date.parse(lastUsed) >= expiryMs) continue;
       commonCities.set(city, commonCities.has(city) ? '常用IP带出、同城登录达标' : '同城登录达标');
     }
   }
@@ -767,7 +772,7 @@ function monitorRuleDescription(id) {
     case 'S01':
       return `${ip.disabled ? '按登录次数认定已禁用。' : `同一会员滚动${ip.days}天内用同一有效IP成功登录至少${ip.count}次，计数间隔至少24小时；普通常用IP满${ip.expiryDays}天未有效使用即过期。`}有效注册IP不按时间过期；风险IP不算常用。`;
     case 'S02':
-      return `仍可用的常用IP所在城市直接认定。${city.disabled ? '按同城次数补充认定已禁用。' : `其他城市滚动${city.days}天内同城成功登录至少${city.count}次，计数间隔至少24小时；可跨IP、跨端，风险IP登录不计。`}`;
+      return `仍可用的常用IP所在城市直接认定，并随该IP有效。${city.disabled ? '按同城次数补充认定已禁用。' : `其他城市滚动${city.days}天内同城成功登录至少${city.count}次，计数间隔至少24小时；可跨IP、跨端，风险IP登录不计。同城达标的常用地满${city.expiryDays}天未有效使用即过期。`}`;
     case 'S03':
       return `PC、H5、App分开。${device.disabled ? '按登录次数认定已禁用。' : `同端同一有效设备号滚动${device.days}天内成功登录至少${device.count}次，计数间隔至少24小时；普通常用设备满${device.expiryDays}天未有效使用即过期。`}有效注册设备只在注册端认定，不按时间过期；风险设备不算常用。本端没有可用常用设备不扣此项；未获取设备号时，设备两项均不扣分。`;
     case 'S04':
@@ -1606,11 +1611,14 @@ function openCommonEnvironmentConfigDialog(type) {
   const config = commonEnvironmentConfig[type];
   const defaults = alertMonitor ? commonConfigDefaults[type] : config;
   const title = `常用${targetLabel}判定配置`;
-  const hasExpiry = alertMonitor && !isCity;
-  const valueLabel = isCity ? '统计天数,同城成功登录次数' : `统计天数,${targetLabel}使用次数${hasExpiry ? ',过期天数' : ''}`;
+  const hasExpiry = 'expiryDays' in defaults;
+  const valueLabel = `统计天数,${isCity ? '同城成功登录次数' : `${targetLabel}使用次数`}${hasExpiry ? ',过期天数' : ''}`;
+  const expiryHint = isCity
+    ? '。第3项仅用于按同城登录次数认定的常用地，从最后一次有效同城登录起算；常用IP带出的城市跟随该IP。'
+    : '。第3项从最后一次有效使用起算，注册环境不受此限制。';
   const description = alertMonitor ? {
     ip: '同一会员在统计窗口内使用同一有效IP成功登录达到配置次数，认定为常用IP。有效注册IP可直接认定，不按时间过期；生效中的风险IP不能算常用。',
-    city: '仍可用的常用IP所在城市直接认定。其他城市按同一会员、同一城市累计成功登录次数，可跨IP和渠道。两条途径都不满足时，不再算常用地。',
+    city: '仍可用的常用IP所在城市直接认定，并随该IP有效。其他城市按同一会员、同一城市累计成功登录次数，可跨IP和渠道；达标认定后，距最后一次有效同城登录满配置的过期天数即过期。两种来源都失效时，才不再算常用地。',
     device: 'PC、H5、App分开统计，Android和iOS同属App。有效注册设备仅归属注册端，不按时间过期；风险设备不能算常用，完整设备信息跟随常用设备。',
   }[type] : `配置格式为“${valueLabel}”。例如30,5表示同一账号的同一有效${targetLabel}在30天内成功登录达到5次后，认定为常用${targetLabel}。`;
   const criterion = alertMonitor ? `相邻两次计入的成功登录须间隔至少24小时。页面刷新、Token续期不计；${isCity ? '无效IP、无法识别的城市及风险IP的登录不累计。禁用此配置只停止按同城次数补充认定，不影响常用IP带出的城市。' : `无效${targetLabel}和风险期间的使用不累计。刚达标从下次登录生效。`}`
@@ -1620,7 +1628,7 @@ function openCommonEnvironmentConfigDialog(type) {
       <div class="config-detail-label">配置分组：</div><select><option>${alertMonitor ? '常用环境配置' : '常用IP／设备配置'}</option></select>
       <div class="config-detail-label">系统名称：</div><input value="${systemName}" disabled>
       <div class="config-detail-label">配置标题：</div><input value="${title}" disabled>
-      <label class="config-detail-label" for="commonConfigValue">基础配置：</label><div><input id="commonConfigValue" value="${commonConfigValue(config)}" placeholder="${valueLabel}"><p class="field-help">${valueLabel}${hasExpiry ? '。第3项从最后一次有效使用起算，注册环境不受此限制。' : alertMonitor ? '' : '；例如30,5表示30天内使用达到5次。'}</p></div>
+      <label class="config-detail-label" for="commonConfigValue">基础配置：</label><div><input id="commonConfigValue" value="${commonConfigValue(config)}" placeholder="${valueLabel}"><p class="field-help">${valueLabel}${hasExpiry ? expiryHint : '；例如30,5表示30天内使用达到5次。'}</p></div>
       <div class="config-detail-label">恒行3配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">亚体配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
       <div class="config-detail-label">启航配置属性：</div><div class="config-site-field"><input disabled><label><input type="checkbox" checked>继承</label></div>
